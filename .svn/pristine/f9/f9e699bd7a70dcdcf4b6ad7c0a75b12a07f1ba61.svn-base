@@ -1,0 +1,23 @@
+package net.visp.wirex;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import java.lang.reflect.InvocationTargetException;
+import javax.swing.JFrame;
+
+/**
+ * Hello world!
+ *
+ */
+public class App {
+
+    public static void main(String[] args) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+        ApplicationControllerFactory.connect("http://10.0.1.46:8080/g8");
+        MVP mvpController = ApplicationControllerFactory.prepare(MyView.class);
+        mvpController.display(JFrame.class);
+        
+
+//        System.exit(-1);
+    }
+}

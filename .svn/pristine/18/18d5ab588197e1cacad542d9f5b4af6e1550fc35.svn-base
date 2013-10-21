@@ -1,0 +1,61 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package net.visp.wirex.interfaces;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
+import javax.swing.JPanel;
+import net.visp.wirex.enums.Media;
+
+/**
+ *
+ * @author RBORJA
+ */
+public class Presenter {
+
+    private Model model;
+    private JPanel view;
+    
+    private String path;
+    private Media media;
+    private String rest;
+    
+    public Presenter(Model model, JPanel panel) {
+        this.model = model;
+        this.view = panel;
+    }
+    
+    public Model getModel() {
+        return model;
+    }
+    
+    public void setModel(Model model) {
+        this.model = model;
+    }
+    
+    public JPanel getPanel() {
+        return view;
+    }
+    
+    public void setPanel(JPanel panel) {
+        this.view = panel;
+    }
+    
+    public void update() {
+        Client client = Client.create();
+        WebResource resource = client.resource(path);
+        if (rest.equals("post")) {
+            resource.type(media.value()).post(model);
+        } else {
+            resource.accept(media.value()).get(model.getClass());
+        }
+    }
+    
+    private void init(String path, Media media, String rest) {
+        this.path = path;
+        this.media = media;
+        this.rest = rest;
+    }
+}

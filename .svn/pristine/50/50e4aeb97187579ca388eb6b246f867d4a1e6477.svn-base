@@ -1,0 +1,125 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package net.visp.mvpshortcut;
+
+import com.jgoodies.binding.PresentationModel;
+import com.jgoodies.binding.adapter.BasicComponentFactory;
+import com.jgoodies.binding.value.ValueModel;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import net.visp.mvpshortcut.annotations.Bind;
+import net.visp.mvpshortcut.annotations.Data;
+import net.visp.mvpshortcut.annotations.Event;
+import net.visp.mvpshortcut.interfaces.Model;
+
+/**
+ *
+ * @author RBORJA
+ */
+public class MVPShortcut {
+
+    static {
+        components = new HashMap<>();
+    }
+    private final static Map<String, Component> components;
+
+    public static Component checkout(String name) {
+        Component component = components.get(name);
+        components.remove(name);
+        return component;
+    }
+
+    public static MVP prepare(Class clazz) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+
+        Bind bind = (Bind) clazz.getAnnotation(Bind.class);
+        final Class modelClass = bind.model();
+        final Class presenterClass = bind.presenter();
+        Field[] fields = clazz.getDeclaredFields();
+        ArrayList<Field> actionFields = new ArrayList<>();
+        final Object model = modelClass.newInstance();
+        
+        for (Field field : fields) {
+            final Data data = field.getAnnotation(Data.class);
+            if (data != null) {
+                if (field.getType() == JTextField.class) {
+                    PresentationModel adapter = new PresentationModel(model);
+                    ValueModel textfieldModel = adapter.getModel(data.value());
+                    JTextField textField = BasicComponentFactory.createTextField(textfieldModel);
+                    components.put(data.value(), textField);
+                }
+            } else {
+                actionFields.add(field);
+            }
+        }
+        
+        final JPanel view = (JPanel) clazz.newInstance();
+        final Object presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, view);
+        for (Field field : actionFields) {
+            final Event event = field.getAnnotation(Event.class);
+            if (event != null) {
+                field.setAccessible(true);
+                if (event.type() == ActionListener.class) {
+                    JButton button = (JButton) field.get(view);
+                    button.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                presenterClass.getMethod(event.value()).invoke(presenter);
+                            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                Logger.getLogger(MVPShortcut.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    });
+                    field.set(view, button);
+                }
+            }
+        }
+
+        return new MVP() {
+            @Override
+            public void display(Class<? extends Window> window) {
+                Window dialog = null;
+                if (window.getClass() == JFrame.class.getClass()) {
+                    dialog = new JFrame();
+                } else {
+                    dialog = new JDialog();
+                }
+                dialog.add(view);
+                dialog.pack();
+                dialog.setMinimumSize(dialog.getPreferredSize());
+
+                Container parent = dialog.getParent();
+
+                if (parent != null) {
+                    dialog.setLocationRelativeTo(parent);
+                } else {
+                    Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+                    int x = (int) ((dimension.getWidth() - dialog.getWidth()) / 2);
+                    int y = (int) ((dimension.getHeight() - dialog.getHeight()) / 2);
+                    dialog.setLocation(x, y);
+                }
+
+                dialog.setVisible(true);
+            }
+        };
+    }
+}
