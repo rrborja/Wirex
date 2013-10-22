@@ -6,7 +6,7 @@ package net.visp.mvpshortcut;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import net.visp.wirex.interfaces.Model;
+import net.wirex.interfaces.Model;
 
 /**
  *

@@ -4,7 +4,7 @@
  */
 package net.visp.mvpshortcut;
 
-import net.visp.wirex.interfaces.Model;
+import net.wirex.interfaces.Model;
 
 /**
  *

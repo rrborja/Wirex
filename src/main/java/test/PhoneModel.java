@@ -8,8 +8,8 @@ import com.google.gson.annotations.Expose;
 import java.util.List;
 import java.io.Serializable;
 import java.util.ArrayList;
-import net.visp.wirex.interfaces.Model;
-import net.visp.wirex.structures.XList;
+import net.wirex.interfaces.Model;
+import net.wirex.structures.XList;
 
 /**
  *

@@ -5,13 +5,13 @@
 package net.visp.mvpshortcut.itemsmanager;
 
 import java.util.Date;
-import net.visp.wirex.interfaces.Model;
+import net.wirex.interfaces.Model;
 
 /**
  *
  * @author jvallar
  */
-public class Item{
+public class Item extends Model {
     private String itemCode;
     private String type;
     private String description;

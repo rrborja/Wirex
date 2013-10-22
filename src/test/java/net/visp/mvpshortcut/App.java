@@ -5,8 +5,8 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFrame;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.MVP;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.MVP;
 
 /**
  * Hello world!

@@ -8,8 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.MVP;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.MVP;
 
 /**
  *

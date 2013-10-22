@@ -7,14 +7,14 @@ package net.visp.mvpshortcut;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JPanel;
-import net.visp.wirex.annotations.Form;
-import net.visp.wirex.annotations.GET;
-import net.visp.wirex.annotations.Path;
-import net.visp.wirex.annotations.POST;
-import net.visp.wirex.annotations.Type;
-import net.visp.wirex.enums.Media;
-import net.visp.wirex.interfaces.Model;
-import net.visp.wirex.interfaces.Presenter;
+import net.wirex.annotations.Form;
+import net.wirex.annotations.GET;
+import net.wirex.annotations.Path;
+import net.wirex.annotations.POST;
+import net.wirex.annotations.Type;
+import net.wirex.enums.Media;
+import net.wirex.interfaces.Model;
+import net.wirex.interfaces.Presenter;
 
 /**
  *

@@ -12,8 +12,8 @@ import ca.odell.glazedlists.swing.EventTableModel;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.structures.XList;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.structures.XList;
 
 /**
  *

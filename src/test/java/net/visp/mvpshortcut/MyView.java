@@ -8,10 +8,10 @@ import java.awt.event.KeyListener;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JTextField;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.annotations.Bind;
-import net.visp.wirex.annotations.Event;
-import net.visp.wirex.annotations.Data;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.annotations.Bind;
+import net.wirex.annotations.Event;
+import net.wirex.annotations.Data;
 
 /**
  *
@@ -36,9 +36,9 @@ public class MyView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = (JTextField)net.visp.wirex.ApplicationControllerFactory.checkout("phoneLabel");
+        jTextField1 = (JTextField)net.wirex.ApplicationControllerFactory.checkout("phoneLabel");
         btnSubmit = new javax.swing.JButton();
-        jTextField2 = (JTextField)net.visp.wirex.ApplicationControllerFactory.checkout("newText");
+        jTextField2 = (JTextField)net.wirex.ApplicationControllerFactory.checkout("newText");
         jCheckBox1 = (JCheckBox)ApplicationControllerFactory.checkout("check");
         jTextField3 = (JTextField)ApplicationControllerFactory.checkout("lastname");
         jButton1 = new javax.swing.JButton();

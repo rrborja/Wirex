@@ -5,8 +5,8 @@
 package net.visp.mvpshortcut;
 
 import javax.swing.JLabel;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.annotations.Data;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.annotations.Data;
 
 /**
  *

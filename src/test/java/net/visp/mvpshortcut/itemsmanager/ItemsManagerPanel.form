@@ -101,7 +101,7 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="txfFind">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.visp.wirex.ApplicationControllerFactory.checkout(&quot;find&quot;);"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.ApplicationControllerFactory.checkout(&quot;find&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;find&quot;)"/>
       </AuxValues>
     </Component>
@@ -181,7 +181,7 @@
             </Property>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTable) net.visp.wirex.ApplicationControllerFactory.checkout(&quot;table&quot;)"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTable) net.wirex.ApplicationControllerFactory.checkout(&quot;table&quot;)"/>
             <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;table&quot;)"/>
           </AuxValues>
         </Component>

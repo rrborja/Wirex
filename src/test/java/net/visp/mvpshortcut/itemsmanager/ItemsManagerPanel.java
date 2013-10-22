@@ -18,12 +18,12 @@ import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.MVP;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.MVP;
 
-import net.visp.wirex.annotations.Bind;
-import net.visp.wirex.annotations.Data;
-import net.visp.wirex.annotations.Event;
+import net.wirex.annotations.Bind;
+import net.wirex.annotations.Data;
+import net.wirex.annotations.Event;
 import org.jdesktop.swingx.JXDatePicker;
 
 /**
@@ -55,10 +55,10 @@ public class ItemsManagerPanel extends JPanel {
         cmbRecurs = new javax.swing.JComboBox();
         cmbActive = new javax.swing.JComboBox();
         cmbTax = new javax.swing.JComboBox();
-        txfFind = (JTextField)net.visp.wirex.ApplicationControllerFactory.checkout("find");
+        txfFind = (JTextField)net.wirex.ApplicationControllerFactory.checkout("find");
         cmbReports = new javax.swing.JComboBox();
         scrItemManager = new javax.swing.JScrollPane();
-        tblItemManager = (JTable) net.visp.wirex.ApplicationControllerFactory.checkout("table");
+        tblItemManager = (JTable) net.wirex.ApplicationControllerFactory.checkout("table");
         jButton1 = new javax.swing.JButton();
 
         cmbType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "DISCOUNT", "FEE", "EQUIPMENT", "Wireless" }));

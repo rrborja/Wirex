@@ -6,10 +6,10 @@ package test;
 
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import net.visp.wirex.ApplicationControllerFactory;
-import net.visp.wirex.annotations.Bind;
-import net.visp.wirex.annotations.Data;
-import net.visp.wirex.annotations.Event;
+import net.wirex.ApplicationControllerFactory;
+import net.wirex.annotations.Bind;
+import net.wirex.annotations.Data;
+import net.wirex.annotations.Event;
 
 /**
  *

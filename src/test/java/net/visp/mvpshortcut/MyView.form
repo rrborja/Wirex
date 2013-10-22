@@ -70,7 +70,7 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="jTextField1">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.visp.wirex.ApplicationControllerFactory.checkout(&quot;phoneLabel&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.ApplicationControllerFactory.checkout(&quot;phoneLabel&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;phoneLabel&quot;)"/>
       </AuxValues>
     </Component>
@@ -87,7 +87,7 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextField2ActionPerformed"/>
       </Events>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.visp.wirex.ApplicationControllerFactory.checkout(&quot;newText&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.ApplicationControllerFactory.checkout(&quot;newText&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;newText&quot;)"/>
       </AuxValues>
     </Component>

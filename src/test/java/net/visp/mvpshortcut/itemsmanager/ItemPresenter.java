@@ -6,9 +6,9 @@ package net.visp.mvpshortcut.itemsmanager;
 
 import java.util.Date;
 import javax.swing.JPanel;
-import net.visp.wirex.interfaces.Model;
-import net.visp.wirex.interfaces.Presenter;
-import net.visp.wirex.structures.XList;
+import net.wirex.interfaces.Model;
+import net.wirex.interfaces.Presenter;
+import net.wirex.structures.XList;
 
 /**
  *
@@ -21,18 +21,20 @@ public class ItemPresenter extends Presenter {
     }
     
     public void update(){
-        System.err.println("test");
+        System.err.println("testasdasdasd");
         ItemModel model = (ItemModel) super.getModel();
         
-        XList<Item> arrayListModel = new XList<>();
+        XList<Item> arrayListModel = new XList();
         
         arrayListModel.add(new Item("Swing", "Swing","Swing","Swing", "Swing","Swing","Swing",new Date(),"Swing"));
         arrayListModel.add(new Item("Swing", "Swing","Swing","Swing", "Swing","Swing","Swing",new Date(),"Swing"));
         arrayListModel.add(new Item("Swing", "Swing","Swing","Swing", "Swing","Swing","Swing",new Date(),"Swing"));
         arrayListModel.add(new Item("Swing", "Swing","Swing","Swing", "Swing","Swing","Swing",new Date(),"Swing"));
 
-        
-        model.setTable(arrayListModel);
+//        model.getTable().addAll(arrayListModel);
+//        model.setTable(arrayListModel);
+        model.getTable().clear();
+        model.getTable().addAll(arrayListModel);
         model.setFind("test");
     }
 }
