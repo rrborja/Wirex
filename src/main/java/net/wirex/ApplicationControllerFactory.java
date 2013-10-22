@@ -28,6 +28,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentListener;
 import java.awt.event.ContainerListener;
@@ -93,6 +94,7 @@ import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
+import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Type;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.UnknownComponentException;
@@ -145,7 +147,7 @@ public class ApplicationControllerFactory {
 
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
         Class modelClass = bind.model();
-        Class presenterClass = bind.presenter();
+        final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
         ArrayList<Field> actionFields = new ArrayList<>();
         Model model = (Model) modelClass.newInstance();
@@ -180,7 +182,7 @@ public class ApplicationControllerFactory {
 
         final JPanel view = (JPanel) viewClass.newInstance();
 
-        Object presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, view);
+        final Object presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, view);
         for (Field field : actionFields) {
             final Event event = field.getAnnotation(Event.class);
             if (event != null) {
@@ -242,7 +244,13 @@ public class ApplicationControllerFactory {
             }
         }
 
-        for (Method method : presenterClass.getMethods()) {
+        final Method run = presenterClass.getMethod("run", HashMap.class);
+        Retrieve retrieve = (Retrieve) run.getParameterAnnotations()[0][0];
+        final HashMap<String, Invoker> runMethodParameters = new HashMap<>();
+        for (String methodName : retrieve.value()) {
+            MyActionListener myActionListener = new MyActionListener(presenterClass, presenter, methodName);
+            Invoker invokeCode = new Invoker(myActionListener);
+            runMethodParameters.put(methodName, invokeCode);
         }
 
         return new MVP() {
@@ -272,6 +280,11 @@ public class ApplicationControllerFactory {
                             dialog.setLocation(x, y);
                         }
                         dialog.setVisible(true);
+                        try {
+                            run.invoke(presenter, runMethodParameters);
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 });
             }
@@ -286,7 +299,7 @@ public class ApplicationControllerFactory {
         return methods;
     }
 
-    public static void deserialize(Class<? extends Model> modelClass, Model model, Model fromJson) {
+    public synchronized static void deserialize(Class<? extends Model> modelClass, Model model, Model fromJson) {
         for (Field field : modelClass.getDeclaredFields()) {
             try {
 
@@ -298,21 +311,18 @@ public class ApplicationControllerFactory {
                     XList newList = (XList) field.get(fromJson);
 
                     oldList.clear();
-
-                    for (Object e : newList) {
-                        oldList.add(new MyObject(e));
+                    
+                    if (Model.class.isAssignableFrom(listClass)) {
+                        for (Object e : newList) {
+                            oldList.add(new MyObject(e));
+                        }
+                    } else {
+                        for (Object e : newList) {
+                            oldList.add(e);
+                        }
                     }
 
 //                    field.set(model, oldList);
-                } else if (listClass == ArrayList.class) {
-                    XList oldList = (XList) field.get(model);
-                    XList newList = (XList) field.get(fromJson);
-
-                    oldList.clear();
-
-                    for (Object e : newList) {
-                        oldList.add(e);
-                    }
                 } else {
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
                     Object newValue = field.get(fromJson) != null ? field.get(fromJson) : "";
@@ -328,7 +338,7 @@ public class ApplicationControllerFactory {
         }
     }
 
-    public static void injectJersey(Object presenter, Method method) {
+    public synchronized static void injectJersey(Object presenter, Method method) {
         Path path = method.getAnnotation(Path.class);
         Type type = method.getAnnotation(Type.class);
         Form form = method.getAnnotation(Form.class);
@@ -452,6 +462,36 @@ public class ApplicationControllerFactory {
         @Override
         public String toString() {
             return value.toString();
+        }
+    }
+
+    public static class MyActionListener implements ActionListener {
+
+        private final String methodName;
+        private final Class presenterClass;
+        private final Object presenter;
+
+        public MyActionListener(Class presenterClass, Object presenter, String methodName) {
+            this.methodName = methodName;
+            this.presenterClass = presenterClass;
+            this.presenter = presenter;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                Method methodInPresenter = presenterClass.getMethod(methodName);
+                ApplicationControllerFactory.injectJersey(presenter, methodInPresenter);
+                methodInPresenter.invoke(presenter);
+            } catch (NoSuchMethodException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }

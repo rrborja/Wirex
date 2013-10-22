@@ -8,6 +8,7 @@ package test;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JPanel;
+import net.wirex.Invoker;
 import net.wirex.annotations.Form;
 import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
@@ -48,6 +49,11 @@ public class PhonePresenter extends Presenter {
     @POST
     public void submit() {
         super.call();
+    }
+
+    @Override
+    public void run(HashMap<String, Invoker> methods) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
