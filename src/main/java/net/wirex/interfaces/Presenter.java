@@ -10,18 +10,19 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import javax.swing.JPanel;
 import net.wirex.ApplicationControllerFactory;
+import net.wirex.Invoker;
 import net.wirex.enums.Media;
-import test.PhoneModel;
 
 /**
  *
  * @author RBORJA
  */
-public class Presenter {
+public abstract class Presenter {
 
     private Model model;
     private JPanel view;
@@ -71,7 +72,7 @@ public class Presenter {
         this.rest = rest;
     }
 
-    private ClientResponse request(String parsedPath) throws UniformInterfaceException {
+    private synchronized ClientResponse request(String parsedPath) throws UniformInterfaceException {
         Client client = Client.create();
         WebResource resource = client.resource(parsedPath);
         Gson gson1 = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
@@ -86,4 +87,6 @@ public class Presenter {
             return response;
         }
     }
+    
+    public abstract void run(HashMap<String, Invoker> methods);
 }
