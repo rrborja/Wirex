@@ -298,21 +298,18 @@ public class ApplicationControllerFactory {
                     XList newList = (XList) field.get(fromJson);
 
                     oldList.clear();
-
-                    for (Object e : newList) {
-                        oldList.add(new MyObject(e));
+                    System.out.println("hiiii");
+                    if (Model.class.isAssignableFrom(listClass)) {
+                        for (Object e : newList) {
+                            oldList.add(new MyObject(e));
+                        }
+                    } else {
+                        for (Object e : newList) {
+                            oldList.add(e);
+                        }
                     }
 
 //                    field.set(model, oldList);
-                } else if (listClass == ArrayList.class) {
-                    XList oldList = (XList) field.get(model);
-                    XList newList = (XList) field.get(fromJson);
-
-                    oldList.clear();
-
-                    for (Object e : newList) {
-                        oldList.add(e);
-                    }
                 } else {
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
                     Object newValue = field.get(fromJson) != null ? field.get(fromJson) : "";
