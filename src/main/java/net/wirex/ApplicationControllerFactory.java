@@ -96,6 +96,7 @@ import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Type;
+import net.wirex.annotations.View;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.UnknownListenerException;
@@ -150,6 +151,7 @@ public class ApplicationControllerFactory {
         final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
         ArrayList<Field> actionFields = new ArrayList<>();
+        ArrayList<Field> viewFields = new ArrayList<>();
         Model model = (Model) modelClass.newInstance();
 
         models.put(modelClass, model);
@@ -180,9 +182,9 @@ public class ApplicationControllerFactory {
             }
         }
 
-        final JPanel view = (JPanel) viewClass.newInstance();
+        final JPanel viewPanel = (JPanel) viewClass.newInstance();
 
-        final Object presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, view);
+        final Object presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
         for (Field field : actionFields) {
             final Event event = field.getAnnotation(Event.class);
             if (event != null) {
@@ -191,9 +193,9 @@ public class ApplicationControllerFactory {
                 Method[] listener = getArrayMethods(presenter, event.value());
                 if (ActionListener.class == event.type()) {
                     if (component == JButton.class) {
-                        JButtonListener.addActionListener(view, field, presenter, listener[0]);
+                        JButtonListener.addActionListener(viewPanel, field, presenter, listener[0]);
                     } else if (component == JTextField.class) {
-                        JTextFieldListener.addActionListener(view, field, presenter, listener[0]);
+                        JTextFieldListener.addActionListener(viewPanel, field, presenter, listener[0]);
                     }
                 } else if (CaretListener.class == event.type()) {
                 } else if (CellEditorListener.class == event.type()) {
@@ -209,9 +211,9 @@ public class ApplicationControllerFactory {
                 } else if (ItemListener.class == event.type()) {
                 } else if (KeyListener.class == event.type()) {
                     if (component == JButton.class) {
-                        JButtonListener.addKeyListener(view, field, presenter, listener);
+                        JButtonListener.addKeyListener(viewPanel, field, presenter, listener);
                     } else if (component == JTextField.class) {
-                        JTextFieldListener.addKeyListener(view, field, presenter, listener);
+                        JTextFieldListener.addKeyListener(viewPanel, field, presenter, listener);
                     }
                 } else if (ListDataListener.class == event.type()) {
                 } else if (ListSelectionListener.class == event.type()) {
@@ -241,6 +243,16 @@ public class ApplicationControllerFactory {
                     } catch (UnknownListenerException ex) {
                     }
                 }
+            } else {
+                viewFields.add(field);
+            }
+        }
+        
+        for (Field field : viewFields) {
+            final View view = field.getAnnotation(View.class);
+            if (view != null) {
+                field.setAccessible(true);
+                
             }
         }
 
@@ -266,7 +278,7 @@ public class ApplicationControllerFactory {
                             dialog = new JDialog();
                             ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                         }
-                        dialog.add(view);
+                        dialog.add(viewPanel);
                         dialog.pack();
                         dialog.setMinimumSize(dialog.getPreferredSize());
                         Container parent = dialog.getParent();
