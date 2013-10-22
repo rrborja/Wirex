@@ -45,6 +45,7 @@ import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
 import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -247,23 +248,29 @@ public class ApplicationControllerFactory {
                 viewFields.add(field);
             }
         }
-        
+
         for (Field field : viewFields) {
             final View view = field.getAnnotation(View.class);
             if (view != null) {
                 field.setAccessible(true);
-                
+
             }
         }
 
         final Method run = presenterClass.getMethod("run", HashMap.class);
-        Retrieve retrieve = (Retrieve) run.getParameterAnnotations()[0][0];
+        final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
+        Retrieve retrieve;
         final HashMap<String, Invoker> runMethodParameters = new HashMap<>();
-        for (String methodName : retrieve.value()) {
-            MyActionListener myActionListener = new MyActionListener(presenterClass, presenter, methodName);
-            Invoker invokeCode = new Invoker(myActionListener);
-            runMethodParameters.put(methodName, invokeCode);
+        if (retrieveAnnotations[0].length > 0) {
+            retrieve = (Retrieve) retrieveAnnotations[0][0];
+            for (String methodName : retrieve.value()) {
+                MyActionListener myActionListener = new MyActionListener(presenterClass, presenter, methodName);
+                Invoker invokeCode = new Invoker(myActionListener);
+                runMethodParameters.put(methodName, invokeCode);
+            }
         }
+
+
 
         return new MVP() {
             @Override
@@ -292,10 +299,12 @@ public class ApplicationControllerFactory {
                             dialog.setLocation(x, y);
                         }
                         dialog.setVisible(true);
-                        try {
-                            run.invoke(presenter, runMethodParameters);
-                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                        if (retrieveAnnotations[0].length > 0) {
+                            try {
+                                run.invoke(presenter, runMethodParameters);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     }
                 });
@@ -323,7 +332,7 @@ public class ApplicationControllerFactory {
                     XList newList = (XList) field.get(fromJson);
 
                     oldList.clear();
-                    
+
                     if (Model.class.isAssignableFrom(listClass)) {
                         for (Object e : newList) {
                             oldList.add(new MyObject(e));
