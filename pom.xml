@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.visp</groupId>
+    <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.1.1-SNAPSHOT</version>
+    <version>1.0.1.4-HELLO</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
@@ -87,12 +87,6 @@
             <scope>system</scope>
             <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
-        <dependency>
-            <groupId>org.swinglabs</groupId>
-            <artifactId>swingx</artifactId>
-            <version>0.9.7</version>
-            <scope>test</scope>
-            <type>jar</type>
-        </dependency>
+        
     </dependencies>
 </project>
