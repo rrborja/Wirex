@@ -95,6 +95,7 @@ import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Type;
 import net.wirex.enums.Media;
+import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.UnknownListenerException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
@@ -297,15 +298,22 @@ public class ApplicationControllerFactory {
                     XList newList = (XList) field.get(fromJson);
 
                     oldList.clear();
-                    
+
                     for (Object e : newList) {
                         oldList.add(new MyObject(e));
                     }
 
 //                    field.set(model, oldList);
+                } else if (listClass == ArrayList.class) {
+                    XList oldList = (XList) field.get(model);
+                    XList newList = (XList) field.get(fromJson);
+
+                    oldList.clear();
+
+                    for (Object e : newList) {
+                        oldList.add(e);
+                    }
                 } else {
-
-
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
                     Object newValue = field.get(fromJson) != null ? field.get(fromJson) : "";
                     field.set(model, field.get(fromJson));
@@ -405,8 +413,6 @@ public class ApplicationControllerFactory {
 
                 JTable table = new JTable(new EventTableModel(rows, tf));
 
-                
-
                 newComponent = table;
             } catch (NoSuchFieldException | SecurityException ex) {
                 Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
@@ -416,7 +422,12 @@ public class ApplicationControllerFactory {
         } else if (JPasswordField.class == component) {
             newComponent = BasicComponentFactory.createPasswordField(componentModel);
         } else {
-            // TODO: add exception
+            try {
+                throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
+            } catch (UnknownComponentException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
             newComponent = null;
         }
         components.put(property, newComponent);
