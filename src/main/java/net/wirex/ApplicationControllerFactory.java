@@ -385,8 +385,7 @@ public class ApplicationControllerFactory {
 
                 Field[] fields = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
-                System.out.println(Model.class.isAssignableFrom(listTypeClass));
-                if (true) {
+                if (Model.class.isAssignableFrom(listTypeClass)) {
                     propertyNames = new String[fields.length];
                     for (int i = 0; i < propertyNames.length; i++) {
                         propertyNames[i] = fields[i].getName();
@@ -398,7 +397,7 @@ public class ApplicationControllerFactory {
                         list.set(i, new MyObject(list.get(i)));
                     }
                     adapter.setValue(property, list);
-                    System.out.println((XList) list);
+                    listTypeClass = MyObject.class;
                 }
 
                 EventList rows = (XList) adapter.getModel(property).getValue();
