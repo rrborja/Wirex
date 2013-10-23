@@ -29,13 +29,12 @@ public class MySubPresenter extends Presenter {
         MySubModel model = (MySubModel)super.getModel();
         System.out.println("hayyzzzz");
         model.setText("wahahaha");
-//        myModel.setPhoneLabel("haha");
+        myModel.setNewText("haha");
     }
 
     @Override
     public void run(@Retrieve({"test"}) HashMap<String, Invoker> methods) {
-//        methods?
-        methods.get("test").run();
+        System.out.println("LASTNAME: " + myModel.getLastname());
     }
 
     
