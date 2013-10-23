@@ -87,6 +87,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.event.UndoableEditListener;
+import net.wirex.annotations.Access;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
 import net.wirex.annotations.Data;
@@ -140,7 +141,7 @@ public class ApplicationControllerFactory {
         }
     }
 
-    public static Model checkout(Class<? extends Model> modelClass) {
+    private static Model checkout(Class<? extends Model> modelClass) {
         if (modelClass != null) {
             return models.get(modelClass);
         } else {
@@ -174,7 +175,11 @@ public class ApplicationControllerFactory {
         ArrayList<Field> viewFields = new ArrayList<>();
         Model model = null;
         try {
-            model = (Model) modelClass.newInstance();
+//            if (models.containsKey(modelClass)) {
+//                model = models.get(modelClass);
+//            } else {
+                model = (Model) modelClass.newInstance();
+//            }
         } catch (InstantiationException | IllegalAccessException ex) {
             Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -200,6 +205,20 @@ public class ApplicationControllerFactory {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
                 }
             } else {
+                viewFields.add(field);
+            }
+        }
+
+        for (Field field : viewFields) {
+            final View view = field.getAnnotation(View.class);
+            if (view != null) {
+                field.setAccessible(true);
+                Class subViewClass = field.getType();
+                String panelId = view.value();
+                MVP mvp = prepare(subViewClass);
+                components.put(panelId, mvp.getView());
+                mvp.display(JFrame.class, true);
+            } else {
                 actionFields.add(field);
             }
         }
@@ -219,6 +238,20 @@ public class ApplicationControllerFactory {
             Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+
+        for (Field field : presenterClass.getDeclaredFields()) {
+            Access access = field.getAnnotation(Access.class);
+            if (access != null) {
+                field.setAccessible(true);
+                Class<? extends Model> accessModelClass = (Class<? extends Model>) field.getType();
+                try {
+                    field.set(presenter, checkout(accessModelClass));
+                } catch (IllegalArgumentException | IllegalAccessException ex) {
+                    Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+
         for (Field field : actionFields) {
             final Event event = field.getAnnotation(Event.class);
             if (event != null) {
@@ -283,24 +316,10 @@ public class ApplicationControllerFactory {
                     } catch (UnknownListenerException ex) {
                     }
                 }
-            } else {
-                viewFields.add(field);
             }
         }
 
-        for (Field field : viewFields) {
-            final View view = field.getAnnotation(View.class);
-            if (view != null) {
-                field.setAccessible(true);
-                Class subViewClass = field.getType();
-                String panelId = view.value();
-                MVP mvp = prepare(subViewClass);
-                components.put(panelId, mvp.getView());
-//                System.out.println("downnnn" + viewPanel.getClass());
-                mvp.display(JFrame.class, Boolean.TRUE);
 
-            }
-        }
 
         final Method run;
         try {
@@ -358,6 +377,7 @@ public class ApplicationControllerFactory {
                         if (retrieveAnnotations[0].length > 0) {
                             try {
                                 run.invoke(presenter, runMethodParameters);
+                                runMethodParameters.clear();
                             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                                 Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                             }
