@@ -6,12 +6,14 @@ package net.visp.mvpshortcut;
 
 import javax.swing.JLabel;
 import net.wirex.ApplicationControllerFactory;
+import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 
 /**
  *
  * @author RBORJA
  */
+@Bind(model = MyModel.class, presenter = MyPresenter.class)
 public class SubView extends javax.swing.JPanel {
 
     /**
@@ -30,7 +32,7 @@ public class SubView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = (JLabel)ApplicationControllerFactory.checkout("label");
+        jLabel1 = ApplicationControllerFactory.checkout(JLabel.class, "phoneLabel");
 
         jLabel1.setText("jLabel1");
 
@@ -52,7 +54,7 @@ public class SubView extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    @Data("label")
+    @Data("phoneLabel")
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }

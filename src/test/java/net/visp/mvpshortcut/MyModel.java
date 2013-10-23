@@ -4,8 +4,8 @@
  */
 package net.visp.mvpshortcut;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
 import net.wirex.interfaces.Model;
 
 /**
@@ -19,6 +19,22 @@ public class MyModel extends Model {
     transient private String newText;
     private String lastname;
     private String phoneLabel;
+    private List<String> combo;
+
+    public MyModel() {
+        combo = new ArrayList();
+    }
+
+    
+    
+    public List<String> getCombo() {
+        return combo;
+    }
+
+    public void setCombo(List<String> combo) {
+        this.combo.clear();
+        this.combo.addAll(combo);
+    }
 
     public String getLastname() {
         return lastname;

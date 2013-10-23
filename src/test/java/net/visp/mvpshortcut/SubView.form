@@ -39,8 +39,8 @@
         <Property name="text" type="java.lang.String" value="jLabel1"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JLabel)ApplicationControllerFactory.checkout(&quot;label&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;label&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="ApplicationControllerFactory.checkout(JLabel.class, &quot;phoneLabel&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;phoneLabel&quot;)"/>
       </AuxValues>
     </Component>
   </SubComponents>

@@ -5,13 +5,14 @@
 package net.visp.mvpshortcut;
 
 import java.awt.event.KeyListener;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import net.wirex.ApplicationControllerFactory;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.Data;
+import net.wirex.annotations.View;
 
 /**
  *
@@ -42,6 +43,8 @@ public class MyView extends javax.swing.JPanel {
         jCheckBox1 = (JCheckBox)ApplicationControllerFactory.checkout("check");
         jTextField3 = (JTextField)ApplicationControllerFactory.checkout("lastname");
         jButton1 = new javax.swing.JButton();
+        jComboBox1 = (JComboBox) ApplicationControllerFactory.checkout("combo");
+        subView1 = ApplicationControllerFactory.checkout(SubView.class, "subview");
 
         btnSubmit.setText("Submit");
 
@@ -59,6 +62,10 @@ public class MyView extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jButton1)
+                .addGap(119, 119, 119))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -71,14 +78,16 @@ public class MyView extends javax.swing.JPanel {
                                 .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(56, 56, 56)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jCheckBox1)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jCheckBox1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(74, 74, 74)
+                        .addComponent(subView1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(82, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addGap(119, 119, 119))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -92,10 +101,14 @@ public class MyView extends javax.swing.JPanel {
                 .addGap(2, 2, 2)
                 .addComponent(jButton1)
                 .addGap(35, 35, 35)
-                .addComponent(jCheckBox1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBox1)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(58, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                .addComponent(subView1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(30, 30, 30))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -111,6 +124,8 @@ public class MyView extends javax.swing.JPanel {
     private javax.swing.JButton jButton1;
     @Data("check")
     private javax.swing.JCheckBox jCheckBox1;
+    @Data("combo")
+    private javax.swing.JComboBox jComboBox1;
     @Data("phoneLabel")
     private javax.swing.JTextField jTextField1;
     @Data("newText")
@@ -118,5 +133,7 @@ public class MyView extends javax.swing.JPanel {
     @Event(value={"update", "update2", "update3"}, type=KeyListener.class)
     @Data("lastname")
     private javax.swing.JTextField jTextField3;
+    @View("subview")
+    private net.visp.mvpshortcut.SubView subView1;
     // End of variables declaration//GEN-END:variables
 }

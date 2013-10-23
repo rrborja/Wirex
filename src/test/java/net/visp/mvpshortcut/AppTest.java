@@ -6,8 +6,8 @@ import javax.swing.JTextField;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import net.visp.wirex.annotations.Event;
-import net.visp.wirex.annotations.Data;
+import net.wirex.annotations.Event;
+import net.wirex.annotations.Data;
 
 /**
  * Unit test for simple App.
