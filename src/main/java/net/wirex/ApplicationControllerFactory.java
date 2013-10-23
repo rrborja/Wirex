@@ -338,7 +338,13 @@ public class ApplicationControllerFactory {
             }
         }
 
-
+        if (retrieveAnnotations[0].length > 0) {
+            try {
+                run.invoke(presenter, runMethodParameters);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
 
         return new MVP() {
             @Override
@@ -372,14 +378,7 @@ public class ApplicationControllerFactory {
                             dialog.setLocation(x, y);
                         }
                         dialog.setVisible(isVisible);
-                        if (retrieveAnnotations[0].length > 0) {
-                            try {
-                                run.invoke(presenter, runMethodParameters);
-                                runMethodParameters.clear();
-                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
+
                     }
                 });
             }
