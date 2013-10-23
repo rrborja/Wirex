@@ -8,12 +8,13 @@ import javax.swing.JLabel;
 import net.wirex.ApplicationControllerFactory;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
+import net.wirex.annotations.Event;
 
 /**
  *
  * @author RBORJA
  */
-@Bind(model = MyModel.class, presenter = MyPresenter.class)
+@Bind(model = MySubModel.class, presenter = MySubPresenter.class)
 public class SubView extends javax.swing.JPanel {
 
     /**
@@ -32,9 +33,12 @@ public class SubView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = ApplicationControllerFactory.checkout(JLabel.class, "phoneLabel");
+        jLabel1 = ApplicationControllerFactory.checkout(JLabel.class, "text");
+        jButton1 = new javax.swing.JButton();
 
         jLabel1.setText("jLabel1");
+
+        jButton1.setText("jButton1");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -44,17 +48,25 @@ public class SubView extends javax.swing.JPanel {
                 .addGap(38, 38, 38)
                 .addComponent(jLabel1)
                 .addContainerGap(153, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton1)
+                .addGap(27, 27, 27))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(38, 38, 38)
                 .addComponent(jLabel1)
-                .addContainerGap(72, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jButton1)
+                .addContainerGap(31, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    @Data("phoneLabel")
+    @Event({"test"})
+    private javax.swing.JButton jButton1;
+    @Data("text")
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }
