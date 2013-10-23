@@ -21,8 +21,8 @@ import ca.odell.glazedlists.gui.TableFormat;
 import ca.odell.glazedlists.swing.EventTableModel;
 import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.adapter.BasicComponentFactory;
+import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -57,6 +57,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -101,6 +102,7 @@ import net.wirex.annotations.View;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.UnknownListenerException;
+import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.listeners.JButtonListener;
@@ -117,12 +119,25 @@ public class ApplicationControllerFactory {
         components = new HashMap<>();
         models = new HashMap<>();
     }
-    private final static Map<String, Component> components;
+    private final static Map<String, JComponent> components;
     private final static Map<Class<? extends Model>, Model> models;
     private static String hostname;
 
-    public static Component checkout(String name) {
-        return components.remove(name);
+    public static <T> T checkout(String name) {
+        return (T) components.remove(name);
+    }
+
+    public static <T> T checkout(Class<T> component, String name) {
+        if (components.containsKey(name)) {
+            return (T) checkout(name);
+        } else {
+            try {
+                return component.newInstance();
+            } catch (InstantiationException | IllegalAccessException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, "No instance for " + component, ex);
+                return null;
+            }
+        }
     }
 
     public static Model checkout(Class<? extends Model> modelClass) {
@@ -145,21 +160,29 @@ public class ApplicationControllerFactory {
     private ApplicationControllerFactory() {
     }
 
-    public static MVP prepare(Class viewClass) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+    public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
 
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+        if (bind == null) {
+            throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
+        }
+
         Class modelClass = bind.model();
         final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
         ArrayList<Field> actionFields = new ArrayList<>();
         ArrayList<Field> viewFields = new ArrayList<>();
-        Model model = (Model) modelClass.newInstance();
+        Model model = null;
+        try {
+            model = (Model) modelClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         models.put(modelClass, model);
 
         for (Field field : fields) {
             Data data = field.getAnnotation(Data.class);
-            Event event = field.getAnnotation(Event.class);
             if (data != null) {
                 if (JTextField.class == field.getType()) {
                     bindComponent(JTextField.class, model, data.value());
@@ -167,31 +190,47 @@ public class ApplicationControllerFactory {
                     bindComponent(JLabel.class, model, data.value());
                 } else if (JCheckBox.class == field.getType()) {
                     bindComponent(JCheckBox.class, model, data.value());
+                } else if (JComboBox.class == field.getType()) {
+                    bindComponent(JComboBox.class, model, data.value());
                 } else if (JTable.class == field.getType()) {
                     bindComponent(JTable.class, model, data.value());
                 } else if (JPasswordField.class == field.getType()) {
                     bindComponent(JPasswordField.class, model, data.value());
                 } else {
-                    try {
-                        throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
-                    } catch (WrongComponentException ex) {
-                    }
+                    throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
                 }
-            }
-            if (event != null) {
+            } else {
                 actionFields.add(field);
             }
         }
 
-        final JPanel viewPanel = (JPanel) viewClass.newInstance();
+        final JPanel viewPanel;
+        try {
+            viewPanel = (JPanel) viewClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
 
-        final Object presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
+        final Object presenter;
+        try {
+            presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
         for (Field field : actionFields) {
             final Event event = field.getAnnotation(Event.class);
             if (event != null) {
                 field.setAccessible(true);
                 Class component = field.getType();
-                Method[] listener = getArrayMethods(presenter, event.value());
+                Method[] listener;
+                try {
+                    listener = getArrayMethods(presenter, event.value());
+                } catch (NoSuchMethodException ex) {
+                    Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }
                 if (ActionListener.class == event.type()) {
                     if (component == JButton.class) {
                         JButtonListener.addActionListener(viewPanel, field, presenter, listener[0]);
@@ -253,11 +292,23 @@ public class ApplicationControllerFactory {
             final View view = field.getAnnotation(View.class);
             if (view != null) {
                 field.setAccessible(true);
+                Class subViewClass = field.getType();
+                String panelId = view.value();
+                MVP mvp = prepare(subViewClass);
+                components.put(panelId, mvp.getView());
+//                System.out.println("downnnn" + viewPanel.getClass());
+                mvp.display(JFrame.class, Boolean.TRUE);
 
             }
         }
 
-        final Method run = presenterClass.getMethod("run", HashMap.class);
+        final Method run;
+        try {
+            run = presenterClass.getMethod("run", HashMap.class);
+        } catch (NoSuchMethodException | SecurityException ex) {
+            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
         Retrieve retrieve;
         final HashMap<String, Invoker> runMethodParameters = new HashMap<>();
@@ -274,7 +325,12 @@ public class ApplicationControllerFactory {
 
         return new MVP() {
             @Override
-            public void display(final Class<? extends Window> window) {
+            public JPanel getView() {
+                return viewPanel;
+            }
+
+            @Override
+            public void display(final Class<? extends Window> window, final Boolean isVisible) {
                 EventQueue.invokeLater(new Runnable() {
                     public void run() {
                         Window dialog;
@@ -298,7 +354,7 @@ public class ApplicationControllerFactory {
                             int y = (int) ((dimension.getHeight() - dialog.getHeight()) / 2);
                             dialog.setLocation(x, y);
                         }
-                        dialog.setVisible(true);
+                        dialog.setVisible(isVisible);
                         if (retrieveAnnotations[0].length > 0) {
                             try {
                                 run.invoke(presenter, runMethodParameters);
@@ -411,6 +467,9 @@ public class ApplicationControllerFactory {
             newComponent = BasicComponentFactory.createLabel(componentModel);
         } else if (JCheckBox.class == component) {
             newComponent = BasicComponentFactory.createCheckBox(componentModel, "");
+        } else if (JComboBox.class == component) {
+            SelectionInList selectionModel = new SelectionInList(componentModel);
+            newComponent = BasicComponentFactory.createComboBox(selectionModel);
         } else if (JTable.class == component) {
             try {
                 /*
