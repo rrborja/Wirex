@@ -5,11 +5,13 @@
 package net.wirex;
 
 import java.awt.Window;
+import javax.swing.JPanel;
 
 /**
  *
  * @author RBORJA
  */
 public interface MVP {
-    void display(Class<? extends Window> window);
+    JPanel getView();
+    void display(Class<? extends Window> window, Boolean isVisible);
 }
