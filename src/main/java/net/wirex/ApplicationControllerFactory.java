@@ -175,16 +175,15 @@ public class ApplicationControllerFactory {
         ArrayList<Field> viewFields = new ArrayList<>();
         Model model = null;
         try {
-//            if (models.containsKey(modelClass)) {
-//                model = models.get(modelClass);
-//            } else {
+            if (models.containsKey(modelClass)) {
+                model = models.get(modelClass);
+            } else {
                 model = (Model) modelClass.newInstance();
-//            }
+                models.put(modelClass, model);
+            }
         } catch (InstantiationException | IllegalAccessException ex) {
             Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        models.put(modelClass, model);
 
         for (Field field : fields) {
             Data data = field.getAnnotation(Data.class);
@@ -217,7 +216,6 @@ public class ApplicationControllerFactory {
                 String panelId = view.value();
                 MVP mvp = prepare(subViewClass);
                 components.put(panelId, mvp.getView());
-                mvp.display(JFrame.class, true);
             } else {
                 actionFields.add(field);
             }
