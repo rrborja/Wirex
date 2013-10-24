@@ -92,7 +92,9 @@ import net.wirex.annotations.Access;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
 import net.wirex.annotations.Data;
+import net.wirex.annotations.Dispose;
 import net.wirex.annotations.Event;
+import net.wirex.annotations.Fire;
 import net.wirex.annotations.Form;
 import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
@@ -400,7 +402,7 @@ public class ApplicationControllerFactory {
             try {
 
                 field.setAccessible(true);
-                
+
                 Class listClass = field.get(fromJson).getClass();
                 if (listClass == XList.class) {
                     XList oldList = (XList) field.get(model);
@@ -442,6 +444,8 @@ public class ApplicationControllerFactory {
         GET get = method.getAnnotation(GET.class);
         PUT put = method.getAnnotation(PUT.class);
         DELETE delete = method.getAnnotation(DELETE.class);
+
+
         String urlPath;
         if (path != null) {
             if (post != null && form != null) {
@@ -473,6 +477,19 @@ public class ApplicationControllerFactory {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+        }
+    }
+
+    public synchronized static void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException {
+        Fire fire = method.getAnnotation(Fire.class);
+        Dispose dispose = method.getAnnotation(Dispose.class);
+        if (fire != null) {
+            Class<? extends JPanel> panelClass = fire.view();
+            MVP mvp = prepare(panelClass);
+            mvp.display(fire.type(), true);
+        }
+        if (dispose != null) {
+            dispose((Presenter)presenter);
         }
     }
 
@@ -514,7 +531,8 @@ public class ApplicationControllerFactory {
                         list.set(i, new MyObject(list.get(i)));
                     }
                     adapter.setValue(property, list);
-                    System.out.println(listTypeClass);
+                    listTypeClass = MyObject.class;
+//                    System.out.println(listTypeClass);
                 }
 
                 EventList rows = (XList) adapter.getModel(property).getValue();
@@ -541,7 +559,7 @@ public class ApplicationControllerFactory {
         }
         components.put(property, newComponent);
     }
-    
+
     public static void dispose(Presenter presenter) {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
