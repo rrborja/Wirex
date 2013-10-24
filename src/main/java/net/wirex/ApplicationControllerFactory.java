@@ -51,8 +51,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -66,6 +66,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.CaretListener;
 import javax.swing.event.CellEditorListener;
@@ -106,6 +107,7 @@ import net.wirex.exceptions.UnknownListenerException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
+import net.wirex.interfaces.Presenter;
 import net.wirex.listeners.JButtonListener;
 import net.wirex.listeners.JTextFieldListener;
 import net.wirex.structures.XList;
@@ -117,8 +119,8 @@ import net.wirex.structures.XList;
 public class ApplicationControllerFactory {
 
     static {
-        components = new HashMap<>();
-        models = new HashMap<>();
+        components = new ConcurrentHashMap<>();
+        models = new ConcurrentHashMap<>();
     }
     private final static Map<String, JComponent> components;
     private final static Map<Class<? extends Model>, Model> models;
@@ -321,14 +323,14 @@ public class ApplicationControllerFactory {
 
         final Method run;
         try {
-            run = presenterClass.getMethod("run", HashMap.class);
+            run = presenterClass.getMethod("run", ConcurrentHashMap.class);
         } catch (NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
         Retrieve retrieve;
-        final HashMap<String, Invoker> runMethodParameters = new HashMap<>();
+        final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>();
         if (retrieveAnnotations[0].length > 0) {
             retrieve = (Retrieve) retrieveAnnotations[0][0];
             for (String methodName : retrieve.value()) {
@@ -398,7 +400,7 @@ public class ApplicationControllerFactory {
             try {
 
                 field.setAccessible(true);
-
+                
                 Class listClass = field.get(fromJson).getClass();
                 if (listClass == XList.class) {
                     XList oldList = (XList) field.get(model);
@@ -512,7 +514,7 @@ public class ApplicationControllerFactory {
                         list.set(i, new MyObject(list.get(i)));
                     }
                     adapter.setValue(property, list);
-                    listTypeClass = MyObject.class;
+                    System.out.println(listTypeClass);
                 }
 
                 EventList rows = (XList) adapter.getModel(property).getValue();
@@ -538,6 +540,12 @@ public class ApplicationControllerFactory {
             newComponent = null;
         }
         components.put(property, newComponent);
+    }
+    
+    public static void dispose(Presenter presenter) {
+        JPanel panel = presenter.getPanel();
+        Window window = SwingUtilities.getWindowAncestor(panel);
+        window.dispose();
     }
 
     public static class MyObject {

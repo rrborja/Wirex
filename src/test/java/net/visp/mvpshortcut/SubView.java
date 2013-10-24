@@ -36,6 +36,8 @@ public class SubView extends javax.swing.JPanel {
         jLabel1 = ApplicationControllerFactory.checkout(JLabel.class, "text");
         jButton1 = new javax.swing.JButton();
 
+        setBackground(new java.awt.Color(102, 204, 255));
+
         jLabel1.setText("jLabel1");
 
         jButton1.setText("jButton1");

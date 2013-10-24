@@ -55,6 +55,11 @@ public class PhoneModel extends Model implements Serializable {
         this.phoneNumbers.setList(newValue.getList());
         changeSupport.firePropertyChange("phoneNumbers", oldValue, newValue);
     }
+
+    @Override
+    public String toString() {
+        return "PhoneModel{" + "id=" + id + ", label=" + label + ", phoneNumbers=" + phoneNumbers + '}';
+    }
     
     
     

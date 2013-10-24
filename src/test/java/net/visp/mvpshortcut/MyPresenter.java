@@ -5,9 +5,9 @@
 package net.visp.mvpshortcut;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.Invoker;
 import net.wirex.annotations.Form;
@@ -47,7 +47,7 @@ public class MyPresenter extends Presenter {
     public void display() {
         MyModel model = (MyModel) super.getModel();
         
-        Map<String, String> args = new HashMap<>();
+        Map<String, String> args = new ConcurrentHashMap<>();
         args.put("id", model.getLastname());
         
         System.err.println(super.call(args).getEntity(String.class));
@@ -72,7 +72,7 @@ public class MyPresenter extends Presenter {
     }
 
     @Override
-    public void run(@Retrieve({"update"}) HashMap<String, Invoker> methods) {
+    public void run(@Retrieve({"update"}) ConcurrentHashMap<String, Invoker> methods) {
         MyModel model = (MyModel) super.getModel();
         List list = new ArrayList();
         list.add("Hi");

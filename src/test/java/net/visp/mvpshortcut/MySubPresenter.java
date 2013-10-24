@@ -5,7 +5,7 @@
 
 package net.visp.mvpshortcut;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.Invoker;
 import net.wirex.annotations.Access;
@@ -27,14 +27,15 @@ public class MySubPresenter extends Presenter {
     
     public void test() {
         MySubModel model = (MySubModel)super.getModel();
-        System.out.println("hayyzzzz");
         model.setText("wahahaha");
         myModel.setNewText("haha");
     }
 
     @Override
-    public void run(@Retrieve({"test"}) HashMap<String, Invoker> methods) {
-        System.out.println("LASTNAME: " + myModel.getLastname());
+    public void run(@Retrieve({"test"}) ConcurrentHashMap<String, Invoker> methods) {
+        MySubModel model = (MySubModel)super.getModel();
+        System.out.println("hi");
+        model.setText("imagination");
     }
 
     

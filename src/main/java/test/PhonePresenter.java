@@ -5,24 +5,29 @@
 package test;
 
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.Invoker;
+import net.wirex.annotations.Access;
 import net.wirex.annotations.Form;
 import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.Path;
+import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Type;
 import net.wirex.enums.Media;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import net.wirex.structures.XList;
 
 /**
  *
  * @author RBORJA
  */
 public class PhonePresenter extends Presenter {
+    
+    public @Access PhoneModel phoneModel;
     
     public PhonePresenter(Model model, JPanel view) {
         super(model, view);
@@ -36,7 +41,8 @@ public class PhonePresenter extends Presenter {
     public void retrieve() {
         PhoneModel phoneModel = (PhoneModel)super.getModel();
         PhoneView view = (PhoneView)super.getPanel();
-        Map<String, String> args = new HashMap<>();
+        phoneModel.setLabel("heyyyy");
+        Map<String, String> args = new ConcurrentHashMap<>();
         args.put("id", phoneModel.getId());
         super.call(args);
         System.out.println(phoneModel.getPhoneNumbers());
@@ -50,10 +56,17 @@ public class PhonePresenter extends Presenter {
     public void submit() {
         super.call();
     }
+    
+    public void test() {}
 
     @Override
-    public void run(HashMap<String, Invoker> methods) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void run(@Retrieve({"test"}) ConcurrentHashMap<String, Invoker> methods) {
+        System.out.println("hiii");
+        XList list = new XList();
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        phoneModel.getPhoneNumbers().addAll(list);
     }
     
 }

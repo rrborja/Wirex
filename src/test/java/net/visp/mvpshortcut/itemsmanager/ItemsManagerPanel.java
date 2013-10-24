@@ -24,20 +24,20 @@ import net.wirex.MVP;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
-import org.jdesktop.swingx.JXDatePicker;
+import net.wirex.exceptions.ViewClassNotBindedException;
+import net.wirex.exceptions.WrongComponentException;
+//import org.jdesktop.swingx.JXDatePicker;
 
 /**
  *
  * @author jvallar
  */
-
 @Bind(model = ItemModel.class, presenter = ItemPresenter.class)
 public class ItemsManagerPanel extends JPanel {
 
     /**
      * Creates new form EquipmentManagerPanel
      */
-
     public ItemsManagerPanel() {
         initComponents();
     }
@@ -128,34 +128,35 @@ public class ItemsManagerPanel extends JPanel {
     // End of variables declaration//GEN-END:variables
 
     public static void main(String args[]) {
-	try {
+        try {
             MVP mvpController = ApplicationControllerFactory.prepare(ItemsManagerPanel.class);
-            mvpController.display(JFrame.class);
-        } catch (IllegalAccessException | NoSuchMethodException | IllegalArgumentException | InvocationTargetException | InstantiationException ex) {
+            mvpController.display(JFrame.class, true);
+        } catch (ViewClassNotBindedException ex) {
+            Logger.getLogger(ItemsManagerPanel.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (WrongComponentException ex) {
             Logger.getLogger(ItemsManagerPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public JTable getTblItems() {
-	return tblItemManager;
+        return tblItemManager;
     }
 }
-class DatePickerTableCell extends AbstractCellEditor implements TableCellEditor {
-
-    private JXDatePicker datePicker;
-
-    public DatePickerTableCell() {
-	this.datePicker = new JXDatePicker(new Date(System.currentTimeMillis()));
-    }
-
-    @Override
-    public Object getCellEditorValue() {
-	SimpleDateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
-	return formatter.format(datePicker.getDate());
-    }
-
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-	return datePicker;
-    }
-}
+//class DatePickerTableCell extends AbstractCellEditor implements TableCellEditor {
+////    private JXDatePicker datePicker;
+//
+//    public DatePickerTableCell() {
+////	this.datePicker = new JXDatePicker(new Date(System.currentTimeMillis()));
+//    }
+//
+//    @Override
+//    public Object getCellEditorValue() {
+//	SimpleDateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
+////	return formatter.format(datePicker.getDate());
+//    }
+//
+//    @Override
+//    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+////	return datePicker;
+//    }
+//}

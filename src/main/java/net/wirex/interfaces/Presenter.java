@@ -10,9 +10,9 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.ApplicationControllerFactory;
 import net.wirex.Invoker;
@@ -28,6 +28,8 @@ public abstract class Presenter {
     private JPanel view;
     private String path;
     private Media media;
+    private Model form;
+    private Model domain;
     private String rest;
 
     public Presenter(Model model, JPanel panel) {
@@ -39,6 +41,12 @@ public abstract class Presenter {
         return model;
     }
 
+    /***
+     * 
+     * @param model
+     * @deprecated Replacing the model will lose all bindings to all components
+     */
+    @Deprecated
     public void setModel(Model model) {
         this.model = model;
     }
@@ -71,6 +79,14 @@ public abstract class Presenter {
         this.media = media;
         this.rest = rest;
     }
+    
+    private void init(String path, Media media, String rest, Model form, Model domain) {
+        this.path = path;
+        this.media = media;
+        this.rest = rest;
+        this.form = form;
+        this.domain = domain;
+    }
 
     private synchronized ClientResponse request(String parsedPath) throws UniformInterfaceException {
         Client client = Client.create();
@@ -88,5 +104,5 @@ public abstract class Presenter {
         }
     }
     
-    public abstract void run(HashMap<String, Invoker> methods);
+    public abstract void run(ConcurrentHashMap<String, Invoker> methods);
 }

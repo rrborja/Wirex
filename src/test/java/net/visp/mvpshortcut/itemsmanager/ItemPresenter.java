@@ -5,7 +5,9 @@
 package net.visp.mvpshortcut.itemsmanager;
 
 import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
+import net.wirex.Invoker;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.structures.XList;
@@ -32,9 +34,16 @@ public class ItemPresenter extends Presenter {
         arrayListModel.add(new Item("Swing", "Swing","Swing","Swing", "Swing","Swing","Swing",new Date(),"Swing"));
 
 //        model.getTable().addAll(arrayListModel);
-//        model.setTable(arrayListModel);
-        model.getTable().clear();
-        model.getTable().addAll(arrayListModel);
+        model.setTable(arrayListModel);
+//        model.getTable().clear();
+//        model.getTable().addAll(arrayListModel);
         model.setFind("test");
+    }
+
+    @Override
+    public void run(ConcurrentHashMap<String, Invoker> methods) {
+        
+        
+        
     }
 }
