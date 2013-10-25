@@ -448,7 +448,7 @@ public class ApplicationControllerFactory {
 
         String urlPath;
         if (path != null) {
-            if (post != null && form != null) {
+            if (post != null) {
                 try {
                     if (path.value().startsWith("/")) {
                         urlPath = path.value().substring(1);
@@ -456,13 +456,13 @@ public class ApplicationControllerFactory {
                         urlPath = path.value();
                     }
                     Class presenterClass = presenter.getClass();
-                    Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class);
+                    Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class, Model.class);
                     initMethod.setAccessible(true);
-                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "post");
+                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "post", form != null ? form.value() : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } else if (get != null && form != null) {
+            } else if (get != null) {
                 try {
                     if (path.value().startsWith("/")) {
                         urlPath = path.value().substring(1);
@@ -472,7 +472,7 @@ public class ApplicationControllerFactory {
                     Class presenterClass = presenter.getClass();
                     Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class);
                     initMethod.setAccessible(true);
-                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "get");
+                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "get", form != null ? form.value() : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }

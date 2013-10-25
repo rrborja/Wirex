@@ -16,7 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.ApplicationControllerFactory;
 import net.wirex.Invoker;
+import net.wirex.ServerResponse;
 import net.wirex.enums.Media;
+import net.wirex.exceptions.EventInterruptionException;
 
 /**
  *
@@ -41,8 +43,9 @@ public abstract class Presenter {
         return model;
     }
 
-    /***
-     * 
+    /**
+     * *
+     *
      * @param model
      * @deprecated Replacing the model will lose all bindings to all components
      */
@@ -59,11 +62,11 @@ public abstract class Presenter {
         this.view = panel;
     }
 
-    public ClientResponse call() {
+    public Object call() {
         return request(path);
     }
 
-    public ClientResponse call(Map<String, String> args) {
+    public Object call(Map<String, String> args) {
         Iterator it = args.entrySet().iterator();
         String parsedPath = path;
         while (it.hasNext()) {
@@ -74,12 +77,23 @@ public abstract class Presenter {
         return request(parsedPath);
     }
 
+    public void interrupt(String msg) throws EventInterruptionException {
+        throw new EventInterruptionException(msg);
+    }
+
     private void init(String path, Media media, String rest) {
         this.path = path;
         this.media = media;
         this.rest = rest;
     }
     
+    private void init(String path, Media media, String rest, Model form) {
+        this.path = path;
+        this.media = media;
+        this.rest = rest;
+        this.form = form;
+    }
+
     private void init(String path, Media media, String rest, Model form, Model domain) {
         this.path = path;
         this.media = media;
@@ -88,21 +102,32 @@ public abstract class Presenter {
         this.domain = domain;
     }
 
-    private synchronized ClientResponse request(String parsedPath) throws UniformInterfaceException {
+    private synchronized Object request(String parsedPath) throws UniformInterfaceException {
         Client client = Client.create();
         WebResource resource = client.resource(parsedPath);
         Gson gson1 = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         Gson gson2 = new Gson();
-        if (rest.equals("post")) {
-            ClientResponse response = resource.type(media.value()).post(ClientResponse.class, gson1.toJson(model));
-            ApplicationControllerFactory.deserialize(model.getClass(), model, gson2.fromJson(response.getEntity(String.class), model.getClass()));
-            return response;
+        if (form != null) {
+            if (rest.equals("post")) {
+                ClientResponse response = resource.type(media.value()).post(ClientResponse.class, gson1.toJson(model));
+                ApplicationControllerFactory.deserialize(model.getClass(), model, gson2.fromJson(response.getEntity(String.class), model.getClass()));
+                return response;
+            } else {
+                ClientResponse response = resource.accept(media.value()).get(ClientResponse.class);
+                ApplicationControllerFactory.deserialize(model.getClass(), model, gson2.fromJson(response.getEntity(String.class), model.getClass()));
+                return response;
+            }
         } else {
-            ClientResponse response = resource.accept(media.value()).get(ClientResponse.class);
-            ApplicationControllerFactory.deserialize(model.getClass(), model, gson2.fromJson(response.getEntity(String.class), model.getClass()));
-            return response;
+            if (rest.equals("post")) {
+                ClientResponse response = resource.type(media.value()).post(ClientResponse.class, gson1.toJson(model));
+                String jsonresponse = response.getEntity(String.class);
+                return gson2.fromJson(jsonresponse, ServerResponse.class);
+            } else {
+                ClientResponse response = resource.accept(media.value()).get(ClientResponse.class);
+                return gson2.fromJson(response.getEntity(String.class), ServerResponse.class);
+            }
         }
     }
-    
+
     public abstract void run(ConcurrentHashMap<String, Invoker> methods);
 }
