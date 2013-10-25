@@ -192,18 +192,9 @@ public class ApplicationControllerFactory {
         for (Field field : fields) {
             Data data = field.getAnnotation(Data.class);
             if (data != null) {
-                if (JTextField.class == field.getType()) {
-                    bindComponent(JTextField.class, model, data.value());
-                } else if (JLabel.class == field.getType()) {
-                    bindComponent(JLabel.class, model, data.value());
-                } else if (JCheckBox.class == field.getType()) {
-                    bindComponent(JCheckBox.class, model, data.value());
-                } else if (JComboBox.class == field.getType()) {
-                    bindComponent(JComboBox.class, model, data.value());
-                } else if (JTable.class == field.getType()) {
-                    bindComponent(JTable.class, model, data.value());
-                } else if (JPasswordField.class == field.getType()) {
-                    bindComponent(JPasswordField.class, model, data.value());
+                Class clazz = field.getType();
+                if (JComponent.class.isAssignableFrom(clazz)) {
+                    bindComponent(clazz, model, data.value());
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
                 }
