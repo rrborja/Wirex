@@ -77,6 +77,9 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.tree.ExpandVetoException;
 import net.wirex.ApplicationControllerFactory;
+import net.wirex.exceptions.EventInterruptionException;
+import net.wirex.exceptions.ViewClassNotBindedException;
+import net.wirex.exceptions.WrongComponentException;
 
 /**
  *
@@ -705,8 +708,13 @@ abstract class ListenerFactory {
             } else {
                 listener.invoke(presenter);
             }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(ListenerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            ApplicationControllerFactory.proceed(presenter, listener);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ViewClassNotBindedException | WrongComponentException ex) {
+            if (ex.getCause() instanceof EventInterruptionException) {
+                Logger.getLogger(ListenerFactory.class.getName()).log(Level.INFO, ex.getMessage());
+            } else {
+                Logger.getLogger(ListenerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }
