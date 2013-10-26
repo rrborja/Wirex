@@ -4,7 +4,7 @@
 
     <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.5.1-BETA</version>
+    <version>1.0.6.2-BETA</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
@@ -87,6 +87,11 @@
             <scope>system</scope>
             <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
-        
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>15.0</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>
