@@ -4,6 +4,9 @@
  */
 package net.wirex.interfaces;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jersey.api.client.Client;
@@ -13,6 +16,10 @@ import com.sun.jersey.api.client.WebResource;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import net.wirex.ApplicationControllerFactory;
 import net.wirex.Invoker;
@@ -33,6 +40,16 @@ public abstract class Presenter {
     private Model form;
     private Model domain;
     private String rest;
+    
+    private final LoadingCache<String, WebResource> cacheResource = CacheBuilder.newBuilder()
+            .maximumSize(5)
+            .concurrencyLevel(10)
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, WebResource>() {
+                public @Override WebResource load(String path) throws Exception {
+                    return Client.create().resource(path);
+                }
+            });
 
     public Presenter(Model model, JPanel panel) {
         this.model = model;
@@ -63,7 +80,12 @@ public abstract class Presenter {
     }
 
     public Object call() {
-        return request(path);
+        try {
+            return request(path);
+        } catch (UniformInterfaceException | ExecutionException ex) {
+            Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
     public Object call(Map<String, String> args) {
@@ -74,7 +96,12 @@ public abstract class Presenter {
             String identifier = pairs.getKey().toString();
             parsedPath = parsedPath.replace("{" + identifier + "}", pairs.getValue().toString());
         }
-        return request(parsedPath);
+        try {
+            return request(parsedPath);
+        } catch (UniformInterfaceException | ExecutionException ex) {
+            Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
     public void interrupt(String msg) throws EventInterruptionException {
@@ -94,6 +121,16 @@ public abstract class Presenter {
         this.form = form;
     }
 
+    /**
+     * 
+     * @param path
+     * @param media
+     * @param rest
+     * @param form
+     * @param domain
+     * @deprecated Domain never used
+     */
+    @Deprecated
     private void init(String path, Media media, String rest, Model form, Model domain) {
         this.path = path;
         this.media = media;
@@ -102,9 +139,8 @@ public abstract class Presenter {
         this.domain = domain;
     }
 
-    private synchronized Object request(String parsedPath) throws UniformInterfaceException {
-        Client client = Client.create();
-        WebResource resource = client.resource(parsedPath);
+    private synchronized Object request(String parsedPath) throws UniformInterfaceException, ExecutionException {
+        WebResource resource = cacheResource.get(parsedPath);
         Gson gson1 = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         Gson gson2 = new Gson();
         if (form != null) {
