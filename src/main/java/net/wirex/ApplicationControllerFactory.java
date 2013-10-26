@@ -19,6 +19,9 @@ import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.gui.TableFormat;
 import ca.odell.glazedlists.swing.EventTableModel;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.adapter.BasicComponentFactory;
 import com.jgoodies.binding.list.SelectionInList;
@@ -51,8 +54,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -66,6 +71,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.CaretListener;
@@ -112,6 +119,7 @@ import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.listeners.JButtonListener;
 import net.wirex.listeners.JTextFieldListener;
+import net.wirex.listeners.JToggleButtonListener;
 import net.wirex.structures.XList;
 
 /**
@@ -121,11 +129,22 @@ import net.wirex.structures.XList;
 public class ApplicationControllerFactory {
 
     static {
-        components = new ConcurrentHashMap<>();
-        models = new ConcurrentHashMap<>();
+        components = new ConcurrentHashMap();
+        models = new ConcurrentHashMap();
+        modelCache = CacheBuilder.newBuilder()
+                .maximumSize(10)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .build(
+                new CacheLoader<Class<? extends Model>, Model>() {
+            public @Override
+            Model load(Class<? extends Model> name) {
+                return models.get(name);
+            }
+        });
     }
-    private final static Map<String, JComponent> components;
-    private final static Map<Class<? extends Model>, Model> models;
+    private final static ConcurrentMap<String, JComponent> components;
+    private final static LoadingCache<Class<? extends Model>, Model> modelCache;
+    private final static ConcurrentMap<Class<? extends Model>, Model> models;
     private static String hostname;
 
     public static <T> T checkout(String name) {
@@ -147,7 +166,12 @@ public class ApplicationControllerFactory {
 
     private static Model checkout(Class<? extends Model> modelClass) {
         if (modelClass != null) {
-            return models.get(modelClass);
+            try {
+                return modelCache.get(modelClass);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
         } else {
             return null;
         }
@@ -180,12 +204,12 @@ public class ApplicationControllerFactory {
         Model model = null;
         try {
             if (models.containsKey(modelClass)) {
-                model = models.get(modelClass);
+                model = modelCache.get(modelClass);
             } else {
                 model = (Model) modelClass.newInstance();
                 models.put(modelClass, model);
             }
-        } catch (InstantiationException | IllegalAccessException ex) {
+        } catch (InstantiationException | IllegalAccessException | ExecutionException ex) {
             Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -262,6 +286,8 @@ public class ApplicationControllerFactory {
                         JButtonListener.addActionListener(viewPanel, field, presenter, listener[0]);
                     } else if (component == JTextField.class) {
                         JTextFieldListener.addActionListener(viewPanel, field, presenter, listener[0]);
+                    } else if (component == JToggleButton.class) {
+                        JToggleButtonListener.addActionListener(viewPanel, field, presenter, listener[0]);
                     }
                 } else if (CaretListener.class == event.type()) {
                 } else if (CellEditorListener.class == event.type()) {
@@ -350,7 +376,7 @@ public class ApplicationControllerFactory {
             @Override
             public void display(final Class<? extends Window> window, final Boolean isVisible) {
                 EventQueue.invokeLater(new Runnable() {
-                    public void run() {
+                    public @Override void run() {
                         Window dialog;
                         if (window == JFrame.class) {
                             dialog = new JFrame();
@@ -480,7 +506,7 @@ public class ApplicationControllerFactory {
             mvp.display(fire.type(), true);
         }
         if (dispose != null) {
-            dispose((Presenter)presenter);
+            dispose((Presenter) presenter);
         }
     }
 
@@ -497,6 +523,9 @@ public class ApplicationControllerFactory {
         } else if (JComboBox.class == component) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
             newComponent = BasicComponentFactory.createComboBox(selectionModel);
+        } else if (JTree.class == component) {
+            SelectionInList selectionModel = new SelectionInList(componentModel);
+            newComponent = BasicComponentFactory.createList(selectionModel);
         } else if (JTable.class == component) {
             try {
                 /*
