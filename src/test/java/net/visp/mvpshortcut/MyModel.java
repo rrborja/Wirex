@@ -7,6 +7,7 @@ package net.visp.mvpshortcut;
 import java.util.ArrayList;
 import java.util.List;
 import net.wirex.interfaces.Model;
+import net.wirex.structures.XList;
 
 /**
  *
@@ -19,10 +20,10 @@ public class MyModel extends Model {
     transient private String newText;
     private String lastname;
     private String phoneLabel;
-    private List<String> combo;
+    private XList<String> combo;
 
     public MyModel() {
-        combo = new ArrayList();
+        combo = new XList();
     }
 
     

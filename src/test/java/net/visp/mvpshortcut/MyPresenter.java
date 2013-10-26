@@ -50,7 +50,7 @@ public class MyPresenter extends Presenter {
         Map<String, String> args = new ConcurrentHashMap<>();
         args.put("id", model.getLastname());
         
-        System.err.println(super.call(args).getEntity(String.class));
+//        System.err.println(super.call(args).getEntity(String.class));
         
         
         

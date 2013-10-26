@@ -60,13 +60,13 @@ public class PhonePresenter extends Presenter {
     public void test() {}
 
     @Override
-    public void run(@Retrieve({"test"}) ConcurrentHashMap<String, Invoker> methods) {
+    public void run(ConcurrentHashMap<String, Invoker> methods) {
         System.out.println("hiii");
-        XList list = new XList();
-        list.add(1);
-        list.add(2);
-        list.add(3);
-        phoneModel.getPhoneNumbers().addAll(list);
+//        XList list = new XList();
+//        list.add(1);
+//        list.add(2);
+//        list.add(3);
+//        phoneModel.getPhoneNumbers().addAll(list);
     }
     
 }
