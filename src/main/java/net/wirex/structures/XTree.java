@@ -4,55 +4,32 @@
  */
 package net.wirex.structures;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Borja
  */
-public class XTree<T> {
+public class XTree {
 
-    public static class Node<T> {
-        private T value;
-        private Node<T> parent;
-        private List<Node<T>> children;
-    }
-    
-    private Node<T> node;
-    
-    public XTree() {
-        node.children = new ArrayList<>();
+    private XTree() {
     }
 
-    public Node<T> getNode() {
-        return node;
+    public static XList build(Object model) {
+        XList list = new XList();
+        Class modelClass = model.getClass();
+        Field[] fields = modelClass.getDeclaredFields();
+        for (Field field : fields) {
+            try {
+                field.setAccessible(true);
+                Object element = field.get(model);
+                list.add(element);
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                Logger.getLogger(XTree.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return list;
     }
-
-    public void setNode(Node<T> node) {
-        this.node = node;
-    }
-    
-    public T getValue() {
-        return (T) node.value;
-    }
-    
-    public Node<T> getParent() {
-        return node.parent;
-    }
-    
-    public boolean addNode(Node<T> value) {
-        return node.children.add(value);
-    }
-    
-    public boolean removeNode(Node<T> value) {
-        return node.children.remove(value);
-    }
-    
-    public Iterator iterator() {
-        return node.children.iterator();
-    }
-    
-    
 }

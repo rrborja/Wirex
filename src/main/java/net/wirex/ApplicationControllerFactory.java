@@ -17,8 +17,11 @@ package net.wirex;
 
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
+import ca.odell.glazedlists.SortedList;
+import ca.odell.glazedlists.TreeList;
 import ca.odell.glazedlists.gui.TableFormat;
 import ca.odell.glazedlists.swing.EventTableModel;
+import ca.odell.glazedlists.swing.EventTreeModel;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -121,6 +124,8 @@ import net.wirex.listeners.JButtonListener;
 import net.wirex.listeners.JTextFieldListener;
 import net.wirex.listeners.JToggleButtonListener;
 import net.wirex.structures.XList;
+import net.wirex.structures.XTree;
+import net.wirex.structures.XTreeFormat;
 
 /**
  *
@@ -376,7 +381,8 @@ public class ApplicationControllerFactory {
             @Override
             public void display(final Class<? extends Window> window, final Boolean isVisible) {
                 EventQueue.invokeLater(new Runnable() {
-                    public @Override void run() {
+                    public @Override
+                    void run() {
                         Window dialog;
                         if (window == JFrame.class) {
                             dialog = new JFrame();
@@ -524,8 +530,20 @@ public class ApplicationControllerFactory {
             SelectionInList selectionModel = new SelectionInList(componentModel);
             newComponent = BasicComponentFactory.createComboBox(selectionModel);
         } else if (JTree.class == component) {
-            SelectionInList selectionModel = new SelectionInList(componentModel);
-            newComponent = BasicComponentFactory.createList(selectionModel);
+            try {
+                Field listField = bean.getClass().getDeclaredField(property);
+                Class modelClass = listField.getType();
+                Object model = componentModel.getValue();
+                EventList eventList = XTree.build(model);
+                SortedList sortedList = new SortedList(eventList, null);
+
+                TreeList list = new TreeList(sortedList, new XTreeFormat(model), TreeList.NODES_START_EXPANDED);
+                JTree tree = new JTree(new EventTreeModel(list));
+                newComponent = tree;
+            } catch (NoSuchFieldException | SecurityException ex) {
+                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                newComponent = new JTree();
+            }
         } else if (JTable.class == component) {
             try {
                 /*
@@ -563,7 +581,7 @@ public class ApplicationControllerFactory {
                 newComponent = table;
             } catch (NoSuchFieldException | SecurityException ex) {
                 Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
-                newComponent = null;
+                newComponent = new JTable();
             }
 
         } else if (JPasswordField.class == component) {

@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author RBORJA
  */
-public final class XList<T> extends AbstractEventList<T> {
+public class XList<T> extends AbstractEventList<T> {
 
     private List<T> list;
 
