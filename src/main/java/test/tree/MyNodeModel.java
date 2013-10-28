@@ -20,6 +20,8 @@ public class MyNodeModel<T> extends Model {
     private String data2;
     @PathNode({"betacleversoft.net", "mail", "yes"})
     private String data3;
+    @PathNode({"betacleversoft.net", "mail", "yes"})
+    private String data4;
 
     
     /*
@@ -37,6 +39,7 @@ public class MyNodeModel<T> extends Model {
         data = "hi";
         data2 = "hello";
         data3 = "how r u?";
+        data4 = "good";
     }
     
     public String getData() {
@@ -61,6 +64,14 @@ public class MyNodeModel<T> extends Model {
 
     public void setData3(String data3) {
         this.data3 = data3;
+    }
+
+    public String getData4() {
+        return data4;
+    }
+
+    public void setData4(String data4) {
+        this.data4 = data4;
     }
 
     

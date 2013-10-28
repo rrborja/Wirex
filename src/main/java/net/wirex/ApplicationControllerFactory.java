@@ -536,7 +536,7 @@ public class ApplicationControllerFactory {
                 Object model = componentModel.getValue();
                 EventList eventList = XTree.build(model);
                 SortedList sortedList = new SortedList(eventList, null);
-
+                
                 TreeList list = new TreeList(sortedList, new XTreeFormat(model), TreeList.NODES_START_EXPANDED);
                 JTree tree = new JTree(new EventTreeModel(list));
                 newComponent = tree;
