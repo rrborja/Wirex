@@ -124,7 +124,6 @@ import net.wirex.listeners.JButtonListener;
 import net.wirex.listeners.JTextFieldListener;
 import net.wirex.listeners.JToggleButtonListener;
 import net.wirex.structures.XList;
-import net.wirex.structures.XTree;
 import net.wirex.structures.XTreeFormat;
 
 /**
@@ -534,11 +533,24 @@ public class ApplicationControllerFactory {
                 Field listField = bean.getClass().getDeclaredField(property);
                 Class modelClass = listField.getType();
                 Object model = componentModel.getValue();
-                EventList eventList = XTree.build(model);
+                EventList eventList = (XList) model;
                 SortedList sortedList = new SortedList(eventList, null);
-                
                 TreeList list = new TreeList(sortedList, new XTreeFormat(model), TreeList.NODES_START_EXPANDED);
                 JTree tree = new JTree(new EventTreeModel(list));
+//                tree.setCellRenderer(new TreeCellRenderer() {
+//                    @Override
+//                    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+//                        JLabel label = new JLabel();
+//                        try {
+//                            TreeList.Node list = (TreeList.Node) value;
+//
+//                            label.setText(list.getElement().toString());
+//                            return label;
+//                        } catch (ClassCastException ex) {
+//                            return label;
+//                        }
+//                    }
+//                });
                 newComponent = tree;
             } catch (NoSuchFieldException | SecurityException ex) {
                 Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
@@ -552,8 +564,15 @@ public class ApplicationControllerFactory {
 
                 Field listField = bean.getClass().getDeclaredField(property);
                 java.lang.reflect.Type type = listField.getGenericType();
-                ParameterizedType listType = (ParameterizedType) type;
-                Class<?> listTypeClass = (Class<?>) listType.getActualTypeArguments()[0];
+                
+                ParameterizedType listType;
+                Class<?> listTypeClass;
+                if (type instanceof Class) {
+                    listTypeClass = (Class<?>) type;
+                } else {
+                    listType = (ParameterizedType) type;
+                    listTypeClass = (Class<?>) listType.getActualTypeArguments()[0];
+                }
 
                 Field[] fields = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
@@ -592,8 +611,11 @@ public class ApplicationControllerFactory {
             } catch (UnknownComponentException ex) {
                 Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            newComponent = null;
+            try {
+                newComponent = (JComponent) component.newInstance();
+            } catch (InstantiationException | IllegalAccessException ex) {
+                newComponent = null;
+            }
         }
         components.put(property, newComponent);
     }

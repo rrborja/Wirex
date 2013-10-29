@@ -6,6 +6,8 @@
 package test.tree;
 
 import net.wirex.interfaces.Model;
+import net.wirex.structures.XList;
+import net.wirex.structures.XNode;
 
 /**
  *
@@ -13,17 +15,21 @@ import net.wirex.interfaces.Model;
  */
 public class MyTreeModel extends Model {
 
-    private MyNodeModel tree;
+    private XList<XNode> tree;
 
     public MyTreeModel() {
-        tree = new MyNodeModel();
+        tree = new XList<>();
+        tree.add(new XNode(new String[]{"betacleversoft.net", "billing", "set"}, "hi"));
+        tree.add(new XNode(new String[]{"betacleversoft.net", "billing", "get"}, "hello"));
+        tree.add(new XNode(new String[]{"betacleversoft.net", "mail", "yes"}, "how r u?"));
+        tree.add(new XNode(new String[]{"betacleversoft.net", "mail", "yes"}, "good"));
     }
     
-    public MyNodeModel getTree() {
+    public XList getTree() {
         return tree;
     }
 
-    public void setTree(MyNodeModel tree) {
+    public void setTree(XList tree) {
         this.tree = tree;
     }
     
