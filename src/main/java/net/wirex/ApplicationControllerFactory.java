@@ -170,12 +170,7 @@ public class ApplicationControllerFactory {
 
     private static Model checkout(Class<? extends Model> modelClass) {
         if (modelClass != null) {
-            try {
-                return modelCache.get(modelClass);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
-                return null;
-            }
+            return modelCache.getIfPresent(modelClass);
         } else {
             return null;
         }
@@ -266,8 +261,14 @@ public class ApplicationControllerFactory {
                 field.setAccessible(true);
                 Class<? extends Model> accessModelClass = (Class<? extends Model>) field.getType();
                 try {
-                    field.set(presenter, checkout(accessModelClass));
-                } catch (IllegalArgumentException | IllegalAccessException ex) {
+                    Model checkedOutModel = checkout(accessModelClass);
+                    if (checkedOutModel != null) {
+                        field.set(presenter, checkedOutModel);
+                    } else {
+                        Model newModel = (Model) modelClass.newInstance();
+                        models.put(accessModelClass, newModel);
+                    }
+                } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -564,7 +565,7 @@ public class ApplicationControllerFactory {
 
                 Field listField = bean.getClass().getDeclaredField(property);
                 java.lang.reflect.Type type = listField.getGenericType();
-                
+
                 ParameterizedType listType;
                 Class<?> listTypeClass;
                 if (type instanceof Class) {
