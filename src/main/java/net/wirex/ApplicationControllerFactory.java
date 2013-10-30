@@ -27,6 +27,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.adapter.BasicComponentFactory;
+import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.Container;
@@ -217,7 +218,11 @@ public class ApplicationControllerFactory {
             if (data != null) {
                 Class clazz = field.getType();
                 if (JComponent.class.isAssignableFrom(clazz)) {
-                    bindComponent(clazz, model, data.value());
+                    try {
+                        bindComponent(clazz, model, data.value());
+                    } catch (InstantiationException | IllegalAccessException ex) {
+                        Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
                 }
@@ -265,7 +270,7 @@ public class ApplicationControllerFactory {
                     if (checkedOutModel != null) {
                         field.set(presenter, checkedOutModel);
                     } else {
-                        Model newModel = (Model) modelClass.newInstance();
+                        Model newModel = (Model) accessModelClass.newInstance();
                         models.put(accessModelClass, newModel);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
@@ -516,19 +521,19 @@ public class ApplicationControllerFactory {
         }
     }
 
-    private static void bindComponent(Class component, Object bean, String property) {
+    private static void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
-        JComponent newComponent;
+        JComponent newComponent = (JComponent) component.newInstance();
         if (JTextField.class == component || JTextField.class.isAssignableFrom(component)) {
-            newComponent = BasicComponentFactory.createTextField(componentModel);
+            Bindings.bind((JTextField) newComponent, componentModel);
         } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
-            newComponent = BasicComponentFactory.createLabel(componentModel);
+            Bindings.bind((JLabel) newComponent, componentModel);
         } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
-            newComponent = BasicComponentFactory.createCheckBox(componentModel, "");
+            Bindings.bind((JCheckBox) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
-            newComponent = BasicComponentFactory.createComboBox(selectionModel);
+            Bindings.bind((JComboBox) newComponent, selectionModel, "");
         } else if (JTree.class == component || JTree.class.isAssignableFrom(component)) {
             try {
                 Field listField = bean.getClass().getDeclaredField(property);
