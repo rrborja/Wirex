@@ -519,16 +519,16 @@ public class ApplicationControllerFactory {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
         JComponent newComponent;
-        if (JTextField.class == component) {
+        if (JTextField.class == component || JTextField.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createTextField(componentModel);
-        } else if (JLabel.class == component) {
+        } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createLabel(componentModel);
-        } else if (JCheckBox.class == component) {
+        } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createCheckBox(componentModel, "");
-        } else if (JComboBox.class == component) {
+        } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
             newComponent = BasicComponentFactory.createComboBox(selectionModel);
-        } else if (JTree.class == component) {
+        } else if (JTree.class == component || JTree.class.isAssignableFrom(component)) {
             try {
                 Field listField = bean.getClass().getDeclaredField(property);
                 Class modelClass = listField.getType();
@@ -556,7 +556,7 @@ public class ApplicationControllerFactory {
                 Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 newComponent = new JTree();
             }
-        } else if (JTable.class == component) {
+        } else if (JTable.class == component || JTable.class.isAssignableFrom(component)) {
             try {
                 /*
                  * Throw exception if List has no generic types
@@ -603,7 +603,7 @@ public class ApplicationControllerFactory {
                 newComponent = new JTable();
             }
 
-        } else if (JPasswordField.class == component) {
+        } else if (JPasswordField.class == component || JPasswordField.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createPasswordField(componentModel);
         } else {
             try {
