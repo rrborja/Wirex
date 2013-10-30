@@ -272,6 +272,7 @@ public class ApplicationControllerFactory {
                     } else {
                         Model newModel = (Model) accessModelClass.newInstance();
                         models.put(accessModelClass, newModel);
+                        field.set(presenter, newModel);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
