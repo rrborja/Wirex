@@ -81,6 +81,9 @@
         <Property name="horizontalAlignment" type="int" value="0"/>
         <Property name="name" type="java.lang.String" value="lblLogo" noResource="true"/>
       </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(&quot;VispLogin.png&quot;)"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="lblUsername">
       <Properties>
@@ -130,7 +133,7 @@
         <Property name="name" type="java.lang.String" value="btnCancel" noResource="true"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event({&quot;cancel&quot;})"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(&quot;cancel_14.png&quot;)&#xa;@Event({&quot;cancel&quot;})"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="btnEnter">
@@ -139,7 +142,7 @@
         <Property name="name" type="java.lang.String" value="btnEnter" noResource="true"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event({&quot;login&quot;})"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(&quot;checkmark_sm.png&quot;)&#xa;@Event({&quot;login&quot;})"/>
       </AuxValues>
     </Component>
   </SubComponents>

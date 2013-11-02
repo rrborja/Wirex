@@ -9,24 +9,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.Invoker;
-import net.wirex.annotations.Access;
 import net.wirex.annotations.Form;
 import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.Path;
-import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Type;
 import net.wirex.enums.Media;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
-import net.wirex.structures.XList;
 
 /**
  *
  * @author RBORJA
  */
 public class PhonePresenter extends Presenter {
-    
+
 //    public @Access PhoneModel phoneModel;
     
     public PhonePresenter(Model model, JPanel view) {
@@ -45,7 +42,7 @@ public class PhonePresenter extends Presenter {
         args.put("id", phoneModel.getId());
         phoneModel.getPhoneNumbers().clear();
         super.call(args);
-        
+   
         
     }
     
@@ -61,7 +58,6 @@ public class PhonePresenter extends Presenter {
 
     @Override
     public void run(ConcurrentHashMap<String, Invoker> methods) {
-        System.out.println("hiii");
 //        XList list = new XList();
 //        list.add(1);
 //        list.add(2);

@@ -48,8 +48,6 @@ public class LoginPanelPresenter extends Presenter {
         ServerResponse<String> resource = super.call(args);
         String message = resource.getMessage();
         
-        System.out.println(message);
-        
         if (message.equals("SUCCESS")) {
             
         } else {

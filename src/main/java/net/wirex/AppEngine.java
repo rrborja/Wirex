@@ -25,6 +25,8 @@ import ca.odell.glazedlists.swing.EventTreeModel;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.adapter.BasicComponentFactory;
 import com.jgoodies.binding.adapter.Bindings;
@@ -33,6 +35,7 @@ import com.jgoodies.binding.value.ValueModel;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -57,6 +60,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,6 +71,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -105,6 +114,7 @@ import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Dispose;
+import net.wirex.annotations.Draw;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.Fire;
 import net.wirex.annotations.Form;
@@ -113,6 +123,7 @@ import net.wirex.annotations.POST;
 import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Retrieve;
+import net.wirex.annotations.Snip;
 import net.wirex.annotations.Type;
 import net.wirex.annotations.View;
 import net.wirex.enums.Media;
@@ -128,6 +139,7 @@ import net.wirex.listeners.JTextFieldListener;
 import net.wirex.listeners.JToggleButtonListener;
 import net.wirex.structures.XList;
 import net.wirex.structures.XTreeFormat;
+import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpEntity;
@@ -138,6 +150,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriTemplate;
 
 /**
  *
@@ -145,30 +158,14 @@ import org.springframework.web.client.RestTemplate;
  */
 public class AppEngine {
 
-    static {
-        applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", AppEngine.class);
-        components = new ConcurrentHashMap();
-        models = new ConcurrentHashMap();
-        serverRequests = new ConcurrentHashMap();
-        modelCache = CacheBuilder.newBuilder()
-                .maximumSize(10)
-                .expireAfterWrite(1, TimeUnit.MINUTES)
-                .build(
-                        new CacheLoader<Class<? extends Model>, Model>() {
-                            public @Override
-                            Model load(Class<? extends Model> name) {
-                                return models.get(name);
-                            }
-                        });
-    }
-
     private static final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new CacheLoader<ServerRequest, ServerResponse>() {
+                ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", AppEngine.class);
                 RestTemplate rt = applicationContext.getBean("restTemplate", RestTemplate.class);
-                
+
                 public @Override
                 ServerResponse load(ServerRequest request) throws Exception {
                     HttpMethod rest = request.getRest();
@@ -176,12 +173,13 @@ public class AppEngine {
                     MediaType type = request.getMedia();
                     Map variables = request.getVariables();
                     MultiValueMap headerMap = request.getHeaderMap();
-                    Object body = request.getBody();
+                    String body = request.getBody();
                     Class model = request.getModel();
+                    String requestBody = request.getRequestBody();
 
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(type);
-                    
+
                     HttpEntity entity;
 
                     if (type == MediaType.APPLICATION_JSON) {
@@ -191,26 +189,60 @@ public class AppEngine {
                     } else {
                         throw new UnsupportedMediaTypeException(type + " is not yet supported.");
                     }
-                    
+
                     RequestCallback requestCallback = new ServerRequestCallback(entity);
                     ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
+
+                    LOG.log(Level.INFO, "Attempting {0} {1} {2}", new Object[]{rest, new UriTemplate(uri).expand(variables), requestBody});
+
                     ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
 
                     return resultModel;
                 }
             });
 
-    private final static ConcurrentMap<String, JComponent> components;
-    private final static LoadingCache<Class<? extends Model>, Model> modelCache;
-    private final static ConcurrentMap<Class<? extends Model>, Model> models;
-    private final static ConcurrentMap<String, ServerRequest> serverRequests;
-    private final static ApplicationContext applicationContext;
+    private final static ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
+    ;
+    private final static LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
+            .maximumSize(10)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .build(
+                    new CacheLoader<Class<? extends Model>, Model>() {
+                        public @Override
+                        Model load(Class<? extends Model> name) {
+                            return models.get(name);
+                        }
+                    });
+    ;
+    private final static ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap();
+    ;
+    private final static LoadingCache<String, ImageIcon> iconResource = CacheBuilder.newBuilder()
+            .maximumSize(10)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, ImageIcon>() {
+                @Override
+                public ImageIcon load(String iconName) throws Exception {
+                    String name = resourceHostname + iconName;
+                    URL url = new URL(name);
+                    Image resource = ImageIO.read(url);
+                    if (resource == null) {
+                        LOG.log(Level.WARNING, "Missing icon at {0}", name);
+                        return new ImageIcon();
+                    }
+                    return new ImageIcon(resource);
+                }
+            });
+    ;
     
+
     private static final Logger LOG = Logger.getLogger(AppEngine.class.getName());
-    
+
     private static int totalPreparedViews = 0;
-    private static String hostname;
-    
+    private static String hostname = "http://10.0.1.46:8080/";
+    ;
+    private static String resourceHostname = "http://10.0.1.46/~rborja/icons/";
+
+    ;
 
     public static <T> T checkout(String name) {
         return (T) components.remove(name);
@@ -246,6 +278,15 @@ public class AppEngine {
         // TODO: Connect client and return response code and throw exception if not 200
     }
 
+    public static void locateResource(String url) {
+        try {
+            URI uri = new URI(url);
+            resourceHostname = url.toString();
+        } catch (URISyntaxException ex) {
+            LOG.log(Level.SEVERE, "Check url syntax: {0}", url);
+        }
+    }
+
     public static ServerResponse push(ServerRequest request) {
         try {
             return cacheResource.get(request);
@@ -261,7 +302,7 @@ public class AppEngine {
     public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
 
         totalPreparedViews++;
-        
+
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
         if (bind == null) {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
@@ -270,6 +311,7 @@ public class AppEngine {
         Class modelClass = bind.model();
         final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
+        ArrayList<Field> drawFields = new ArrayList<>();
         ArrayList<Field> actionFields = new ArrayList<>();
         ArrayList<Field> viewFields = new ArrayList<>();
         Model model = null;
@@ -417,6 +459,8 @@ public class AppEngine {
                     } catch (UnknownListenerException ex) {
                     }
                 }
+            } else {
+                drawFields.add(field);
             }
         }
 
@@ -446,6 +490,28 @@ public class AppEngine {
                 LOG.log(Level.SEVERE, null, ex);
             }
         }
+
+        for (Field field : drawFields) {
+            Draw draw = field.getAnnotation(Draw.class);
+            if (draw != null) {
+                try {
+                    field.setAccessible(true);
+                    Object component = field.get(viewPanel);
+                    ImageIcon icon = iconResource.get(draw.value());
+                    Class componentClass = component.getClass();
+                    Method setIconMethod = componentClass.getMethod("setIcon", Icon.class);
+                    setIconMethod.invoke(component, icon);
+                } catch (IllegalArgumentException | IllegalAccessException | ExecutionException | SecurityException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                } catch (NoSuchMethodException | InvocationTargetException ex) {
+                    LOG.log(Level.SEVERE, "The field {0} annotated with resource icon is not a component with image binding.", field.getName());
+                }
+            } else {
+                actionFields.add(field);
+            }
+        }
+
+        LOG.log(Level.INFO, "{0} loaded. Total prepared views: {1}", new Object[]{viewClass.getName(), totalPreparedViews});
 
         return new MVP() {
             @Override
@@ -531,6 +597,22 @@ public class AppEngine {
                 LOG.log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    protected static String snip(Model model) throws IllegalArgumentException, IllegalAccessException {
+        Gson gson = new GsonBuilder().create();
+        Class modelClass = model.getClass();
+        String json = gson.toJson(model);
+        Model clonedModel = (Model) gson.fromJson(json, modelClass);
+        for (Field field : modelClass.getDeclaredFields()) {
+            Snip snip = field.getAnnotation(Snip.class);
+            if (snip != null) {
+                field.setAccessible(true);
+                field.set(clonedModel, "*snipped*");
+                field.setAccessible(false);
+            }
+        }
+        return gson.toJson(clonedModel);
     }
 
     public synchronized static void injectJersey(Object presenter, Method method) {
@@ -668,7 +750,7 @@ public class AppEngine {
 
                 EventList rows = (XList) adapter.getModel(property).getValue();
                 TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyNames);
-                
+
                 JTable table = new JTable(new EventTableModel(rows, tf));
 
                 newComponent = table;

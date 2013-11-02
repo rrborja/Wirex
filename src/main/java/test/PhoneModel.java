@@ -52,9 +52,6 @@ public class PhoneModel extends Model implements Serializable {
 
     public void setPhoneNumbers(XList newValue) {
         XList oldValue = (XList)phoneNumbers;
-        System.out.println("New: " + newValue);
-        System.out.println("Old: " + oldValue);
-        
         this.phoneNumbers.setList(newValue.getList());
         changeSupport.firePropertyChange("phoneNumbers", oldValue, newValue);
     }

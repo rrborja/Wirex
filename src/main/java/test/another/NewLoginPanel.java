@@ -9,6 +9,7 @@ import javax.swing.JTextField;
 import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
+import net.wirex.annotations.Draw;
 import net.wirex.annotations.Event;
 
 /**
@@ -117,12 +118,15 @@ public class NewLoginPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    @Draw("cancel_14.png")
     @Event({"cancel"})
     private javax.swing.JButton btnCancel;
+    @Draw("checkmark_sm.png")
     @Event({"login"})
     private javax.swing.JButton btnEnter;
     @Data("remember")
     private javax.swing.JCheckBox chkRemember;
+    @Draw("VispLogin.png")
     private javax.swing.JLabel lblLogo;
     private javax.swing.JLabel lblPassword;
     private javax.swing.JLabel lblUsername;

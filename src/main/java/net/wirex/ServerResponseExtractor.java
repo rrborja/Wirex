@@ -11,6 +11,8 @@ import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.wirex.interfaces.Model;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,8 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
  * @author RBORJA
  */
 public class ServerResponseExtractor extends HttpMessageConverterExtractor<ServerResponse>{
+    private static final Logger LOG = Logger.getLogger(ServerResponseExtractor.class.getName());
+    
     private final Class<? extends Model> responseModel;
 
     public ServerResponseExtractor(Class<? extends Model> responseModel, List<HttpMessageConverter<?>> messageConverters) {
@@ -42,11 +46,14 @@ public class ServerResponseExtractor extends HttpMessageConverterExtractor<Serve
         switch(status) {
             case OK:
                 result = new ServerResponse<>("SUCCESS", gson.fromJson(body, responseModel));
+                LOG.log(Level.INFO, "[{0}] Successful server transaction", status.value());
                 break;
             case ACCEPTED:
                 result = gson.fromJson(body, ServerResponse.class);
+                LOG.log(Level.INFO, "[{0}] Successful authorization", status.value());
                 break;
             default:
+                LOG.log(Level.WARNING, "[{0}] Server has encountered error", status.value());
                 result = null;
         }
         

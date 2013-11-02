@@ -6,6 +6,7 @@
 package test.another;
 
 import com.google.gson.annotations.Expose;
+import net.wirex.annotations.Snip;
 import net.wirex.interfaces.Model;
 
 /**
@@ -15,7 +16,7 @@ import net.wirex.interfaces.Model;
 public class LoginPanelModel extends Model {
 
     private @Expose String username;
-    private @Expose String password;
+    private @Snip @Expose String password;
     private Boolean remember;
 
     public String getUsername() {

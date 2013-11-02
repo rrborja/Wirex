@@ -13,6 +13,8 @@ import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.wirex.enums.Media;
 import net.wirex.enums.REST;
 import net.wirex.interfaces.Model;
@@ -32,7 +34,7 @@ public class ServerRequest<T extends Model> {
     private final Media media;
     private final Map<String, String> variables;
     private final MultiValueMap headerMap;
-    private final Object body;
+    private final Model body;
     private final Class<? extends Model> model;
 
     public ServerRequest(String rest, String path, Media media, Map<String, String> variables, Model body) {
@@ -42,7 +44,7 @@ public class ServerRequest<T extends Model> {
         this.variables = variables;
         this.headerMap = null;
         this.model = body.getClass();
-        this.body = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create().toJson(body);
+        this.body = body;
     }
 
     public ServerRequest(String rest, String path, Media media, MultiValueMap headerMap, Map<String, String> variables) {
@@ -79,8 +81,17 @@ public class ServerRequest<T extends Model> {
         return headerMap;
     }
 
-    public Object getBody() {
-        return body;
+    public String getBody() {
+        return new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create().toJson(body);
+    }
+
+    public String getRequestBody() {
+        try {
+            return AppEngine.snip(body);
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            Logger.getLogger(ServerRequest.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        }
     }
 
     @Override

@@ -4,6 +4,7 @@
  */
 package test;
 
+import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -46,6 +47,7 @@ public class PhoneApp {
             //</editor-fold>
 
             AppEngine.connect("http://10.0.1.46:8080/g7");
+            AppEngine.locateResource("http://10.0.1.46/~rborja/icons/");
             MVP app = AppEngine.prepare(NewLoginPanel.class);
             app.display(JFrame.class, true);
         } catch (ViewClassNotBindedException ex) {
