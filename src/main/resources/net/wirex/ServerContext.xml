@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+">
+
+    <bean id="jacksonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper"/>
+        
+    <bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+        <property name="messageConverters">
+            <list>
+                <bean id="jsonMessageConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+                    <property name="objectMapper" ref="jacksonObjectMapper"/>
+                    <property name="supportedMediaTypes">
+                        <list>
+                            <bean id="jsonMediaTypeTextPlain" class="org.springframework.http.MediaType">
+                                <constructor-arg value="text"/>
+                                <constructor-arg value="plain"/>
+                            </bean>
+                            <bean id="jsonMediaTypeApplicationJson" class="org.springframework.http.MediaType">
+                                <constructor-arg value="application"/>
+                                <constructor-arg value="json"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+            </list>
+        </property>
+        <property name="errorHandler" ref="serverResponseErrorHandler" />
+    </bean>
+    
+    <bean id="serverResponseErrorHandler" class="net.wirex.ServerResponseErrorHandler">
+    </bean>
+    
+</beans>

@@ -51,13 +51,13 @@ public class NewLoginPanel extends javax.swing.JPanel {
         lblUsername.setText("Username:");
         lblUsername.setName("lblUsername"); // NOI18N
 
-        txfUsername.setText("test");
+        txfUsername.setText("jsy");
         txfUsername.setName("txfUsername"); // NOI18N
 
         lblPassword.setText("Password:");
         lblPassword.setName("lblPassword"); // NOI18N
 
-        pwdPassword.setText("test");
+        pwdPassword.setText("password");
         pwdPassword.setName("pwdPassword"); // NOI18N
 
         chkRemember.setText("Remember my password");

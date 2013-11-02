@@ -4,6 +4,7 @@
  */
 package test.another;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -38,16 +39,18 @@ public class LoginPanelPresenter extends Presenter {
     @Dispose
     public void login() throws EventInterruptionException {
         LoginPanelModel model = (LoginPanelModel) getModel();
-//        Map<String, String> args = new ConcurrentHashMap<>();
-//        args.put("username", model.getUsername());
-//        args.put("password", model.getPassword());
+        Map<String, String> args = new ConcurrentHashMap<>();
+        args.put("username", model.getUsername());
+        args.put("password", model.getPassword());
 //        super.call(args);
 //        if
 
-        ServerResponse resource = (ServerResponse) super.call();
+        ServerResponse<String> resource = super.call(args);
         String message = resource.getMessage();
         
-        if (message.equals("ACCESS GRANTED")) {
+        System.out.println(message);
+        
+        if (message.equals("SUCCESS")) {
             
         } else {
             JOptionPane.showMessageDialog(getPanel(), "Invalid username and password. Try again.", "Invalid login", JOptionPane.ERROR_MESSAGE);

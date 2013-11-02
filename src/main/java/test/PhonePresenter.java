@@ -27,11 +27,10 @@ import net.wirex.structures.XList;
  */
 public class PhonePresenter extends Presenter {
     
-    public @Access PhoneModel phoneModel;
+//    public @Access PhoneModel phoneModel;
     
     public PhonePresenter(Model model, JPanel view) {
         super(model, view);
-        System.out.println(((PhoneModel)model).getPhoneNumbers());
     }
     
     @Path("phonelabel/get/{id}")
@@ -41,11 +40,12 @@ public class PhonePresenter extends Presenter {
     public void retrieve() {
         PhoneModel phoneModel = (PhoneModel)super.getModel();
         PhoneView view = (PhoneView)super.getPanel();
-        phoneModel.setLabel("heyyyy");
+//        phoneModel.setLabel("heyyyy");
         Map<String, String> args = new ConcurrentHashMap<>();
         args.put("id", phoneModel.getId());
+        phoneModel.getPhoneNumbers().clear();
         super.call(args);
-        System.out.println(phoneModel.getPhoneNumbers());
+        
         
     }
     

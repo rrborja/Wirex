@@ -240,7 +240,7 @@ public class XList<T> extends AbstractEventList<T> {
 
     @Override
     public String toString() {
-        return list.get(list.size()-1).toString();
+        return list.toString();
     }
     
     

@@ -58,6 +58,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -117,6 +118,7 @@ import net.wirex.annotations.View;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.UnknownListenerException;
+import net.wirex.exceptions.UnsupportedMediaTypeException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
@@ -126,6 +128,16 @@ import net.wirex.listeners.JTextFieldListener;
 import net.wirex.listeners.JToggleButtonListener;
 import net.wirex.structures.XList;
 import net.wirex.structures.XTreeFormat;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
 
 /**
  *
@@ -134,22 +146,65 @@ import net.wirex.structures.XTreeFormat;
 public class ApplicationControllerFactory {
 
     static {
+        applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", ApplicationControllerFactory.class);
         components = new ConcurrentHashMap();
         models = new ConcurrentHashMap();
+        serverRequests = new ConcurrentHashMap();
         modelCache = CacheBuilder.newBuilder()
                 .maximumSize(10)
                 .expireAfterWrite(1, TimeUnit.MINUTES)
                 .build(
-                new CacheLoader<Class<? extends Model>, Model>() {
-            public @Override
-            Model load(Class<? extends Model> name) {
-                return models.get(name);
-            }
-        });
+                        new CacheLoader<Class<? extends Model>, Model>() {
+                            public @Override
+                            Model load(Class<? extends Model> name) {
+                                return models.get(name);
+                            }
+                        });
     }
+
+    private static final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
+            .maximumSize(1)
+            .concurrencyLevel(10)
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .build(new CacheLoader<ServerRequest, ServerResponse>() {
+                RestTemplate rt = applicationContext.getBean("restTemplate", RestTemplate.class);
+                
+                public @Override
+                ServerResponse load(ServerRequest request) throws Exception {
+                    HttpMethod rest = request.getRest();
+                    String uri = request.getPath();
+                    MediaType type = request.getMedia();
+                    Map variables = request.getVariables();
+                    MultiValueMap headerMap = request.getHeaderMap();
+                    Object body = request.getBody();
+                    Class model = request.getModel();
+
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(type);
+                    
+                    HttpEntity entity;
+
+                    if (type == MediaType.APPLICATION_JSON) {
+                        entity = new HttpEntity(body, headers);
+                    } else if (type == MediaType.APPLICATION_FORM_URLENCODED) {
+                        entity = new HttpEntity(headerMap, headers);
+                    } else {
+                        throw new UnsupportedMediaTypeException(type + " is not yet supported.");
+                    }
+                    
+                    RequestCallback requestCallback = new ServerRequestCallback(entity);
+                    ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
+                    ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
+
+                    return resultModel;
+                }
+            });
+
     private final static ConcurrentMap<String, JComponent> components;
     private final static LoadingCache<Class<? extends Model>, Model> modelCache;
     private final static ConcurrentMap<Class<? extends Model>, Model> models;
+    private final static ConcurrentMap<String, ServerRequest> serverRequests;
+    private final static ApplicationContext applicationContext;
     private static String hostname;
 
     public static <T> T checkout(String name) {
@@ -184,6 +239,15 @@ public class ApplicationControllerFactory {
             hostname = url + "/";
         }
         // TODO: Connect client and return response code and throw exception if not 200
+    }
+
+    public static ServerResponse push(ServerRequest request) {
+        try {
+            return cacheResource.get(request);
+        } catch (ExecutionException ex) {
+            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
     private ApplicationControllerFactory() {
@@ -349,8 +413,6 @@ public class ApplicationControllerFactory {
             }
         }
 
-
-
         final Method run;
         try {
             run = presenterClass.getMethod("run", ConcurrentHashMap.class);
@@ -426,12 +488,11 @@ public class ApplicationControllerFactory {
         return methods;
     }
 
-    public synchronized static void deserialize(Class<? extends Model> modelClass, Model model, Model fromJson) {
+    public synchronized static void deserialize(Model model, Model fromJson) {
+        Class<? extends Model> modelClass = model.getClass();
         for (Field field : modelClass.getDeclaredFields()) {
             try {
-
                 field.setAccessible(true);
-
                 Class listClass = field.get(fromJson).getClass();
                 if (listClass == XList.class) {
                     XList oldList = (XList) field.get(model);
@@ -441,11 +502,11 @@ public class ApplicationControllerFactory {
 
                     if (Model.class.isAssignableFrom(listClass)) {
                         for (Object e : newList) {
-                            oldList.add(new MyObject(e));
+                            oldList.add(e);
                         }
                     } else {
                         for (Object e : newList) {
-                            oldList.add(e);
+                            oldList.add(new MyObject(e));
                         }
                     }
 
@@ -474,7 +535,6 @@ public class ApplicationControllerFactory {
         PUT put = method.getAnnotation(PUT.class);
         DELETE delete = method.getAnnotation(DELETE.class);
 
-
         String urlPath;
         if (path != null) {
             if (post != null) {
@@ -487,7 +547,7 @@ public class ApplicationControllerFactory {
                     Class presenterClass = presenter.getClass();
                     Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class, Model.class);
                     initMethod.setAccessible(true);
-                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "post", form != null ? form.value() : null);
+                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "POST", form != null ? form.value() : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -501,7 +561,7 @@ public class ApplicationControllerFactory {
                     Class presenterClass = presenter.getClass();
                     Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class);
                     initMethod.setAccessible(true);
-                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "get", form != null ? form.value() : null);
+                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "GET");
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -601,7 +661,7 @@ public class ApplicationControllerFactory {
 
                 EventList rows = (XList) adapter.getModel(property).getValue();
                 TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyNames);
-
+                
                 JTable table = new JTable(new EventTableModel(rows, tf));
 
                 newComponent = table;

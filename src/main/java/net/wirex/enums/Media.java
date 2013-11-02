@@ -4,20 +4,22 @@
  */
 package net.wirex.enums;
 
+import org.springframework.http.MediaType;
+
 /**
  *
  * @author RBORJA
  */
 public enum Media {
-    XML("application/xml"), JSON("application/json"), URLENCODED("application/x-www-form-urlencoded");
+    XML(MediaType.APPLICATION_XML), JSON(MediaType.APPLICATION_JSON), URLENCODED(MediaType.APPLICATION_FORM_URLENCODED);
     
-    private String value;
+    private MediaType value;
     
-    Media(String value) {
+    Media(MediaType value) {
         this.value = value;
     }
 
-    public String value() {
+    public MediaType value() {
         return value;
     }
     
