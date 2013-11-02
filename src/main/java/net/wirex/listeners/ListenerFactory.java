@@ -76,7 +76,7 @@ import javax.swing.event.TreeWillExpandListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.tree.ExpandVetoException;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.exceptions.EventInterruptionException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -701,14 +701,14 @@ abstract class ListenerFactory {
     }
 
     private static void invoke(Method listener, Object presenter, Object e) {
-        ApplicationControllerFactory.injectJersey(presenter, listener);
+        AppEngine.injectJersey(presenter, listener);
         try {
             if (listener.getParameterTypes().length > 0) {
                 listener.invoke(presenter, e);
             } else {
                 listener.invoke(presenter);
             }
-            ApplicationControllerFactory.proceed(presenter, listener);
+            AppEngine.proceed(presenter, listener);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ViewClassNotBindedException | WrongComponentException ex) {
             if (ex.getCause() instanceof EventInterruptionException) {
                 Logger.getLogger(ListenerFactory.class.getName()).log(Level.INFO, ex.getMessage());

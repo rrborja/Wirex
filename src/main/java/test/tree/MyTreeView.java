@@ -6,7 +6,7 @@ package test.tree;
 
 import javax.swing.JButton;
 import javax.swing.JTree;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
@@ -35,8 +35,8 @@ public class MyTreeView extends javax.swing.JPanel {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTree1 = ApplicationControllerFactory.checkout(JTree.class, "tree");
-        jButton1 = ApplicationControllerFactory.checkout(JButton.class, "add");
+        jTree1 = AppEngine.checkout(JTree.class, "tree");
+        jButton1 = AppEngine.checkout(JButton.class, "add");
 
         jScrollPane1.setViewportView(jTree1);
 

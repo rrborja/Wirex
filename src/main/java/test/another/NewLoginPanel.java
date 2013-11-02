@@ -6,7 +6,7 @@ package test.another;
 
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
@@ -36,10 +36,10 @@ public class NewLoginPanel extends javax.swing.JPanel {
 
         lblLogo = new javax.swing.JLabel();
         lblUsername = new javax.swing.JLabel();
-        txfUsername = ApplicationControllerFactory.checkout(JTextField.class, "username");
+        txfUsername = AppEngine.checkout(JTextField.class, "username");
         lblPassword = new javax.swing.JLabel();
-        pwdPassword = ApplicationControllerFactory.checkout(JPasswordField.class, "password");
-        chkRemember = ApplicationControllerFactory.checkout("remember");
+        pwdPassword = AppEngine.checkout(JPasswordField.class, "password");
+        chkRemember = AppEngine.checkout("remember");
         btnCancel = new javax.swing.JButton();
         btnEnter = new javax.swing.JButton();
 

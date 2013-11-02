@@ -5,20 +5,12 @@
 package net.visp.mvpshortcut.itemsmanager;
 
 import javax.swing.JPanel;
-import java.awt.Component;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractCellEditor;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.table.TableCellEditor;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.MVP;
 
 import net.wirex.annotations.Bind;
@@ -55,10 +47,10 @@ public class ItemsManagerPanel extends JPanel {
         cmbRecurs = new javax.swing.JComboBox();
         cmbActive = new javax.swing.JComboBox();
         cmbTax = new javax.swing.JComboBox();
-        txfFind = (JTextField)net.wirex.ApplicationControllerFactory.checkout("find");
+        txfFind = (JTextField)net.wirex.AppEngine.checkout("find");
         cmbReports = new javax.swing.JComboBox();
         scrItemManager = new javax.swing.JScrollPane();
-        tblItemManager = (JTable) net.wirex.ApplicationControllerFactory.checkout("table");
+        tblItemManager = (JTable) net.wirex.AppEngine.checkout("table");
         jButton1 = new javax.swing.JButton();
 
         cmbType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "DISCOUNT", "FEE", "EQUIPMENT", "Wireless" }));
@@ -129,7 +121,7 @@ public class ItemsManagerPanel extends JPanel {
 
     public static void main(String args[]) {
         try {
-            MVP mvpController = ApplicationControllerFactory.prepare(ItemsManagerPanel.class);
+            MVP mvpController = AppEngine.prepare(ItemsManagerPanel.class);
             mvpController.display(JFrame.class, true);
         } catch (ViewClassNotBindedException ex) {
             Logger.getLogger(ItemsManagerPanel.class.getName()).log(Level.SEVERE, null, ex);

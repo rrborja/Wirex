@@ -51,7 +51,7 @@
         <Property name="text" type="java.lang.String" value="jLabel1"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="ApplicationControllerFactory.checkout(JLabel.class, &quot;text&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JLabel.class, &quot;text&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;text&quot;)"/>
       </AuxValues>
     </Component>

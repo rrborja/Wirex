@@ -94,7 +94,7 @@
         <Property name="name" type="java.lang.String" value="txfUsername" noResource="true"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="ApplicationControllerFactory.checkout(JTextField.class, &quot;username&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;username&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;username&quot;)"/>
       </AuxValues>
     </Component>
@@ -110,7 +110,7 @@
         <Property name="name" type="java.lang.String" value="pwdPassword" noResource="true"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="ApplicationControllerFactory.checkout(JPasswordField.class, &quot;password&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JPasswordField.class, &quot;password&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;password&quot;)"/>
       </AuxValues>
     </Component>
@@ -120,7 +120,7 @@
         <Property name="name" type="java.lang.String" value="chkRemember" noResource="true"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="ApplicationControllerFactory.checkout(&quot;remember&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(&quot;remember&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;remember&quot;)"/>
       </AuxValues>
     </Component>

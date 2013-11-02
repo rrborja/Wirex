@@ -143,10 +143,10 @@ import org.springframework.web.client.RestTemplate;
  *
  * @author RBORJA
  */
-public class ApplicationControllerFactory {
+public class AppEngine {
 
     static {
-        applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", ApplicationControllerFactory.class);
+        applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", AppEngine.class);
         components = new ConcurrentHashMap();
         models = new ConcurrentHashMap();
         serverRequests = new ConcurrentHashMap();
@@ -218,7 +218,7 @@ public class ApplicationControllerFactory {
             try {
                 return component.newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, "No instance for " + component, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, "No instance for " + component, ex);
                 return null;
             }
         }
@@ -245,12 +245,12 @@ public class ApplicationControllerFactory {
         try {
             return cacheResource.get(request);
         } catch (ExecutionException ex) {
-            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
 
-    private ApplicationControllerFactory() {
+    private AppEngine() {
     }
 
     public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
@@ -274,7 +274,7 @@ public class ApplicationControllerFactory {
                 models.put(modelClass, model);
             }
         } catch (InstantiationException | IllegalAccessException | ExecutionException ex) {
-            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         for (Field field : fields) {
@@ -285,7 +285,7 @@ public class ApplicationControllerFactory {
                     try {
                         bindComponent(clazz, model, data.value());
                     } catch (InstantiationException | IllegalAccessException ex) {
-                        Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
@@ -312,7 +312,7 @@ public class ApplicationControllerFactory {
         try {
             viewPanel = (JPanel) viewClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
 
@@ -320,7 +320,7 @@ public class ApplicationControllerFactory {
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
 
@@ -339,7 +339,7 @@ public class ApplicationControllerFactory {
                         field.set(presenter, newModel);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
-                    Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -353,7 +353,7 @@ public class ApplicationControllerFactory {
                 try {
                     listener = getArrayMethods(presenter, event.value());
                 } catch (NoSuchMethodException ex) {
-                    Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                     return null;
                 }
                 if (ActionListener.class == event.type()) {
@@ -417,7 +417,7 @@ public class ApplicationControllerFactory {
         try {
             run = presenterClass.getMethod("run", ConcurrentHashMap.class);
         } catch (NoSuchMethodException | SecurityException ex) {
-            Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
@@ -436,7 +436,7 @@ public class ApplicationControllerFactory {
             try {
                 run.invoke(presenter, runMethodParameters);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -519,9 +519,9 @@ public class ApplicationControllerFactory {
                             .invoke(model, field.getName(), oldValue, newValue);
                 }
             } catch (IllegalArgumentException | IllegalAccessException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             } catch (NoSuchMethodException | SecurityException | InvocationTargetException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -549,7 +549,7 @@ public class ApplicationControllerFactory {
                     initMethod.setAccessible(true);
                     initMethod.invoke(presenter, hostname + urlPath, type.value(), "POST", form != null ? form.value() : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else if (get != null) {
                 try {
@@ -563,7 +563,7 @@ public class ApplicationControllerFactory {
                     initMethod.setAccessible(true);
                     initMethod.invoke(presenter, hostname + urlPath, type.value(), "GET");
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -620,7 +620,7 @@ public class ApplicationControllerFactory {
 //                });
                 newComponent = tree;
             } catch (NoSuchFieldException | SecurityException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                 newComponent = new JTree();
             }
         } else if (JTable.class == component || JTable.class.isAssignableFrom(component)) {
@@ -666,7 +666,7 @@ public class ApplicationControllerFactory {
 
                 newComponent = table;
             } catch (NoSuchFieldException | SecurityException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
                 newComponent = new JTable();
             }
 
@@ -676,7 +676,7 @@ public class ApplicationControllerFactory {
             try {
                 throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
             } catch (UnknownComponentException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
             try {
                 newComponent = (JComponent) component.newInstance();
@@ -731,16 +731,16 @@ public class ApplicationControllerFactory {
         public void actionPerformed(ActionEvent e) {
             try {
                 Method methodInPresenter = presenterClass.getMethod(methodName);
-                ApplicationControllerFactory.injectJersey(presenter, methodInPresenter);
+                AppEngine.injectJersey(presenter, methodInPresenter);
                 methodInPresenter.invoke(presenter);
             } catch (NoSuchMethodException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IllegalAccessException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IllegalArgumentException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InvocationTargetException ex) {
-                Logger.getLogger(ApplicationControllerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

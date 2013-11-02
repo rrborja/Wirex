@@ -7,7 +7,7 @@ package test;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.MVP;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -45,8 +45,8 @@ public class PhoneApp {
             }
             //</editor-fold>
 
-            ApplicationControllerFactory.connect("http://10.0.1.46:8080/g7");
-            MVP app = ApplicationControllerFactory.prepare(NewLoginPanel.class);
+            AppEngine.connect("http://10.0.1.46:8080/g7");
+            MVP app = AppEngine.prepare(NewLoginPanel.class);
             app.display(JFrame.class, true);
         } catch (ViewClassNotBindedException ex) {
             Logger.getLogger(PhoneApp.class.getName()).log(Level.SEVERE, null, ex);

@@ -4,7 +4,6 @@
  */
 package test;
 
-import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.gui.TableFormat;
@@ -12,7 +11,7 @@ import ca.odell.glazedlists.swing.EventTableModel;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.structures.XList;
 
 /**
@@ -25,7 +24,7 @@ public class TestPointer {
         XList list = new XList();
         
         EventList rows = list;
-        TableFormat tf = GlazedLists.tableFormat(ApplicationControllerFactory.MyObject.class, new String[] {"value"}, new String[] {"value"});
+        TableFormat tf = GlazedLists.tableFormat(AppEngine.MyObject.class, new String[] {"value"}, new String[] {"value"});
 
         JTable table = new JTable(new EventTableModel(rows, tf));
         
@@ -35,11 +34,11 @@ public class TestPointer {
         f.pack();
         f.setVisible(true);
         
-        list.add(new ApplicationControllerFactory.MyObject("hello"));
+        list.add(new AppEngine.MyObject("hello"));
         
         XList list2 = new XList(8);
         
-        list2.add(new ApplicationControllerFactory.MyObject("this"));
+        list2.add(new AppEngine.MyObject("this"));
         
         list.setList(list2);
     }

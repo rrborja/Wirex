@@ -69,7 +69,7 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="jTextField1">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)ApplicationControllerFactory.checkout(&quot;label&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)AppEngine.checkout(&quot;label&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;label&quot;)"/>
       </AuxValues>
     </Component>
@@ -91,7 +91,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="jTextField2">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)ApplicationControllerFactory.checkout(&quot;id&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)AppEngine.checkout(&quot;id&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;id&quot;)"/>
       </AuxValues>
     </Component>
@@ -133,7 +133,7 @@
             </Property>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTable)ApplicationControllerFactory.checkout(&quot;phoneNumbers&quot;)"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTable)AppEngine.checkout(&quot;phoneNumbers&quot;)"/>
             <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;phoneNumbers&quot;)"/>
           </AuxValues>
         </Component>

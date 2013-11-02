@@ -8,7 +8,7 @@ import java.awt.event.KeyListener;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.Data;
@@ -37,22 +37,15 @@ public class MyView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = (JTextField)net.wirex.ApplicationControllerFactory.checkout("phoneLabel");
+        jTextField1 = (JTextField)net.wirex.AppEngine.checkout("phoneLabel");
         btnSubmit = new javax.swing.JButton();
-        jTextField2 = (JTextField)net.wirex.ApplicationControllerFactory.checkout("newText");
-        jCheckBox1 = (JCheckBox)ApplicationControllerFactory.checkout("check");
-        jTextField3 = (JTextField)ApplicationControllerFactory.checkout("lastname");
+        jTextField2 = (JTextField)net.wirex.AppEngine.checkout("newText");
+        jCheckBox1 = (JCheckBox)AppEngine.checkout("check");
+        jTextField3 = (JTextField)AppEngine.checkout("lastname");
         jButton1 = new javax.swing.JButton();
-        jComboBox1 = (JComboBox) ApplicationControllerFactory.checkout("combo");
-        subView1 = ApplicationControllerFactory.checkout(SubView.class, "subview");
+        jComboBox1 = (JComboBox) AppEngine.checkout("combo");
 
         btnSubmit.setText("Submit");
-
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
-            }
-        });
 
         jCheckBox1.setText("jCheckBox1");
 
@@ -83,10 +76,7 @@ public class MyView extends javax.swing.JPanel {
                                 .addComponent(jCheckBox1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(74, 74, 74)
-                        .addComponent(subView1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(82, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -106,15 +96,9 @@ public class MyView extends javax.swing.JPanel {
                     .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
-                .addComponent(subView1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30))
+                .addContainerGap(89, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     @Event({"submit"})
@@ -133,7 +117,5 @@ public class MyView extends javax.swing.JPanel {
     @Event(value={"update", "update2", "update3"}, type=KeyListener.class)
     @Data("lastname")
     private javax.swing.JTextField jTextField3;
-    @View("subview")
-    private net.visp.mvpshortcut.SubView subView1;
     // End of variables declaration//GEN-END:variables
 }

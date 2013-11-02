@@ -45,10 +45,6 @@
                           <Component id="jTextField2" min="-2" pref="262" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="74" max="-2" attributes="0"/>
-                      <Component id="subView1" min="-2" max="-2" attributes="0"/>
-                  </Group>
               </Group>
               <EmptySpace pref="82" max="32767" attributes="0"/>
           </Group>
@@ -73,9 +69,7 @@
               </Group>
               <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
               <Component id="jTextField2" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="43" max="32767" attributes="0"/>
-              <Component id="subView1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
+              <EmptySpace pref="89" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -83,7 +77,7 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="jTextField1">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.ApplicationControllerFactory.checkout(&quot;phoneLabel&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.AppEngine.checkout(&quot;phoneLabel&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;phoneLabel&quot;)"/>
       </AuxValues>
     </Component>
@@ -96,11 +90,8 @@
       </AuxValues>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextField2">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextField2ActionPerformed"/>
-      </Events>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.ApplicationControllerFactory.checkout(&quot;newText&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)net.wirex.AppEngine.checkout(&quot;newText&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;newText&quot;)"/>
       </AuxValues>
     </Component>
@@ -109,13 +100,13 @@
         <Property name="text" type="java.lang.String" value="jCheckBox1"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JCheckBox)ApplicationControllerFactory.checkout(&quot;check&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JCheckBox)AppEngine.checkout(&quot;check&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;check&quot;)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextField3">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)ApplicationControllerFactory.checkout(&quot;lastname&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)AppEngine.checkout(&quot;lastname&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(value={&quot;update&quot;, &quot;update2&quot;, &quot;update3&quot;}, type=KeyListener.class)&#xa;@Data(&quot;lastname&quot;)"/>
       </AuxValues>
     </Component>
@@ -129,14 +120,8 @@
     </Component>
     <Component class="javax.swing.JComboBox" name="jComboBox1">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JComboBox) ApplicationControllerFactory.checkout(&quot;combo&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JComboBox) AppEngine.checkout(&quot;combo&quot;)"/>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;combo&quot;)"/>
-      </AuxValues>
-    </Component>
-    <Component class="net.visp.mvpshortcut.SubView" name="subView1">
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="ApplicationControllerFactory.checkout(SubView.class, &quot;subview&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@View(&quot;subview&quot;)"/>
       </AuxValues>
     </Component>
   </SubComponents>

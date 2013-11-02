@@ -6,7 +6,7 @@ package test;
 
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
@@ -38,14 +38,14 @@ public class PhoneView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = (JTextField)ApplicationControllerFactory.checkout("label");
+        jTextField1 = (JTextField)AppEngine.checkout("label");
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jTextField2 = (JTextField)ApplicationControllerFactory.checkout("id");
+        jTextField2 = (JTextField)AppEngine.checkout("id");
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = (JTable)ApplicationControllerFactory.checkout("phoneNumbers");
+        jTable1 = (JTable)AppEngine.checkout("phoneNumbers");
 
         jButton1.setText("GET");
 

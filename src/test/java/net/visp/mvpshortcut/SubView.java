@@ -5,7 +5,7 @@
 package net.visp.mvpshortcut;
 
 import javax.swing.JLabel;
-import net.wirex.ApplicationControllerFactory;
+import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
@@ -33,7 +33,7 @@ public class SubView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = ApplicationControllerFactory.checkout(JLabel.class, "text");
+        jLabel1 = AppEngine.checkout(JLabel.class, "text");
         jButton1 = new javax.swing.JButton();
 
         setBackground(new java.awt.Color(102, 204, 255));
