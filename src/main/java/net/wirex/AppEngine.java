@@ -205,7 +205,12 @@ public class AppEngine {
     private final static ConcurrentMap<Class<? extends Model>, Model> models;
     private final static ConcurrentMap<String, ServerRequest> serverRequests;
     private final static ApplicationContext applicationContext;
+    
+    private static final Logger LOG = Logger.getLogger(AppEngine.class.getName());
+    
+    private static int totalPreparedViews = 0;
     private static String hostname;
+    
 
     public static <T> T checkout(String name) {
         return (T) components.remove(name);
@@ -218,7 +223,7 @@ public class AppEngine {
             try {
                 return component.newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, "No instance for " + component, ex);
+                LOG.log(Level.SEVERE, "No instance for " + component, ex);
                 return null;
             }
         }
@@ -245,7 +250,7 @@ public class AppEngine {
         try {
             return cacheResource.get(request);
         } catch (ExecutionException ex) {
-            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -255,6 +260,8 @@ public class AppEngine {
 
     public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
 
+        totalPreparedViews++;
+        
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
         if (bind == null) {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
@@ -274,7 +281,7 @@ public class AppEngine {
                 models.put(modelClass, model);
             }
         } catch (InstantiationException | IllegalAccessException | ExecutionException ex) {
-            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
 
         for (Field field : fields) {
@@ -285,7 +292,7 @@ public class AppEngine {
                     try {
                         bindComponent(clazz, model, data.value());
                     } catch (InstantiationException | IllegalAccessException ex) {
-                        Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        LOG.log(Level.SEVERE, null, ex);
                     }
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
@@ -312,7 +319,7 @@ public class AppEngine {
         try {
             viewPanel = (JPanel) viewClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             return null;
         }
 
@@ -320,7 +327,7 @@ public class AppEngine {
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             return null;
         }
 
@@ -339,7 +346,7 @@ public class AppEngine {
                         field.set(presenter, newModel);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
-                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -353,7 +360,7 @@ public class AppEngine {
                 try {
                     listener = getArrayMethods(presenter, event.value());
                 } catch (NoSuchMethodException ex) {
-                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                     return null;
                 }
                 if (ActionListener.class == event.type()) {
@@ -417,7 +424,7 @@ public class AppEngine {
         try {
             run = presenterClass.getMethod("run", ConcurrentHashMap.class);
         } catch (NoSuchMethodException | SecurityException ex) {
-            Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             return null;
         }
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
@@ -436,7 +443,7 @@ public class AppEngine {
             try {
                 run.invoke(presenter, runMethodParameters);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
 
@@ -519,9 +526,9 @@ public class AppEngine {
                             .invoke(model, field.getName(), oldValue, newValue);
                 }
             } catch (IllegalArgumentException | IllegalAccessException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             } catch (NoSuchMethodException | SecurityException | InvocationTargetException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -549,7 +556,7 @@ public class AppEngine {
                     initMethod.setAccessible(true);
                     initMethod.invoke(presenter, hostname + urlPath, type.value(), "POST", form != null ? form.value() : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                 }
             } else if (get != null) {
                 try {
@@ -563,7 +570,7 @@ public class AppEngine {
                     initMethod.setAccessible(true);
                     initMethod.invoke(presenter, hostname + urlPath, type.value(), "GET");
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -620,7 +627,7 @@ public class AppEngine {
 //                });
                 newComponent = tree;
             } catch (NoSuchFieldException | SecurityException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 newComponent = new JTree();
             }
         } else if (JTable.class == component || JTable.class.isAssignableFrom(component)) {
@@ -666,7 +673,7 @@ public class AppEngine {
 
                 newComponent = table;
             } catch (NoSuchFieldException | SecurityException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 newComponent = new JTable();
             }
 
@@ -676,7 +683,7 @@ public class AppEngine {
             try {
                 throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
             } catch (UnknownComponentException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
             try {
                 newComponent = (JComponent) component.newInstance();
@@ -734,13 +741,13 @@ public class AppEngine {
                 AppEngine.injectJersey(presenter, methodInPresenter);
                 methodInPresenter.invoke(presenter);
             } catch (NoSuchMethodException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             } catch (IllegalAccessException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             } catch (IllegalArgumentException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             } catch (InvocationTargetException ex) {
-                Logger.getLogger(AppEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
     }
