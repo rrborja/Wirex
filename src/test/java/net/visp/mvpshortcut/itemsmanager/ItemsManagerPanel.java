@@ -4,9 +4,9 @@
  */
 package net.visp.mvpshortcut.itemsmanager;
 
-import javax.swing.JPanel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.JTextField;

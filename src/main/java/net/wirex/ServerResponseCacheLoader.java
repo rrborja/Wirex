@@ -8,7 +8,8 @@ package net.wirex;
 import com.google.common.cache.CacheLoader;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.wirex.exceptions.UnsupportedMediaTypeException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -31,7 +32,7 @@ class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerRespons
     ApplicationContext applicationContext;
     RestTemplate rt;
 
-    private static final Logger LOG = Logger.getLogger(ServerResponseCacheLoader.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(ServerResponseCacheLoader.class.getName());
 
     void init() {
         if (applicationContext == null) {
@@ -69,7 +70,7 @@ class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerRespons
         RequestCallback requestCallback = new ServerRequestCallback(entity);
         ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
 
-        LOG.log(Level.INFO, "Attempting {0} {1} {2}", new Object[]{rest, new UriTemplate(uri).expand(variables), requestBody});
+        LOG.info("Attempting {} {} {}", rest, new UriTemplate(uri).expand(variables), requestBody);
 
         ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
 

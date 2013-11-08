@@ -4,9 +4,7 @@
  */
 package test;
 
-import java.net.URI;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 import net.wirex.AppEngine;
 import net.wirex.MVP;
@@ -50,11 +48,10 @@ public class PhoneApp {
             AppEngine.locateResource("http://10.0.1.46/~rborja/icons/");
             MVP app = AppEngine.prepare(NewLoginPanel.class);
             app.display(JFrame.class, true);
-        } catch (ViewClassNotBindedException ex) {
-            Logger.getLogger(PhoneApp.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (WrongComponentException ex) {
-            Logger.getLogger(PhoneApp.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ViewClassNotBindedException | WrongComponentException ex) {
+            LOG.log(Level.SEVERE, null, ex);
         }
 
     }
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(PhoneApp.class.getName());
 }

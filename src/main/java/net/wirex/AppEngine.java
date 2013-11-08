@@ -68,11 +68,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -147,7 +145,7 @@ import net.wirex.structures.XTreeFormat;
  */
 public class AppEngine {
 
-    private static final Logger LOG = Logger.getLogger(AppEngine.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(AppEngine.class.getName());
 
     private static final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
@@ -180,7 +178,7 @@ public class AppEngine {
                     URL url = new URL(name);
                     Image resource = ImageIO.read(url);
                     if (resource == null) {
-                        LOG.log(Level.WARNING, "Missing icon at {0}", name);
+                        LOG.warn("Missing icon at {}", name);
                         return new ImageIcon();
                     }
                     return new ImageIcon(resource);
@@ -220,7 +218,7 @@ public class AppEngine {
             try {
                 return component.newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
-                LOG.log(Level.SEVERE, "No instance for " + component, ex);
+                LOG.error("No instance for " + component, ex);
                 return null;
             }
         }
@@ -259,7 +257,7 @@ public class AppEngine {
             URI uri = new URI(url);
             resourceHostname = url.toString();
         } catch (URISyntaxException ex) {
-            LOG.log(Level.SEVERE, "Check url syntax: {0}", url);
+            LOG.warn("Check url syntax: {}", url);
         }
     }
 
@@ -276,7 +274,7 @@ public class AppEngine {
         try {
             return cacheResource.get(request);
         } catch (ExecutionException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.error(request.getBody(), ex);
             return null;
         }
     }
@@ -320,7 +318,7 @@ public class AppEngine {
                 models.put(modelClass, model);
             }
         } catch (InstantiationException | IllegalAccessException | ExecutionException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.error("Unable to load model", ex);
         }
 
         for (Field field : fields) {
@@ -331,7 +329,7 @@ public class AppEngine {
                     try {
                         bindComponent(clazz, model, data.value());
                     } catch (InstantiationException | IllegalAccessException ex) {
-                        LOG.log(Level.SEVERE, null, ex);
+                        LOG.error("Unable to bind component " + clazz, ex);
                     }
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
@@ -358,7 +356,7 @@ public class AppEngine {
         try {
             viewPanel = (JPanel) viewClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.error("Unable to create " + viewClass, ex);
             return null;
         }
 
@@ -366,7 +364,7 @@ public class AppEngine {
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.error("Unable to create " + presenterClass, ex);
             return null;
         }
 
@@ -385,7 +383,7 @@ public class AppEngine {
                         field.set(presenter, newModel);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
-                    LOG.log(Level.SEVERE, null, ex);
+                    LOG.error("Unable to set model object " + accessModelClass, ex);
                 }
             }
         }
@@ -396,12 +394,8 @@ public class AppEngine {
                 field.setAccessible(true);
                 Class component = field.getType();
                 Method[] listener;
-                try {
-                    listener = getArrayMethods(presenter, event.value());
-                } catch (NoSuchMethodException ex) {
-                    LOG.log(Level.SEVERE, null, ex);
-                    return null;
-                }
+                final String[] methodNames = event.value();
+                listener = getArrayMethods(presenter, methodNames);
                 ComponentListenerInjector.addListener(ActionListener.class, JButton.class, viewPanel, field, presenter, listener[0]);
                 if (ActionListener.class == event.type()) {
                     if (component == JButton.class) {
@@ -470,7 +464,7 @@ public class AppEngine {
         try {
             run = presenterClass.getMethod("run", ConcurrentHashMap.class);
         } catch (NoSuchMethodException | SecurityException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.error("Framework bug! Can't access run method.", ex);
             return null;
         }
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
@@ -489,31 +483,32 @@ public class AppEngine {
             try {
                 run.invoke(presenter, runMethodParameters);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.error("Framework bug! Cannot invoke run in " + presenter.getClass(), ex);
             }
         }
 
         for (Field field : drawFields) {
             Draw draw = field.getAnnotation(Draw.class);
             if (draw != null) {
+                Class componentClass = null;
                 try {
                     field.setAccessible(true);
                     Object component = field.get(viewPanel);
                     ImageIcon icon = iconResource.get(draw.value());
-                    Class componentClass = component.getClass();
+                    componentClass = component.getClass();
                     Method setIconMethod = componentClass.getMethod("setIcon", Icon.class);
                     setIconMethod.invoke(component, icon);
                 } catch (IllegalArgumentException | IllegalAccessException | ExecutionException | SecurityException ex) {
-                    LOG.log(Level.SEVERE, null, ex);
+                    LOG.error("Cannot set icon in " + componentClass, ex);
                 } catch (NoSuchMethodException | InvocationTargetException ex) {
-                    LOG.log(Level.SEVERE, "The field {0} annotated with resource icon is not a component with image binding.", field.getName());
+                    LOG.error("The field {} annotated with resource icon is not a component with image binding.", field.getName());
                 }
             } else {
                 actionFields.add(field);
             }
         }
 
-        LOG.log(Level.INFO, "{0} loaded. Total prepared views: {1}", new Object[]{viewClass.getName(), totalPreparedViews});
+        LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), totalPreparedViews);
 
         return new MVP() {
             @Override
@@ -555,10 +550,14 @@ public class AppEngine {
         };
     }
 
-    private static Method[] getArrayMethods(Object presenter, String[] values) throws NoSuchMethodException {
+    private static Method[] getArrayMethods(Object presenter, String[] values) {
         Method[] methods = new Method[values.length];
         for (int i = 0; i < values.length; i++) {
-            methods[i] = presenter.getClass().getMethod(values[i]);
+            try {
+                methods[i] = presenter.getClass().getMethod(values[i]);
+            } catch (NoSuchMethodException | SecurityException ex) {
+                LOG.warn("Is the method {} existed in {}?", values[i], presenter.getClass());
+            }
         }
         return methods;
     }
@@ -602,9 +601,9 @@ public class AppEngine {
                             .invoke(model, field.getName(), oldValue, newValue);
                 }
             } catch (IllegalArgumentException | IllegalAccessException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.error("Cannot deserialize " + modelClass, ex);
             } catch (NoSuchMethodException | SecurityException | InvocationTargetException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.error("Cannot deserialize " + modelClass, ex);
             }
         }
     }
@@ -655,6 +654,7 @@ public class AppEngine {
 
         String urlPath;
         if (path != null) {
+            Method initMethod = null;
             if (post != null) {
                 try {
                     if (path.value().startsWith("/")) {
@@ -663,11 +663,11 @@ public class AppEngine {
                         urlPath = path.value();
                     }
                     Class presenterClass = presenter.getClass();
-                    Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class, Model.class);
+                    initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class, Model.class);
                     initMethod.setAccessible(true);
                     initMethod.invoke(presenter, hostname + urlPath, type.value(), "POST", form != null ? form.value() : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    LOG.log(Level.SEVERE, null, ex);
+                    LOG.error("Framework bug! Cannot invoke method " + initMethod, ex);
                 }
             } else if (get != null) {
                 try {
@@ -677,11 +677,11 @@ public class AppEngine {
                         urlPath = path.value();
                     }
                     Class presenterClass = presenter.getClass();
-                    Method initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class);
+                    initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class);
                     initMethod.setAccessible(true);
                     initMethod.invoke(presenter, hostname + urlPath, type.value(), "GET");
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    LOG.log(Level.SEVERE, null, ex);
+                    LOG.error("Framework bug! Cannot invoke method " + initMethod, ex);
                 }
             }
         }
@@ -750,7 +750,7 @@ public class AppEngine {
 //                });
                 newComponent = tree;
             } catch (NoSuchFieldException | SecurityException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.warn("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTree();
             }
         } else if (JTable.class == component || JTable.class.isAssignableFrom(component)) {
@@ -796,7 +796,7 @@ public class AppEngine {
 
                 newComponent = table;
             } catch (NoSuchFieldException | SecurityException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.error("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTable();
             }
 
@@ -806,7 +806,7 @@ public class AppEngine {
             try {
                 throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
             } catch (UnknownComponentException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.error("Unable to bind component " + component + " with " + property, ex);
             }
             try {
                 newComponent = (JComponent) component.newInstance();
@@ -872,14 +872,8 @@ public class AppEngine {
                 Method methodInPresenter = presenterClass.getMethod(methodName);
                 AppEngine.injectRestSpec(presenter, methodInPresenter);
                 methodInPresenter.invoke(presenter);
-            } catch (NoSuchMethodException ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            } catch (InvocationTargetException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+            } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
         }
     }

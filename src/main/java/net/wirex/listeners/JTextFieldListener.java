@@ -6,8 +6,10 @@ package net.wirex.listeners;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -28,7 +30,7 @@ public class JTextFieldListener extends ListenerFactory {
             textfield.addActionListener(actionListener(presenter, listener));
             field.set(view, textfield);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JTextFieldListener.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(JTextFieldListener.class.getName()).error("Cannot add ActionListener to " + field.getName(), ex);
         }
     }
 
@@ -38,7 +40,7 @@ public class JTextFieldListener extends ListenerFactory {
             textfield.addKeyListener(keyListener(presenter, listener));
             field.set(view, textfield);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JTextFieldListener.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(JTextFieldListener.class.getName()).error("Cannot add KeyListener to " + field.getName(), ex);
         }
     }
 }

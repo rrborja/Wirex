@@ -8,8 +8,10 @@ package net.wirex;
 import com.google.gson.GsonBuilder;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.wirex.enums.Media;
 import net.wirex.enums.REST;
 import net.wirex.interfaces.Model;
@@ -84,7 +86,7 @@ public class ServerRequest<T extends Model> {
         try {
             return AppEngine.snip(body);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(ServerRequest.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(ServerRequest.class.getName()).error("Can't snip field(s) in " + model, ex);
             return "";
         }
     }

@@ -6,8 +6,10 @@ package net.wirex.listeners;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import static net.wirex.listeners.ListenerFactory.keyListener;
@@ -27,7 +29,7 @@ public class JToggleButtonListener extends ListenerFactory {
             button.addActionListener(actionListener(presenter, listener));
             field.set(view, button);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JToggleButtonListener.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(JToggleButtonListener.class.getName()).error("Cannot add ActionListener to " + field.getName(), ex);
         }
     }
 
@@ -38,7 +40,7 @@ public class JToggleButtonListener extends ListenerFactory {
             button.addKeyListener(keyListener(presenter, listener));
             field.set(view, button);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JToggleButtonListener.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(JToggleButtonListener.class.getName()).error("Cannot add KeyListener to " + field.getName(), ex);
         }
 
     }

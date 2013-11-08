@@ -37,7 +37,10 @@ import java.beans.VetoableChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.CellEditorListener;
@@ -87,6 +90,8 @@ import net.wirex.exceptions.WrongComponentException;
  */
 abstract class ListenerFactory {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ListenerFactory.class.getName());
+    
     public static ActionListener actionListener(final Object presenter, final Method listener) {
         return new ActionListener() {
             @Override
@@ -710,11 +715,14 @@ abstract class ListenerFactory {
             }
             AppEngine.proceed(presenter, listener);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ViewClassNotBindedException | WrongComponentException ex) {
-            if (ex.getCause() instanceof EventInterruptionException) {
-                Logger.getLogger(ListenerFactory.class.getName()).log(Level.INFO, ex.getMessage());
+            System.out.println(ex.getClass() + " : " + EventInterruptionException.class);
+            if (ex instanceof EventInterruptionException) {
+                LOG.info("The method " + listener + " throws an error: " + ex.getMessage(), ex);
             } else {
-                Logger.getLogger(ListenerFactory.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.error("Unable to invoke " + listener, ex);
             }
         }
     }
+    
+    
 }

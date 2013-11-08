@@ -5,7 +5,10 @@
 package test;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
@@ -17,8 +20,10 @@ import net.wirex.annotations.Event;
  *
  * @author RBORJA
  */
-@Bind(model=PhoneModel.class, presenter=PhonePresenter.class)
+@Bind(model = PhoneModel.class, presenter = PhonePresenter.class)
 public class PhoneView extends javax.swing.JPanel {
+
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(PhoneView.class.getName());
 
     /**
      * Creates new form PhoneView
@@ -27,7 +32,7 @@ public class PhoneView extends javax.swing.JPanel {
         try {
             Class.forName("net.wirex.AppEngine");
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(PhoneView.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         initComponents();
     }
@@ -35,7 +40,7 @@ public class PhoneView extends javax.swing.JPanel {
     public JTable getTable() {
         return jTable1;
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

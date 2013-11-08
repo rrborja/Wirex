@@ -7,8 +7,10 @@ package net.wirex;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -20,7 +22,7 @@ import org.apache.commons.io.IOUtils;
  */
 public class ServerResponseErrorHandler implements ResponseErrorHandler {
 
-    private static final Logger LOG = Logger.getLogger(ServerResponseErrorHandler.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(ServerResponseErrorHandler.class.getName());
     
     private final ResponseErrorHandler errorHandler = new DefaultResponseErrorHandler();
 
@@ -33,7 +35,7 @@ public class ServerResponseErrorHandler implements ResponseErrorHandler {
     public void handleError(ClientHttpResponse response) throws IOException {
         InputStream in = response.getBody();
         String body = IOUtils.toString(in, "UTF-8");
-        LOG.log(Level.WARNING, body);
+        LOG.warn(body);
     }
     
 

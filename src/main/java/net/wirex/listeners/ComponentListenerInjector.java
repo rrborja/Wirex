@@ -8,8 +8,10 @@ import java.awt.event.ActionListener;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -31,7 +33,7 @@ public class ComponentListenerInjector extends ListenerFactory {
             addActionListener.invoke(button, actionListener(presenter, listener));
             field.set(view, button);
         } catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
-            Logger.getLogger(ComponentListenerInjector.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(ComponentListenerInjector.class.getName()).error("Unable to add " + listenerType.getSimpleName() + " to " + field.getName(), ex);
         }
     }
 
@@ -42,7 +44,7 @@ public class ComponentListenerInjector extends ListenerFactory {
             button.addKeyListener(keyListener(presenter, listener));
             field.set(view, button);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(ComponentListenerInjector.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(ComponentListenerInjector.class.getName()).error("Unable to load listener.", ex);
         }
 
     }
