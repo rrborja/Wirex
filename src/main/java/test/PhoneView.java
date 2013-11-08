@@ -4,6 +4,8 @@
  */
 package test;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
@@ -22,6 +24,11 @@ public class PhoneView extends javax.swing.JPanel {
      * Creates new form PhoneView
      */
     public PhoneView() {
+        try {
+            Class.forName("net.wirex.AppEngine");
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(PhoneView.class.getName()).log(Level.SEVERE, null, ex);
+        }
         initComponents();
     }
 
@@ -38,14 +45,14 @@ public class PhoneView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = (JTextField)AppEngine.checkout("label");
+        jTextField1 = (JTextField)AppEngine.checkout(JTextField.class, "label");
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jTextField2 = (JTextField)AppEngine.checkout("id");
+        jTextField2 = (JTextField)AppEngine.checkout(JTextField.class, "id");
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = (JTable)AppEngine.checkout("phoneNumbers");
+        jTable1 = (JTable)AppEngine.checkout(JTable.class, "phoneNumbers");
 
         jButton1.setText("GET");
 

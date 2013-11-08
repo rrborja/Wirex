@@ -45,14 +45,14 @@ public class ServerResponseExtractor extends HttpMessageConverterExtractor<Serve
         
         switch(status) {
             case OK:
-                result = new ServerResponse<>("SUCCESS", gson.fromJson(body, responseModel));
+                result = new ServerResponse<>(HttpStatus.OK, gson.fromJson(body, responseModel));
                 LOG.log(Level.INFO, "[{0}] Successful server transaction", status.value());
                 break;
             case ACCEPTED:
-                result = gson.fromJson(body, ServerResponse.class);
+                result = new ServerResponse<>(HttpStatus.ACCEPTED, response.getHeaders().get("SessionID").get(0));
                 LOG.log(Level.INFO, "[{0}] Successful authorization", status.value());
                 break;
-            default:
+            default: 
                 LOG.log(Level.WARNING, "[{0}] Server has encountered error", status.value());
                 result = null;
         }

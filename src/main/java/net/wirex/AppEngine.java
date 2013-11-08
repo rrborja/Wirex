@@ -64,12 +64,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
@@ -129,28 +131,15 @@ import net.wirex.annotations.View;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.UnknownListenerException;
-import net.wirex.exceptions.UnsupportedMediaTypeException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
-import net.wirex.listeners.JButtonListener;
+import net.wirex.listeners.ComponentListenerInjector;
 import net.wirex.listeners.JTextFieldListener;
 import net.wirex.listeners.JToggleButtonListener;
 import net.wirex.structures.XList;
 import net.wirex.structures.XTreeFormat;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriTemplate;
 
 /**
  *
@@ -158,51 +147,16 @@ import org.springframework.web.util.UriTemplate;
  */
 public class AppEngine {
 
+    private static final Logger LOG = Logger.getLogger(AppEngine.class.getName());
+
     private static final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.MINUTES)
-            .build(new CacheLoader<ServerRequest, ServerResponse>() {
-                ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", AppEngine.class);
-                RestTemplate rt = applicationContext.getBean("restTemplate", RestTemplate.class);
-
-                public @Override
-                ServerResponse load(ServerRequest request) throws Exception {
-                    HttpMethod rest = request.getRest();
-                    String uri = request.getPath();
-                    MediaType type = request.getMedia();
-                    Map variables = request.getVariables();
-                    MultiValueMap headerMap = request.getHeaderMap();
-                    String body = request.getBody();
-                    Class model = request.getModel();
-                    String requestBody = request.getRequestBody();
-
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(type);
-
-                    HttpEntity entity;
-
-                    if (type == MediaType.APPLICATION_JSON) {
-                        entity = new HttpEntity(body, headers);
-                    } else if (type == MediaType.APPLICATION_FORM_URLENCODED) {
-                        entity = new HttpEntity(headerMap, headers);
-                    } else {
-                        throw new UnsupportedMediaTypeException(type + " is not yet supported.");
-                    }
-
-                    RequestCallback requestCallback = new ServerRequestCallback(entity);
-                    ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
-
-                    LOG.log(Level.INFO, "Attempting {0} {1} {2}", new Object[]{rest, new UriTemplate(uri).expand(variables), requestBody});
-
-                    ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
-
-                    return resultModel;
-                }
-            });
+            .build(new ServerResponseCacheLoader());
 
     private final static ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
-    ;
+
     private final static LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
             .expireAfterWrite(1, TimeUnit.MINUTES)
@@ -213,9 +167,9 @@ public class AppEngine {
                             return models.get(name);
                         }
                     });
-    ;
+
     private final static ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap();
-    ;
+
     private final static LoadingCache<String, ImageIcon> iconResource = CacheBuilder.newBuilder()
             .maximumSize(10)
             .expireAfterWrite(1, TimeUnit.MINUTES)
@@ -232,22 +186,33 @@ public class AppEngine {
                     return new ImageIcon(resource);
                 }
             });
-    ;
-    
-
-    private static final Logger LOG = Logger.getLogger(AppEngine.class.getName());
 
     private static int totalPreparedViews = 0;
     private static String hostname = "http://10.0.1.46:8080/";
-    ;
+
     private static String resourceHostname = "http://10.0.1.46/~rborja/icons/";
 
-    ;
-
+    /**
+     * Checkouts a binded component.
+     *
+     * @param <T> The type must be a JComponent class or its subclass
+     * @param name The name of the component binded from the annotated fields
+     * @return Returns a model-binded component
+     * @deprecated Use checkout(Class<T> component, String name) instead
+     */
+    @Deprecated
     public static <T> T checkout(String name) {
         return (T) components.remove(name);
     }
 
+    /**
+     * Checkouts a prepared component binded from @Data
+     *
+     * @param <T> The type must be a JComponent class or its subclass
+     * @param component Your JComponent class
+     * @param name The name of the component binded from the annotated fields
+     * @return Returns a model-binded component
+     */
     public static <T> T checkout(Class<T> component, String name) {
         if (components.containsKey(name)) {
             return (T) checkout(name);
@@ -269,6 +234,12 @@ public class AppEngine {
         }
     }
 
+    /**
+     * Connects a Java EE web server that supports REST transactions
+     *
+     * @param url The url to connect to a server that processes REST
+     * transactions
+     */
     public static void connect(String url) {
         if (url.endsWith("/")) {
             hostname = url;
@@ -278,6 +249,11 @@ public class AppEngine {
         // TODO: Connect client and return response code and throw exception if not 200
     }
 
+    /**
+     * Locates a suite of icons from a web server for the ResourceBundle feature
+     *
+     * @param url The URL to retrieve the icons
+     */
     public static void locateResource(String url) {
         try {
             URI uri = new URI(url);
@@ -287,6 +263,15 @@ public class AppEngine {
         }
     }
 
+    /**
+     * Connects to a server based on the request headers in the ServerRequest
+     * object. It should contain all the required properties such as REST
+     * method, Media Type, the Path mapped by Spring MVC, etc.
+     *
+     * @param request An object containing the ServerRequest properties like
+     * REST, Media Type, etc.
+     * @return A response from the server
+     */
     public static ServerResponse push(ServerRequest request) {
         try {
             return cacheResource.get(request);
@@ -299,6 +284,18 @@ public class AppEngine {
     private AppEngine() {
     }
 
+    /**
+     * Prepares a binded view class together with its Presenter and Model
+     * classes and binds them together to form an MVP object that contains
+     * method to display the view.
+     *
+     * @param viewClass
+     * @return Returns an MVP object
+     * @throws ViewClassNotBindedException Throws an exception when a View class
+     * doesn't have a binding annotation
+     * @throws WrongComponentException Throws this exception when a field
+     * declaration is not of type JComponent
+     */
     public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
 
         totalPreparedViews++;
@@ -405,9 +402,10 @@ public class AppEngine {
                     LOG.log(Level.SEVERE, null, ex);
                     return null;
                 }
+                ComponentListenerInjector.addListener(ActionListener.class, JButton.class, viewPanel, field, presenter, listener[0]);
                 if (ActionListener.class == event.type()) {
                     if (component == JButton.class) {
-                        JButtonListener.addActionListener(viewPanel, field, presenter, listener[0]);
+
                     } else if (component == JTextField.class) {
                         JTextFieldListener.addActionListener(viewPanel, field, presenter, listener[0]);
                     } else if (component == JToggleButton.class) {
@@ -427,7 +425,7 @@ public class AppEngine {
                 } else if (ItemListener.class == event.type()) {
                 } else if (KeyListener.class == event.type()) {
                     if (component == JButton.class) {
-                        JButtonListener.addKeyListener(viewPanel, field, presenter, listener);
+//                        ComponentListener.addKeyListener(viewPanel, field, presenter, listener);
                     } else if (component == JTextField.class) {
                         JTextFieldListener.addKeyListener(viewPanel, field, presenter, listener);
                     }
@@ -460,6 +458,10 @@ public class AppEngine {
                     }
                 }
             } else {
+                drawFields.add(field);
+            }
+            Draw draw = field.getAnnotation(Draw.class);
+            if (draw != null) {
                 drawFields.add(field);
             }
         }
@@ -561,12 +563,20 @@ public class AppEngine {
         return methods;
     }
 
+    /**
+     * Deserialization tool to transfer a data from a model to the model origin.
+     *
+     * This method must not be called unless you know what you're doing.
+     *
+     * @param model The origin model
+     * @param fromJson The model to be transfered
+     */
     public synchronized static void deserialize(Model model, Model fromJson) {
         Class<? extends Model> modelClass = model.getClass();
         for (Field field : modelClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                Class listClass = field.get(fromJson).getClass();
+                Class listClass = field.getType();
                 if (listClass == XList.class) {
                     XList oldList = (XList) field.get(model);
                     XList newList = (XList) field.get(fromJson);
@@ -599,6 +609,18 @@ public class AppEngine {
         }
     }
 
+    /**
+     * Snips a field data in the Model. To snip, fields must have @Snip
+     * annotation
+     *
+     * Useful for snipping sensitive data like Passwords, Credit Card numbers,
+     * etc.
+     *
+     * @param model The model in which its field(s) to be snipped
+     * @return A JSON data containing the final snipped values
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     */
     protected static String snip(Model model) throws IllegalArgumentException, IllegalAccessException {
         Gson gson = new GsonBuilder().create();
         Class modelClass = model.getClass();
@@ -615,7 +637,14 @@ public class AppEngine {
         return gson.toJson(clonedModel);
     }
 
-    public synchronized static void injectJersey(Object presenter, Method method) {
+    /**
+     * Injects the Wirex REST specification listener to the event components.
+     *
+     * @param presenter The presenter object to inject the server connectors to
+     * its annotated methods
+     * @param method The method to inject with
+     */
+    public synchronized static void injectRestSpec(Object presenter, Method method) {
         Path path = method.getAnnotation(Path.class);
         Type type = method.getAnnotation(Type.class);
         Form form = method.getAnnotation(Form.class);
@@ -658,6 +687,18 @@ public class AppEngine {
         }
     }
 
+    /**
+     * Transitional state method to change windows and disposing a window. This
+     * method should not be used unless you know what you're doing
+     *
+     * @param presenter The presenter object to inject events in window changing
+     * @param method The particular method in the presenter object to invoke its
+     * window changing
+     * @throws ViewClassNotBindedException Throws this exception when a View
+     * class doesn't have a binding annotation
+     * @throws WrongComponentException Throws this exception when a annotated
+     * field declaration is not of type JComponent
+     */
     public synchronized static void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException {
         Fire fire = method.getAnnotation(Fire.class);
         Dispose dispose = method.getAnnotation(Dispose.class);
@@ -776,12 +817,21 @@ public class AppEngine {
         components.put(property, newComponent);
     }
 
+    /**
+     * Disposes a presenter's binded View
+     *
+     * @param presenter The presenter where its binded View to be disposed
+     */
     public static void dispose(Presenter presenter) {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
         window.dispose();
     }
 
+    /**
+     * Data structure for Wirex simple object. Useful when a value's type is a
+     * primary data type.
+     */
     public static class MyObject {
 
         private Object value;
@@ -820,7 +870,7 @@ public class AppEngine {
         public void actionPerformed(ActionEvent e) {
             try {
                 Method methodInPresenter = presenterClass.getMethod(methodName);
-                AppEngine.injectJersey(presenter, methodInPresenter);
+                AppEngine.injectRestSpec(presenter, methodInPresenter);
                 methodInPresenter.invoke(presenter);
             } catch (NoSuchMethodException ex) {
                 LOG.log(Level.SEVERE, null, ex);

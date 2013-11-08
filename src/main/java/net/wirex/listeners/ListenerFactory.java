@@ -701,7 +701,7 @@ abstract class ListenerFactory {
     }
 
     private static void invoke(Method listener, Object presenter, Object e) {
-        AppEngine.injectJersey(presenter, listener);
+        AppEngine.injectRestSpec(presenter, listener);
         try {
             if (listener.getParameterTypes().length > 0) {
                 listener.invoke(presenter, e);

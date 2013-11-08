@@ -45,11 +45,12 @@ public class LoginPanelPresenter extends Presenter {
 //        super.call(args);
 //        if
 
-        ServerResponse<String> resource = super.call(args);
-        String message = resource.getMessage();
+        ServerResponse resource = super.call(args);
+        System.out.println(resource.getMessage());
+        String message = resource.getMessage().toString();
         
-        if (message.equals("SUCCESS")) {
-            
+        if (!message.equals("-1")) {
+            System.out.println(message);
         } else {
             JOptionPane.showMessageDialog(getPanel(), "Invalid username and password. Try again.", "Invalid login", JOptionPane.ERROR_MESSAGE);
             super.interrupt("Password Invalid");

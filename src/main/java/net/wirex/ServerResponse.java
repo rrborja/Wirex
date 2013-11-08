@@ -5,6 +5,7 @@
 package net.wirex;
 
 import java.util.Objects;
+import org.springframework.http.HttpStatus;
 
 /**
  *
@@ -13,15 +14,15 @@ import java.util.Objects;
  */
 public class ServerResponse<T> {
 
-    private final String status;
+    private final HttpStatus status;
     private final T message;
 
-    public ServerResponse(String status, T message) {
+    public ServerResponse(HttpStatus status, T message) {
         this.status = status;
         this.message = message;
     }
 
-    public String getStatus() {
+    public HttpStatus getStatus() {
         return status;
     }
 
@@ -31,7 +32,7 @@ public class ServerResponse<T> {
     }
     
     public boolean isSerializable() {
-        return status.equals("SUCCESS");
+        return status == HttpStatus.OK;
     }
 
     @Override
