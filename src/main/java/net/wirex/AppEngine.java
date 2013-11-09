@@ -30,6 +30,7 @@ import com.google.gson.GsonBuilder;
 import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.adapter.BasicComponentFactory;
 import com.jgoodies.binding.adapter.Bindings;
+import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.Container;
@@ -68,7 +69,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
@@ -83,7 +83,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JTree;
@@ -226,7 +228,7 @@ public class AppEngine {
 
     private static Model checkout(Class<? extends Model> modelClass) {
         if (modelClass != null) {
-            return modelCache.getIfPresent(modelClass);
+            return models.get(modelClass);
         } else {
             return null;
         }
@@ -296,8 +298,6 @@ public class AppEngine {
      */
     public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
 
-        totalPreparedViews++;
-
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
         if (bind == null) {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
@@ -366,26 +366,6 @@ public class AppEngine {
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
-        }
-
-        for (Field field : presenterClass.getDeclaredFields()) {
-            Access access = field.getAnnotation(Access.class);
-            if (access != null) {
-                field.setAccessible(true);
-                Class<? extends Model> accessModelClass = (Class<? extends Model>) field.getType();
-                try {
-                    Model checkedOutModel = checkout(accessModelClass);
-                    if (checkedOutModel != null) {
-                        field.set(presenter, checkedOutModel);
-                    } else {
-                        Model newModel = (Model) accessModelClass.newInstance();
-                        models.put(accessModelClass, newModel);
-                        field.set(presenter, newModel);
-                    }
-                } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
-                    LOG.error("Unable to set model object " + accessModelClass, ex);
-                }
-            }
         }
 
         for (Field field : actionFields) {
@@ -487,6 +467,26 @@ public class AppEngine {
             }
         }
 
+        for (Field field : presenterClass.getDeclaredFields()) {
+            Access access = field.getAnnotation(Access.class);
+            if (access != null) {
+                field.setAccessible(true);
+                Class<? extends Model> accessModelClass = (Class<? extends Model>) field.getType();
+                try {
+                    Model checkedOutModel = checkout(accessModelClass);
+                    if (checkedOutModel != null) {
+                        field.set(presenter, checkedOutModel);
+                    } else {
+                        Model newModel = (Model) accessModelClass.newInstance();
+                        models.put(accessModelClass, newModel);
+                        field.set(presenter, newModel);
+                    }
+                } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
+                    LOG.error("Unable to set model object " + accessModelClass, ex);
+                }
+            }
+        }
+
         for (Field field : drawFields) {
             Draw draw = field.getAnnotation(Draw.class);
             if (draw != null) {
@@ -508,12 +508,28 @@ public class AppEngine {
             }
         }
 
-        LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), totalPreparedViews);
+        LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
         return new MVP() {
+
+            private String title = "Untitled";
+
             @Override
             public JPanel getView() {
                 return viewPanel;
+            }
+
+            @Override
+            public void setTitle(String title) {
+                this.title = title;
+                Window window = SwingUtilities.getWindowAncestor(viewPanel);
+                if (window != null) {
+                    if (window.getClass() == JFrame.class) {
+                        ((JFrame) window).setTitle(title);
+                    } else {
+                        ((JDialog) window).setTitle(title);
+                    }
+                }
             }
 
             @Override
@@ -524,9 +540,11 @@ public class AppEngine {
                         Window dialog;
                         if (window == JFrame.class) {
                             dialog = new JFrame();
+                            ((JFrame) dialog).setTitle(title);
                             ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                         } else {
                             dialog = new JDialog();
+                            ((JDialog) dialog).setTitle(title);
                             ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                         }
                         dialog.add(viewPanel);
@@ -725,6 +743,11 @@ public class AppEngine {
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
             Bindings.bind((JComboBox) newComponent, selectionModel, "");
+        } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
+            BeanAdapter beanAdapter = new BeanAdapter(bean, true);
+            Bindings.bind(newComponent, "value", beanAdapter.getValueModel(property));
+        } else if (JTextArea.class == component || JTextArea.class.isAssignableFrom(component)) {
+            Bindings.bind((JTextArea) newComponent, componentModel);
         } else if (JTree.class == component || JTree.class.isAssignableFrom(component)) {
             try {
                 Field listField = bean.getClass().getDeclaredField(property);

@@ -13,5 +13,6 @@ import javax.swing.JPanel;
  */
 public interface MVP {
     JPanel getView();
+    void setTitle(String title);
     void display(Class<? extends Window> window, Boolean isVisible);
 }
