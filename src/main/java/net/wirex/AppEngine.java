@@ -155,7 +155,7 @@ public class AppEngine {
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new ServerResponseCacheLoader());
 
-    private final static ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
+    protected final static ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
 
     private final static LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
@@ -345,8 +345,8 @@ public class AppEngine {
                 field.setAccessible(true);
                 Class subViewClass = field.getType();
                 String panelId = view.value();
-                MVP mvp = prepare(subViewClass);
-                components.put(panelId, mvp.getView());
+                PrepareWorker prepareWorkerThread = new PrepareWorker(panelId, subViewClass);
+                prepareWorkerThread.start();
             } else {
                 actionFields.add(field);
             }
