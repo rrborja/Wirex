@@ -64,11 +64,15 @@ import java.lang.reflect.ParameterizedType;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
@@ -129,6 +133,8 @@ import net.wirex.annotations.Snip;
 import net.wirex.annotations.Type;
 import net.wirex.annotations.View;
 import net.wirex.enums.Media;
+import net.wirex.exceptions.InvalidKeywordFromBindingNameException;
+import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
 import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.UnknownListenerException;
 import net.wirex.exceptions.ViewClassNotBindedException;
@@ -146,8 +152,14 @@ import net.wirex.structures.XTreeFormat;
  * @author RBORJA
  */
 public class AppEngine {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AppEngine.class.getName());
+    
+    private static final Logger LOG = LoggerFactory.getLogger(AppEngine.class.getSimpleName());
+    
+    static {
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        Date date = new Date();
+        LOG.info("Wirex Framework {}", dateFormat.format(date));
+    }
 
     private static final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
@@ -257,7 +269,7 @@ public class AppEngine {
     public static void locateResource(String url) {
         try {
             URI uri = new URI(url);
-            resourceHostname = url.toString();
+            resourceHostname = uri.toString();
         } catch (URISyntaxException ex) {
             LOG.warn("Check url syntax: {}", url);
         }
@@ -327,9 +339,14 @@ public class AppEngine {
                 Class clazz = field.getType();
                 if (JComponent.class.isAssignableFrom(clazz)) {
                     try {
-                        bindComponent(clazz, model, data.value());
+                        String modelProperty = LegalIdentifierChecker.check(data.value());
+                        bindComponent(clazz, model, modelProperty);
                     } catch (InstantiationException | IllegalAccessException ex) {
                         LOG.error("Unable to bind component " + clazz, ex);
+                    } catch (InvalidKeywordFromBindingNameException ex) {
+                        LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
+                    } catch (ReservedKeywordFromBindingNameException ex) {
+                        LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
                     }
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
@@ -572,9 +589,14 @@ public class AppEngine {
         Method[] methods = new Method[values.length];
         for (int i = 0; i < values.length; i++) {
             try {
-                methods[i] = presenter.getClass().getMethod(values[i]);
+                String value = LegalIdentifierChecker.check(values[i]);
+                methods[i] = presenter.getClass().getMethod(value);
             } catch (NoSuchMethodException | SecurityException ex) {
                 LOG.warn("Is the method {} existed in {}?", values[i], presenter.getClass());
+            } catch (InvalidKeywordFromBindingNameException ex) {
+                LOG.warn("Is the method {} in {} a valid Java keyword?", values[i], presenter.getClass());
+            } catch (ReservedKeywordFromBindingNameException ex) {
+                LOG.warn("Is the method {} in {} a reserved Java keyword?", values[i], presenter.getClass());
             }
         }
         return methods;
@@ -746,6 +768,7 @@ public class AppEngine {
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
             BeanAdapter beanAdapter = new BeanAdapter(bean, true);
             Bindings.bind(newComponent, "value", beanAdapter.getValueModel(property));
+            Bindings.bind(newComponent, "indeterminate", beanAdapter.getValueModel(property + 2));
         } else if (JTextArea.class == component || JTextArea.class.isAssignableFrom(component)) {
             Bindings.bind((JTextArea) newComponent, componentModel);
         } else if (JTree.class == component || JTree.class.isAssignableFrom(component)) {
