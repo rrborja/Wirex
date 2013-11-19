@@ -22,7 +22,7 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class ServerResponseExtractor extends HttpMessageConverterExtractor<ServerResponse>{
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseExtractor.class.getName());

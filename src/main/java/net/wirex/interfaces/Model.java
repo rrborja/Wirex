@@ -9,7 +9,7 @@ import java.beans.PropertyChangeSupport;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public abstract class Model {
 

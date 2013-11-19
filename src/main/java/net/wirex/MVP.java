@@ -9,7 +9,7 @@ import javax.swing.JPanel;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public interface MVP {
     JPanel getView();

@@ -13,7 +13,7 @@ import net.wirex.interfaces.Model;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

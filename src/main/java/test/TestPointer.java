@@ -16,7 +16,7 @@ import net.wirex.structures.XList;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class TestPointer {
 

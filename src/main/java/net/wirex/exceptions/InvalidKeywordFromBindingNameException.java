@@ -8,7 +8,7 @@ package net.wirex.exceptions;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class InvalidKeywordFromBindingNameException extends Exception {
     

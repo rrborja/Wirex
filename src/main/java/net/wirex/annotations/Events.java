@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 
 /**
  *
- * @author PHVISP
+ * @author Ritchie Borja
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

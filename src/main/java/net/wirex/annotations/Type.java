@@ -12,7 +12,7 @@ import net.wirex.enums.Media;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

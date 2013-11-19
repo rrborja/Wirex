@@ -14,7 +14,7 @@ import test.another.NewLoginPanel;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class PhoneApp {
 

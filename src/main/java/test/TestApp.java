@@ -8,7 +8,7 @@ package test;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class TestApp {
     public static void main(String[] args) throws ClassNotFoundException {

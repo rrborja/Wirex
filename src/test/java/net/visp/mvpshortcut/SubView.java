@@ -12,7 +12,7 @@ import net.wirex.annotations.Event;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Bind(model = MySubModel.class, presenter = MySubPresenter.class)
 public class SubView extends javax.swing.JPanel {

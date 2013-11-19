@@ -13,7 +13,7 @@ import net.wirex.structures.XList;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class PhoneModel extends Model implements Serializable {
     

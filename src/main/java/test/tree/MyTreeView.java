@@ -13,7 +13,7 @@ import net.wirex.annotations.Event;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Bind(model = MyTreeModel.class, presenter = MyTreePresenter.class)
 public class MyTreeView extends javax.swing.JPanel {

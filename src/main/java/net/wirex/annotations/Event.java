@@ -14,7 +14,7 @@ import static net.wirex.EventMethod.ACTION_PERFORMED;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

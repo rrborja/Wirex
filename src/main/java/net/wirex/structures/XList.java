@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class XList<T> extends AbstractEventList<T> {
 

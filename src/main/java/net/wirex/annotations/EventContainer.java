@@ -14,7 +14,7 @@ import java.util.EventListener;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

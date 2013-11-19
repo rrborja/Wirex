@@ -11,7 +11,7 @@ import net.wirex.interfaces.Model;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class LoginPanelModel extends Model {
 

@@ -11,7 +11,7 @@ import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class LegalIdentifierChecker {
 

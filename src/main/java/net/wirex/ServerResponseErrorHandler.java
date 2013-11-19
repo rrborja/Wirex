@@ -18,7 +18,7 @@ import org.apache.commons.io.IOUtils;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class ServerResponseErrorHandler implements ResponseErrorHandler {
 

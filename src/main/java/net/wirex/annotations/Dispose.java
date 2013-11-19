@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

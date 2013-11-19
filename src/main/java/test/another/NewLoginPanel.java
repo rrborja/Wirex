@@ -14,7 +14,7 @@ import net.wirex.annotations.Event;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Bind(model=LoginPanelModel.class, presenter=LoginPanelPresenter.class)
 public class NewLoginPanel extends javax.swing.JPanel {

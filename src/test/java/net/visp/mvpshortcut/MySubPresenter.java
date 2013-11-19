@@ -15,7 +15,7 @@ import net.wirex.interfaces.Presenter;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class MySubPresenter extends Presenter {
 

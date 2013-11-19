@@ -14,7 +14,7 @@ import net.wirex.exceptions.WrongComponentException;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class MyTreeApp {
 

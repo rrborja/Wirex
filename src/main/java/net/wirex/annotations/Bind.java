@@ -13,7 +13,7 @@ import net.wirex.interfaces.Presenter;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

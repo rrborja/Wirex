@@ -46,7 +46,7 @@ import javax.swing.event.UndoableEditListener;
 
 /**
  *
- * @author PHVISP
+ * @author Ritchie Borja
  */
 public enum EventMethod {
 

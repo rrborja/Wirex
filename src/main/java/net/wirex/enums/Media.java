@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public enum Media {
     XML(MediaType.APPLICATION_XML), JSON(MediaType.APPLICATION_JSON), URLENCODED(MediaType.APPLICATION_FORM_URLENCODED);

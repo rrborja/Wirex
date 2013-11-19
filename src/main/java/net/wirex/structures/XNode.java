@@ -8,7 +8,7 @@ import com.google.common.collect.Lists;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class XNode<T> {
 

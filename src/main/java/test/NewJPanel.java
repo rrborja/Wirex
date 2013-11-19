@@ -8,7 +8,7 @@ package test;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class NewJPanel extends javax.swing.JPanel {
 

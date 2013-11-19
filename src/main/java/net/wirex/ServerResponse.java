@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  * @param <T>
  */
 public class ServerResponse<T> {

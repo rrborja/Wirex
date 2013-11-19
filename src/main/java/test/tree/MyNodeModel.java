@@ -11,7 +11,7 @@ import net.wirex.structures.XNode;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class MyNodeModel<T> extends Model {
 

@@ -19,7 +19,7 @@ import net.wirex.exceptions.EventInterruptionException;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public abstract class Presenter {
 

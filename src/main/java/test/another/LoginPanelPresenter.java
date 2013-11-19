@@ -4,18 +4,14 @@
  */
 package test.another;
 
-import java.awt.event.KeyListener;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import net.wirex.EventMethod;
 import net.wirex.Invoker;
 import net.wirex.ServerResponse;
 import net.wirex.annotations.Dispose;
-import net.wirex.annotations.Event;
-import net.wirex.annotations.EventContainer;
 import net.wirex.annotations.Fire;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.Path;
@@ -25,24 +21,14 @@ import net.wirex.exceptions.EventInterruptionException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import org.springframework.http.HttpStatus;
-import static net.wirex.EventMethod.*;
 import test.PhoneView;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class LoginPanelPresenter extends Presenter {
-
-    @EventContainer(listens = KeyListener.class, events = {
-        @Event(value="hey", at=KEY_PRESSED),
-        @Event(value="hi", at=KEY_RELEASED)
-    })
     
-    @Event("running")
-    
-    int i;
-
     public LoginPanelPresenter(Model model, JPanel panel) {
         super(model, panel);
     }

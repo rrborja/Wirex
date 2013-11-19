@@ -6,7 +6,7 @@ package net.wirex.exceptions;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class NonXListTypeException extends Exception {
 

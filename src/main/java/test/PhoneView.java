@@ -18,7 +18,7 @@ import net.wirex.annotations.Event;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Bind(model = PhoneModel.class, presenter = PhonePresenter.class)
 public class PhoneView extends javax.swing.JPanel {

@@ -21,7 +21,7 @@ import org.springframework.util.MultiValueMap;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  * @param <T> Your model
  */
 public class ServerRequest<T extends Model> {

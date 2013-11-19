@@ -16,7 +16,7 @@ import net.wirex.annotations.EventContainer;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 @Bind(model = MyModel.class, presenter = MyPresenter.class)
 public class MyView extends javax.swing.JPanel {

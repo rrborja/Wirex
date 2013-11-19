@@ -19,7 +19,7 @@ import org.springframework.web.client.RequestCallback;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class ServerRequestCallback implements RequestCallback {
 

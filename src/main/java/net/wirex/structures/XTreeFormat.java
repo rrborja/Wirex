@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class XTreeFormat implements TreeList.Format {
 

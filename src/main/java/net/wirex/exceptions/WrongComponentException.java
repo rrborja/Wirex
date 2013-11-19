@@ -6,7 +6,7 @@ package net.wirex.exceptions;
 
 /**
  *
- * @author RBORJA
+ * @author Ritchie Borja
  */
 public class WrongComponentException extends Exception {
 
