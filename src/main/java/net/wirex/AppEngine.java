@@ -352,58 +352,7 @@ public class AppEngine {
 
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
-        return new MVP() {
-
-            private String title = "Untitled";
-
-            @Override
-            public JPanel getView() {
-                return viewPanel;
-            }
-
-            @Override
-            public void setTitle(String title) {
-                this.title = title;
-                Window window = SwingUtilities.getWindowAncestor(viewPanel);
-                if (window != null) {
-                    if (window.getClass() == JFrame.class) {
-                        ((JFrame) window).setTitle(title);
-                    } else {
-                        ((JDialog) window).setTitle(title);
-                    }
-                }
-            }
-
-            @Override
-            public void display(final Class<? extends Window> window, final Boolean isVisible) {
-                EventQueue.invokeLater(() -> {
-                    Window dialog;
-                    if (window == JFrame.class) {
-                        dialog = new JFrame();
-                        ((JFrame) dialog).setTitle(title);
-                        ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                    } else {
-                        dialog = new JDialog();
-                        ((JDialog) dialog).setTitle(title);
-                        ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                    }
-                    dialog.add(viewPanel);
-                    dialog.pack();
-                    dialog.setMinimumSize(dialog.getPreferredSize());
-                    Container parent = dialog.getParent();
-
-                    if (parent != null) {
-                        dialog.setLocationRelativeTo(parent);
-                    } else {
-                        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-                        int x = (int) ((dimension.getWidth() - dialog.getWidth()) / 2);
-                        int y = (int) ((dimension.getHeight() - dialog.getHeight()) / 2);
-                        dialog.setLocation(x, y);
-                    }
-                    dialog.setVisible(isVisible);
-                });
-            }
-        };
+        return new MVPObject(viewPanel);
     }
 
     private static void scanFieldsWithData(Field[] fields, Model model, ArrayList<Field> viewFields) throws WrongComponentException {
@@ -888,5 +837,63 @@ public class AppEngine {
                 LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
         }
+    }
+
+    private static class MVPObject implements MVP {
+
+        private final JPanel viewPanel;
+
+        public MVPObject(JPanel viewPanel) {
+            this.viewPanel = viewPanel;
+        }
+        private String title = "Untitled";
+
+        @Override
+        public JPanel getView() {
+            return viewPanel;
+        }
+
+            @Override
+            public void setTitle(String title) {
+                this.title = title;
+                Window window = SwingUtilities.getWindowAncestor(viewPanel);
+                if (window != null) {
+                    if (window.getClass() == JFrame.class) {
+                        ((JFrame) window).setTitle(title);
+                    } else {
+                        ((JDialog) window).setTitle(title);
+                    }
+                }
+            }
+
+            @Override
+            public void display(final Class<? extends Window> window, final Boolean isVisible) {
+                EventQueue.invokeLater(() -> {
+                    Window dialog;
+                    if (window == JFrame.class) {
+                        dialog = new JFrame();
+                        ((JFrame) dialog).setTitle(title);
+                        ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                    } else {
+                        dialog = new JDialog();
+                        ((JDialog) dialog).setTitle(title);
+                        ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                    }
+                    dialog.add(viewPanel);
+                    dialog.pack();
+                    dialog.setMinimumSize(dialog.getPreferredSize());
+                    Container parent = dialog.getParent();
+                    
+                    if (parent != null) {
+                        dialog.setLocationRelativeTo(parent);
+                    } else {
+                        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+                        int x = (int) ((dimension.getWidth() - dialog.getWidth()) / 2);
+                        int y = (int) ((dimension.getHeight() - dialog.getHeight()) / 2);
+                        dialog.setLocation(x, y);
+                    }
+                    dialog.setVisible(isVisible);
+                });
+            }
     }
 }
