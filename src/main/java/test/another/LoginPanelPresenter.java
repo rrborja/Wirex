@@ -4,14 +4,18 @@
  */
 package test.another;
 
+import java.awt.event.KeyListener;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import net.wirex.EventMethod;
 import net.wirex.Invoker;
 import net.wirex.ServerResponse;
 import net.wirex.annotations.Dispose;
+import net.wirex.annotations.Event;
+import net.wirex.annotations.EventContainer;
 import net.wirex.annotations.Fire;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.Path;
@@ -20,6 +24,8 @@ import net.wirex.enums.Media;
 import net.wirex.exceptions.EventInterruptionException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import org.springframework.http.HttpStatus;
+import static net.wirex.EventMethod.*;
 import test.PhoneView;
 
 /**
@@ -27,6 +33,15 @@ import test.PhoneView;
  * @author RBORJA
  */
 public class LoginPanelPresenter extends Presenter {
+
+    @EventContainer(listens = KeyListener.class, events = {
+        @Event(value="hey", at=KEY_PRESSED),
+        @Event(value="hi", at=KEY_RELEASED)
+    })
+    
+    @Event("running")
+    
+    int i;
 
     public LoginPanelPresenter(Model model, JPanel panel) {
         super(model, panel);
@@ -42,20 +57,19 @@ public class LoginPanelPresenter extends Presenter {
         Map<String, String> args = new ConcurrentHashMap<>();
         args.put("username", model.getUsername());
         args.put("password", model.getPassword());
-//        super.call(args);
-//        if
-
         ServerResponse resource = super.call(args);
-        System.out.println(resource.getMessage());
-        String message = resource.getMessage().toString();
-        
-        if (!message.equals("-1")) {
-            System.out.println(message);
-        } else {
+        HttpStatus status = resource.getStatus();
+
+        if (status.equals(HttpStatus.ACCEPTED)) {
+
+        } else if (status.equals(HttpStatus.FORBIDDEN)) {
             JOptionPane.showMessageDialog(getPanel(), "Invalid username and password. Try again.", "Invalid login", JOptionPane.ERROR_MESSAGE);
             super.interrupt("Password Invalid");
+        } else {
+            JOptionPane.showMessageDialog(getPanel(), "Something's wrong with the server.", "Server Error", JOptionPane.ERROR_MESSAGE);
+            super.interrupt("Unknown Error");
         }
-        
+
     }
 
     @Dispose

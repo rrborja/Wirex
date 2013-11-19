@@ -86,7 +86,7 @@
         <Property name="text" type="java.lang.String" value="Submit"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event({&quot;submit&quot;})&#xa;//@Event(type=KeyListener.class, value={&quot;update&quot;, &quot;update2&quot;, &quot;update3&quot;})"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;submit&quot;)&#xa;//@Event(type=KeyListener.class, value={&quot;update&quot;, &quot;update2&quot;, &quot;update3&quot;})"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextField2">
@@ -107,7 +107,7 @@
     <Component class="javax.swing.JTextField" name="jTextField3">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="(JTextField)AppEngine.checkout(&quot;lastname&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(value={&quot;update&quot;, &quot;update2&quot;, &quot;update3&quot;}, type=KeyListener.class)&#xa;@Data(&quot;lastname&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@EventContainer(events={@Event(&quot;update&quot;), @Event(&quot;update2&quot;), @Event(&quot;update3&quot;)}, listens=KeyListener.class)&#xa;@Data(&quot;lastname&quot;)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="jButton1">
@@ -115,7 +115,7 @@
         <Property name="text" type="java.lang.String" value="jButton1"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event({&quot;display&quot;})"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;display&quot;)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JComboBox" name="jComboBox1">

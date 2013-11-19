@@ -4,12 +4,13 @@
  */
 package net.wirex.annotations;
 
-import java.awt.event.ActionListener;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.EventListener;
+import net.wirex.EventMethod;
+import static net.wirex.EventMethod.ACTION_PERFORMED;
 
 /**
  *
@@ -17,7 +18,8 @@ import java.util.EventListener;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(Events.class)
 public @interface Event {
-    Class<? extends EventListener> type() default ActionListener.class;
-    String[] value() default {"run"};
+    String value() default "run";
+    EventMethod at() default ACTION_PERFORMED;
 }

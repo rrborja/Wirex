@@ -112,9 +112,9 @@ public class PhoneView extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    @Event({"retrieve"})
+    @Event("retrieve")
     private javax.swing.JButton jButton1;
-    @Event({"submit"})
+    @Event("submit")
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

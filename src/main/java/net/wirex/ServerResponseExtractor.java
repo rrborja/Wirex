@@ -13,8 +13,6 @@ import java.io.InputStream;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.wirex.interfaces.Model;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
@@ -49,17 +47,16 @@ public class ServerResponseExtractor extends HttpMessageConverterExtractor<Serve
             case OK:
                 result = new ServerResponse<>(HttpStatus.OK, gson.fromJson(body, responseModel));
                 LOG.info("[{}] Successful server transaction", status.value());
-                break;
+                return result;
             case ACCEPTED:
                 result = new ServerResponse<>(HttpStatus.ACCEPTED, response.getHeaders().get("SessionID").get(0));
                 LOG.info("[{}] Successful authorization", status.value());
-                break;
+                return result;
             default: 
                 LOG.info("[{}] Server has encountered error", status.value());
-                result = null;
+                return new ServerResponse<>(HttpStatus.valueOf(status.value()), "");
         }
         
-        return result;
     }
     
 }

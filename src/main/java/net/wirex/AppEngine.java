@@ -41,21 +41,6 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentListener;
-import java.awt.event.ContainerListener;
-import java.awt.event.FocusListener;
-import java.awt.event.HierarchyBoundsListener;
-import java.awt.event.HierarchyListener;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowFocusListener;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowStateListener;
-import java.beans.PropertyChangeListener;
-import java.beans.VetoableChangeListener;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -68,17 +53,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -91,30 +76,9 @@ import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.swing.event.CaretListener;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.InternalFrameListener;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.MenuDragMouseListener;
-import javax.swing.event.MenuKeyListener;
-import javax.swing.event.MenuListener;
-import javax.swing.event.MouseInputListener;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.event.TableColumnModelListener;
-import javax.swing.event.TableModelListener;
-import javax.swing.event.TreeExpansionListener;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.event.UndoableEditListener;
 import net.wirex.annotations.Access;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
@@ -122,6 +86,9 @@ import net.wirex.annotations.Data;
 import net.wirex.annotations.Dispose;
 import net.wirex.annotations.Draw;
 import net.wirex.annotations.Event;
+import net.wirex.annotations.EventContainer;
+import net.wirex.annotations.EventContainers;
+import net.wirex.annotations.Events;
 import net.wirex.annotations.Fire;
 import net.wirex.annotations.Form;
 import net.wirex.annotations.GET;
@@ -136,14 +103,11 @@ import net.wirex.enums.Media;
 import net.wirex.exceptions.InvalidKeywordFromBindingNameException;
 import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
 import net.wirex.exceptions.UnknownComponentException;
-import net.wirex.exceptions.UnknownListenerException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
-import net.wirex.listeners.ComponentListenerInjector;
-import net.wirex.listeners.JTextFieldListener;
-import net.wirex.listeners.JToggleButtonListener;
+import net.wirex.listeners.ListenerFactory;
 import net.wirex.structures.XList;
 import net.wirex.structures.XTreeFormat;
 
@@ -152,9 +116,9 @@ import net.wirex.structures.XTreeFormat;
  * @author RBORJA
  */
 public class AppEngine {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AppEngine.class.getSimpleName());
-    
+
     static {
         DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         Date date = new Date();
@@ -210,7 +174,7 @@ public class AppEngine {
      * @param <T> The type must be a JComponent class or its subclass
      * @param name The name of the component binded from the annotated fields
      * @return Returns a model-binded component
-     * @deprecated Use checkout(Class<T> component, String name) instead
+     * @deprecated Use checkout(Class component, String name) instead
      */
     @Deprecated
     public static <T> T checkout(String name) {
@@ -301,7 +265,7 @@ public class AppEngine {
      * classes and binds them together to form an MVP object that contains
      * method to display the view.
      *
-     * @param viewClass
+     * @param viewClass The Swing-based GUI JPanel class
      * @return Returns an MVP object
      * @throws ViewClassNotBindedException Throws an exception when a View class
      * doesn't have a binding annotation
@@ -386,70 +350,47 @@ public class AppEngine {
         }
 
         for (Field field : actionFields) {
-            final Event event = field.getAnnotation(Event.class);
-            if (event != null) {
+            try {
                 field.setAccessible(true);
-                Class component = field.getType();
-                Method[] listener;
-                final String[] methodNames = event.value();
-                listener = getArrayMethods(presenter, methodNames);
-                ComponentListenerInjector.addListener(ActionListener.class, JButton.class, viewPanel, field, presenter, listener[0]);
-                if (ActionListener.class == event.type()) {
-                    if (component == JButton.class) {
+                final Event[] events = field.getAnnotationsByType(Event.class);
+                final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
 
-                    } else if (component == JTextField.class) {
-                        JTextFieldListener.addActionListener(viewPanel, field, presenter, listener[0]);
-                    } else if (component == JToggleButton.class) {
-                        JToggleButtonListener.addActionListener(viewPanel, field, presenter, listener[0]);
+                if (events.length > 0) {
+                    Class component = field.getType();
+                    Object componentObject = field.get(viewPanel);
+                    Class<?> listenerType = ActionListener.class;
+                    Map<String, Method> listeners = new HashMap<>();
+                    for (Event event : events) {
+                        String presenterMethod = event.value();
+                        String listenerMethod = event.at().getMethod();
+                        listenerType = event.at().getListener();
+                        listeners.put(listenerMethod, presenterClass.getMethod(presenterMethod));
                     }
-                } else if (CaretListener.class == event.type()) {
-                } else if (CellEditorListener.class == event.type()) {
-                } else if (ChangeListener.class == event.type()) {
-                } else if (ComponentListener.class == event.type()) {
-                } else if (ContainerListener.class == event.type()) {
-                } else if (DocumentListener.class == event.type()) {
-                } else if (FocusListener.class == event.type()) {
-                } else if (HierarchyBoundsListener.class == event.type()) {
-                } else if (HierarchyListener.class == event.type()) {
-                } else if (HyperlinkListener.class == event.type()) {
-                } else if (InternalFrameListener.class == event.type()) {
-                } else if (ItemListener.class == event.type()) {
-                } else if (KeyListener.class == event.type()) {
-                    if (component == JButton.class) {
-//                        ComponentListener.addKeyListener(viewPanel, field, presenter, listener);
-                    } else if (component == JTextField.class) {
-                        JTextFieldListener.addKeyListener(viewPanel, field, presenter, listener);
-                    }
-                } else if (ListDataListener.class == event.type()) {
-                } else if (ListSelectionListener.class == event.type()) {
-                } else if (MenuDragMouseListener.class == event.type()) {
-                } else if (MenuKeyListener.class == event.type()) {
-                } else if (MenuListener.class == event.type()) {
-                } else if (MouseInputListener.class == event.type()) {
-                } else if (MouseListener.class == event.type()) {
-                } else if (MouseMotionListener.class == event.type()) {
-                } else if (MouseWheelListener.class == event.type()) {
-                } else if (PopupMenuListener.class == event.type()) {
-                } else if (PropertyChangeListener.class == event.type()) {
-                } else if (TableColumnModelListener.class == event.type()) {
-                } else if (TableModelListener.class == event.type()) {
-                } else if (TreeExpansionListener.class == event.type()) {
-                } else if (TreeModelListener.class == event.type()) {
-                } else if (TreeSelectionListener.class == event.type()) {
-                } else if (TreeWillExpandListener.class == event.type()) {
-                } else if (UndoableEditListener.class == event.type()) {
-                } else if (VetoableChangeListener.class == event.type()) {
-                } else if (WindowFocusListener.class == event.type()) {
-                } else if (WindowListener.class == event.type()) {
-                } else if (WindowStateListener.class == event.type()) {
-                } else {
-                    try {
-                        throw new UnknownListenerException(event.type() + " is not a listener class");
-                    } catch (UnknownListenerException ex) {
+                    Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
+                    Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
+                    addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
+                }
+
+                if (eventContainers.length > 0) {
+                    Class component = field.getType();
+                    Object componentObject = field.get(viewPanel);
+                    for (EventContainer eventContainer : eventContainers) {
+                        Class listenerType = eventContainer.listens();
+                        Map<String, Method> listeners = new HashMap<>();
+                        Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
+                        Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
+                        for (Event event : eventContainer.events()) {
+                            EventMethod method = event.at();
+                            String listenerMethod = method.getMethod();
+                            Method presenterMethod = presenterClass.getMethod(event.value());
+                            listeners.put(listenerMethod, presenterMethod);
+                        }
+                        addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
                     }
                 }
-            } else {
-                drawFields.add(field);
+                field.setAccessible(false);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+                ex.printStackTrace();
             }
             Draw draw = field.getAnnotation(Draw.class);
             if (draw != null) {
@@ -504,7 +445,7 @@ public class AppEngine {
             }
         }
 
-        for (Field field : drawFields) {
+        drawFields.stream().forEach((field) -> {
             Draw draw = field.getAnnotation(Draw.class);
             if (draw != null) {
                 Class componentClass = null;
@@ -523,7 +464,7 @@ public class AppEngine {
             } else {
                 actionFields.add(field);
             }
-        }
+        });
 
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
@@ -551,35 +492,31 @@ public class AppEngine {
 
             @Override
             public void display(final Class<? extends Window> window, final Boolean isVisible) {
-                EventQueue.invokeLater(new Runnable() {
-                    public @Override
-                    void run() {
-                        Window dialog;
-                        if (window == JFrame.class) {
-                            dialog = new JFrame();
-                            ((JFrame) dialog).setTitle(title);
-                            ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                        } else {
-                            dialog = new JDialog();
-                            ((JDialog) dialog).setTitle(title);
-                            ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                        }
-                        dialog.add(viewPanel);
-                        dialog.pack();
-                        dialog.setMinimumSize(dialog.getPreferredSize());
-                        Container parent = dialog.getParent();
-
-                        if (parent != null) {
-                            dialog.setLocationRelativeTo(parent);
-                        } else {
-                            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-                            int x = (int) ((dimension.getWidth() - dialog.getWidth()) / 2);
-                            int y = (int) ((dimension.getHeight() - dialog.getHeight()) / 2);
-                            dialog.setLocation(x, y);
-                        }
-                        dialog.setVisible(isVisible);
-
+                EventQueue.invokeLater(() -> {
+                    Window dialog;
+                    if (window == JFrame.class) {
+                        dialog = new JFrame();
+                        ((JFrame) dialog).setTitle(title);
+                        ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                    } else {
+                        dialog = new JDialog();
+                        ((JDialog) dialog).setTitle(title);
+                        ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                     }
+                    dialog.add(viewPanel);
+                    dialog.pack();
+                    dialog.setMinimumSize(dialog.getPreferredSize());
+                    Container parent = dialog.getParent();
+
+                    if (parent != null) {
+                        dialog.setLocationRelativeTo(parent);
+                    } else {
+                        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+                        int x = (int) ((dimension.getWidth() - dialog.getWidth()) / 2);
+                        int y = (int) ((dimension.getHeight() - dialog.getHeight()) / 2);
+                        dialog.setLocation(x, y);
+                    }
+                    dialog.setVisible(isVisible);
                 });
             }
         };
@@ -623,13 +560,13 @@ public class AppEngine {
                     oldList.clear();
 
                     if (Model.class.isAssignableFrom(listClass)) {
-                        for (Object e : newList) {
+                        newList.stream().forEach((e) -> {
                             oldList.add(e);
-                        }
+                        });
                     } else {
-                        for (Object e : newList) {
+                        newList.stream().forEach((e) -> {
                             oldList.add(new MyObject(e));
-                        }
+                        });
                     }
 
 //                    field.set(model, oldList);

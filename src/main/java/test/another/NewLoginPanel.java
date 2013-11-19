@@ -119,10 +119,10 @@ public class NewLoginPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     @Draw("cancel_14.png")
-    @Event({"cancel"})
+    @Event("cancel")
     private javax.swing.JButton btnCancel;
     @Draw("checkmark_sm.png")
-    @Event({"login"})
+    @Event("login")
     private javax.swing.JButton btnEnter;
     @Data("remember")
     private javax.swing.JCheckBox chkRemember;

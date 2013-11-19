@@ -104,8 +104,7 @@ public abstract class Presenter {
 
     private ServerResponse request(String path, Map variables) {
         ServerRequest request = new ServerRequest(rest, path, media, variables, model);
-        ServerResponse response;
-        response = AppEngine.push(request);
+        ServerResponse response = AppEngine.push(request);
         if (response.isSerializable()) {
             AppEngine.deserialize(model, (Model)response.getMessage());
         }

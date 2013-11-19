@@ -12,7 +12,7 @@ import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.Data;
-import net.wirex.annotations.View;
+import net.wirex.annotations.EventContainer;
 
 /**
  *
@@ -101,10 +101,10 @@ public class MyView extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    @Event({"submit"})
+    @Event("submit")
     //@Event(type=KeyListener.class, value={"update", "update2", "update3"})
     private javax.swing.JButton btnSubmit;
-    @Event({"display"})
+    @Event("display")
     private javax.swing.JButton jButton1;
     @Data("check")
     private javax.swing.JCheckBox jCheckBox1;
@@ -114,7 +114,7 @@ public class MyView extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField1;
     @Data("newText")
     private javax.swing.JTextField jTextField2;
-    @Event(value={"update", "update2", "update3"}, type=KeyListener.class)
+    @EventContainer(events={@Event("update"), @Event("update2"), @Event("update3")}, listens=KeyListener.class)
     @Data("lastname")
     private javax.swing.JTextField jTextField3;
     // End of variables declaration//GEN-END:variables

@@ -60,7 +60,7 @@
         <Property name="text" type="java.lang.String" value="jButton1"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event({&quot;test&quot;})"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;test&quot;)"/>
       </AuxValues>
     </Component>
   </SubComponents>

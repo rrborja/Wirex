@@ -67,7 +67,7 @@ public class MyTreeView extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    @Event({"add"})
+    @Event("add")
     private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane1;
     @Data("tree")

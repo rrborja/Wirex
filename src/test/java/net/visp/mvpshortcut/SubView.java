@@ -66,7 +66,7 @@ public class SubView extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    @Event({"test"})
+    @Event("test")
     private javax.swing.JButton jButton1;
     @Data("text")
     private javax.swing.JLabel jLabel1;

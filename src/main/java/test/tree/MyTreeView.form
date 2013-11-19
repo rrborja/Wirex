@@ -65,7 +65,7 @@
       </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JButton.class, &quot;add&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event({&quot;add&quot;})"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;add&quot;)"/>
       </AuxValues>
     </Component>
   </SubComponents>
