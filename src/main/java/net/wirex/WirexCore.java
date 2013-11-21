@@ -16,6 +16,7 @@ import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.adapter.BasicComponentFactory;
 import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.beans.BeanAdapter;
+import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.Container;
@@ -26,10 +27,12 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.IntrospectionException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -106,7 +110,7 @@ public final class WirexCore implements Wirex {
         Date date = new Date();
         LOG.info("Wirex Framework {}", dateFormat.format(date));
     }
-    
+
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
@@ -368,6 +372,8 @@ public final class WirexCore implements Wirex {
                         LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
                     } catch (ReservedKeywordFromBindingNameException ex) {
                         LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
+                    } catch (PropertyNotFoundException ex) {
+                        LOG.warn("Your binding property '{}' doesn't bind to any existing components", data.value());
                     }
                 } else {
                     throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
@@ -566,6 +572,28 @@ public final class WirexCore implements Wirex {
         }
     }
 
+    @Override
+    public String encodeToUrl(Model body) {
+        String encodedUrl = "";
+        Class modelClass = body.getClass();
+        Field[] fields = modelClass.getDeclaredFields();
+        for (Field field : fields) {
+            int modifiers = field.getModifiers();
+            if (!Modifier.isTransient(modifiers)) {
+                try {
+                    field.setAccessible(true);
+                    String key = field.getName();
+                    String value = field.get(body).toString();
+                    encodedUrl += key + "=" + value + "&";
+                    field.setAccessible(false);
+                } catch (IllegalArgumentException | IllegalAccessException ex) {
+                    LOG.error("Framework bug! Can't access field.", ex);
+                }
+            }
+        }
+        return encodedUrl.substring(0, encodedUrl.length() - 1);
+    }
+
     /**
      * Snips a field data in the Model. To snip, fields must have @Snip
      * annotation
@@ -672,7 +700,7 @@ public final class WirexCore implements Wirex {
         }
     }
 
-    private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException {
+    private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
         JComponent newComponent = (JComponent) component.newInstance();

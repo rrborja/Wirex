@@ -2,6 +2,8 @@ package net.wirex;
 
 import com.google.common.cache.CacheLoader;
 import java.util.Map;
+import net.wirex.enums.Media;
+import net.wirex.enums.REST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.wirex.exceptions.UnsupportedMediaTypeException;
@@ -10,6 +12,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
@@ -43,7 +46,6 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         String uri = request.getPath();
         MediaType type = request.getMedia();
         Map variables = request.getVariables();
-        MultiValueMap headerMap = request.getHeaderMap();
         String body = request.getBody();
         Class model = request.getModel();
         String requestBody = request.getRequestBody();
@@ -51,15 +53,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(type);
 
-        HttpEntity entity;
-
-        if (type == MediaType.APPLICATION_JSON) {
-            entity = new HttpEntity(body, headers);
-        } else if (type == MediaType.APPLICATION_FORM_URLENCODED) {
-            entity = new HttpEntity(headerMap, headers);
-        } else {
-            throw new UnsupportedMediaTypeException(type + " is not yet supported.");
-        }
+        HttpEntity entity = new HttpEntity(body, headers);
 
         RequestCallback requestCallback = new ServerRequestCallback(entity);
         ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
@@ -67,7 +61,12 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         LOG.info("Attempting {} {} {}", rest, new UriTemplate(uri).expand(variables), requestBody);
 
         ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
-
+        
+        if (resultModel.getStatus().equals(HttpStatus.FOUND)) {
+            ServerRequest newRequest = new ServerRequest("GET", resultModel.getMessage().toString(), Media.URLENCODED, null, null);
+            return load(newRequest);
+        }
+        
         return resultModel;
     }
 }

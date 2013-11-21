@@ -22,7 +22,8 @@ public final class AppEngine {
     /**
      * Make AppEngine a singleton with no constructor
      */
-    private AppEngine() {}
+    private AppEngine() {
+    }
 
     /**
      * Checkouts a binded component.
@@ -107,6 +108,10 @@ public final class AppEngine {
      */
     public synchronized static void deserialize(Model model, Model fromJson) {
         instance.deserialize(model, fromJson);
+    }
+
+    protected static String encodeToUrl(Model body) {
+        return instance.encodeToUrl(body);
     }
 
     /**

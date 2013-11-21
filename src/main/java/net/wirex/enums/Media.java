@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 public enum Media {
     XML(MediaType.APPLICATION_XML), JSON(MediaType.APPLICATION_JSON), URLENCODED(MediaType.APPLICATION_FORM_URLENCODED);
     
-    private MediaType value;
+    private final MediaType value;
     
     Media(MediaType value) {
         this.value = value;

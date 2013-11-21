@@ -46,6 +46,11 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 result = new ServerResponse<>(HttpStatus.ACCEPTED, response.getHeaders().get("SessionID").get(0));
                 LOG.info("[{}] Successful authorization", status.value());
                 return result;
+            case FOUND:
+                String location = response.getHeaders().get("Location").get(0);
+                result = new ServerResponse<>(HttpStatus.FOUND, location);
+                LOG.info("[{}] Redirected to {}", status.value(), location);
+                return result;
             default: 
                 LOG.info("[{}] Server has encountered error", status.value());
                 return new ServerResponse<>(HttpStatus.valueOf(status.value()), "");

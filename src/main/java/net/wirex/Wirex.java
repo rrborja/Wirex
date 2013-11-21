@@ -127,4 +127,6 @@ interface Wirex {
      * @param presenter The presenter where its binded View to be disposed
      */
     void dispose(Presenter presenter);
+
+    String encodeToUrl(Model body);
 }

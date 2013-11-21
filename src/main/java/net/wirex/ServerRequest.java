@@ -1,6 +1,8 @@
 package net.wirex;
 
 import com.google.gson.GsonBuilder;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.slf4j.LoggerFactory;
@@ -9,7 +11,6 @@ import net.wirex.enums.REST;
 import net.wirex.interfaces.Model;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
 
 /**
  *
@@ -22,7 +23,6 @@ public final class ServerRequest<T extends Model> {
     private final String path;
     private final Media media;
     private final Map<String, String> variables;
-    private final MultiValueMap headerMap;
     private final Model body;
     private final Class<? extends Model> model;
 
@@ -30,20 +30,9 @@ public final class ServerRequest<T extends Model> {
         this.rest = REST.valueOf(rest);
         this.path = path;
         this.media = media;
-        this.variables = variables;
-        this.headerMap = null;
-        this.model = body.getClass();
-        this.body = body;
-    }
-
-    public ServerRequest(String rest, String path, Media media, MultiValueMap headerMap, Map<String, String> variables) {
-        this.rest = REST.valueOf(rest);
-        this.path = path;
-        this.media = media;
-        this.headerMap = headerMap;
-        this.variables = variables;
-        this.body = null;
-        this.model = null;
+        this.variables = variables != null ? variables : new HashMap<>();
+        this.model = body != null ? body.getClass() : Model.class;
+        this.body = body != null ? body : new Model() {};
     }
 
     public Class getModel() {
@@ -66,12 +55,13 @@ public final class ServerRequest<T extends Model> {
         return media.value();
     }
 
-    public MultiValueMap getHeaderMap() {
-        return headerMap;
-    }
-
     public String getBody() {
-        return new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create().toJson(body);
+        switch (media) {
+            case URLENCODED:
+                return AppEngine.encodeToUrl(body);
+            default:
+                return new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create().toJson(body);
+        }
     }
 
     public String getRequestBody() {
@@ -85,19 +75,18 @@ public final class ServerRequest<T extends Model> {
 
     @Override
     public String toString() {
-        return "ServerRequest{" + "rest=" + rest + ", path=" + path + ", media=" + media + ", variables=" + variables + ", headerMap=" + headerMap + ", body=" + body + ", model=" + model + '}';
+        return "ServerRequest{" + "rest=" + rest + ", path=" + path + ", media=" + media + ", variables=" + variables + ", body=" + body + ", model=" + model + '}';
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 53 * hash + Objects.hashCode(this.rest);
-        hash = 53 * hash + Objects.hashCode(this.path);
-        hash = 53 * hash + Objects.hashCode(this.media);
-        hash = 53 * hash + Objects.hashCode(this.variables);
-        hash = 53 * hash + Objects.hashCode(this.headerMap);
-        hash = 53 * hash + Objects.hashCode(this.body);
-        hash = 53 * hash + Objects.hashCode(this.model);
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.rest);
+        hash = 97 * hash + Objects.hashCode(this.path);
+        hash = 97 * hash + Objects.hashCode(this.media);
+        hash = 97 * hash + Objects.hashCode(this.variables);
+        hash = 97 * hash + Objects.hashCode(this.body);
+        hash = 97 * hash + Objects.hashCode(this.model);
         return hash;
     }
 
@@ -120,9 +109,6 @@ public final class ServerRequest<T extends Model> {
             return false;
         }
         if (!Objects.equals(this.variables, other.variables)) {
-            return false;
-        }
-        if (!Objects.equals(this.headerMap, other.headerMap)) {
             return false;
         }
         if (!Objects.equals(this.body, other.body)) {

@@ -103,6 +103,7 @@ public final class ListenerFactory {
                 LOG.info("The method " + listener + " throws an error: " + ex.getMessage(), ex);
             } else {
                 LOG.error("Unable to invoke {}", listener);
+                ex.printStackTrace();
             }
         }
     }
