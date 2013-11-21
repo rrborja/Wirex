@@ -17,14 +17,6 @@ import net.wirex.interfaces.Presenter;
  */
 public final class AppEngine {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AppEngine.class.getSimpleName());
-
-    static {
-        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        Date date = new Date();
-        LOG.info("Wirex Framework {}", dateFormat.format(date));
-    }
-
     private static final Wirex instance = new WirexCore();
 
     /**
