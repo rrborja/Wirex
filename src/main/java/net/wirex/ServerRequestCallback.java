@@ -16,7 +16,7 @@ import org.springframework.web.client.RequestCallback;
  *
  * @author Ritchie Borja
  */
-public class ServerRequestCallback implements RequestCallback {
+public final class ServerRequestCallback implements RequestCallback {
 
     protected final Log logger = LogFactory.getLog(getClass());
     private final HttpEntity requestEntity;

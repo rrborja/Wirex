@@ -13,7 +13,7 @@ import org.apache.commons.io.IOUtils;
  *
  * @author Ritchie Borja
  */
-public class ServerResponseErrorHandler implements ResponseErrorHandler {
+public final class ServerResponseErrorHandler implements ResponseErrorHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseErrorHandler.class.getName());
     

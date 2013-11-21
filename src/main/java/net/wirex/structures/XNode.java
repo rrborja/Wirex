@@ -4,7 +4,7 @@ package net.wirex.structures;
  *
  * @author Ritchie Borja
  */
-public class XNode<T> {
+public final class XNode<T> {
 
     private final T[] path;
     private final T leaf;

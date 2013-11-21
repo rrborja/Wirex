@@ -8,7 +8,7 @@ import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
  *
  * @author Ritchie Borja
  */
-public class LegalIdentifierChecker {
+public final class LegalIdentifierChecker {
 
     private final static String[] keywords = new String[]{"abstract", ""};
 

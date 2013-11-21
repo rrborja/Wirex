@@ -21,7 +21,7 @@ import org.springframework.web.util.UriTemplate;
  *
  * @author Ritchie Borja
  */
-class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerResponse> {
+final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerResponse> {
 
     ApplicationContext applicationContext;
     RestTemplate rt;

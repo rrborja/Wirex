@@ -1,11 +1,8 @@
 package net.wirex;
 
 import java.lang.reflect.Method;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.wirex.ServerRequest;
+import net.wirex.ServerResponse;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
@@ -15,22 +12,7 @@ import net.wirex.interfaces.Presenter;
  *
  * @author Ritchie Borja
  */
-public final class AppEngine {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AppEngine.class.getSimpleName());
-
-    static {
-        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        Date date = new Date();
-        LOG.info("Wirex Framework {}", dateFormat.format(date));
-    }
-
-    private static final Wirex instance = new WirexCore();
-
-    /**
-     * Make AppEngine a singleton with no constructor
-     */
-    private AppEngine() {}
+interface Wirex {
 
     /**
      * Checkouts a binded component.
@@ -40,11 +22,8 @@ public final class AppEngine {
      * @return Returns a model-binded component
      * @deprecated Use checkout(Class component, String name) instead
      */
-    @Deprecated
-    public static <T> T checkout(String name) {
-        return instance.checkout(name);
-    }
-
+    <T> T checkout(String name);
+    
     /**
      * Checkouts a prepared component binded from @Data
      *
@@ -53,29 +32,23 @@ public final class AppEngine {
      * @param name The name of the component binded from the annotated fields
      * @return Returns a model-binded component
      */
-    public static <T> T checkout(Class<T> component, String name) {
-        return instance.checkout(component, name);
-    }
-
+    <T> T checkout(Class<T> component, String name);
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *
      * @param url The url to connect to a server that processes REST
      * transactions
      */
-    public static void connect(String url) {
-        instance.connect(url);
-    }
-
+    void connect(String url);
+    
     /**
      * Locates a suite of icons from a web server for the ResourceBundle feature
      *
      * @param url The URL to retrieve the icons
      */
-    public static void locateResource(String url) {
-        instance.locateResource(url);
-    }
-
+    void locateResource(String url);
+    
     /**
      * Connects to a server based on the request headers in the ServerRequest
      * object. It should contain all the required properties such as REST
@@ -85,10 +58,8 @@ public final class AppEngine {
      * REST, Media Type, etc.
      * @return A response from the server
      */
-    public static ServerResponse push(ServerRequest request) {
-        return instance.push(request);
-    }
-
+    ServerResponse push(ServerRequest request);
+    
     /**
      * Prepares a binded view class together with its Presenter and Model
      * classes and binds them together to form an MVP object that contains
@@ -101,10 +72,8 @@ public final class AppEngine {
      * @throws WrongComponentException Throws this exception when a field
      * declaration is not of type JComponent
      */
-    public static MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
-        return instance.prepare(viewClass);
-    }
-
+    MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException;
+    
     /**
      * Deserialization tool to transfer a data from a model to the model origin.
      *
@@ -113,10 +82,8 @@ public final class AppEngine {
      * @param model The origin model
      * @param fromJson The model to be transfered
      */
-    public synchronized static void deserialize(Model model, Model fromJson) {
-        instance.deserialize(model, fromJson);
-    }
-
+    void deserialize(Model model, Model fromJson);
+    
     /**
      * Snips a field data in the Model. To snip, fields must have @Snip
      * annotation
@@ -129,10 +96,8 @@ public final class AppEngine {
      * @throws IllegalArgumentException
      * @throws IllegalAccessException
      */
-    protected static String snip(Model model) throws IllegalArgumentException, IllegalAccessException {
-        return instance.snip(model);
-    }
-
+    String snip(Model model) throws IllegalArgumentException, IllegalAccessException;
+    
     /**
      * Injects the Wirex REST specification listener to the event components.
      *
@@ -140,10 +105,8 @@ public final class AppEngine {
      * its annotated methods
      * @param method The method to inject with
      */
-    protected static synchronized void injectRestSpec(Object presenter, Method method) {
-        instance.injectRestSpec(presenter, method);
-    }
-
+    void injectRestSpec(Object presenter, Method method);
+    
     /**
      * Transitional state method to change windows and disposing a window. This
      * method should not be used unless you know what you're doing
@@ -156,16 +119,12 @@ public final class AppEngine {
      * @throws WrongComponentException Throws this exception when a annotated
      * field declaration is not of type JComponent
      */
-    protected synchronized static void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException {
-        instance.proceed(presenter, method);
-    }
-
+    void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException;
+    
     /**
      * Disposes a presenter's binded View
      *
      * @param presenter The presenter where its binded View to be disposed
      */
-    public static void dispose(Presenter presenter) {
-        instance.dispose(presenter);
-    }
+    void dispose(Presenter presenter);
 }

@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author Ritchie Borja
  */
-public class Invoker {
+public final class Invoker {
 
     private final ActionListener invokeCode;
 

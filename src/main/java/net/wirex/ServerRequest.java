@@ -16,7 +16,7 @@ import org.springframework.util.MultiValueMap;
  * @author Ritchie Borja
  * @param <T> Your model
  */
-public class ServerRequest<T extends Model> {
+public final class ServerRequest<T extends Model> {
 
     private final REST rest;
     private final String path;

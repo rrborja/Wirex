@@ -9,10 +9,10 @@ import java.util.List;
  *
  * @author Ritchie Borja
  */
-public class XTreeFormat implements TreeList.Format {
+public final class XTreeFormat implements TreeList.Format {
 
-    private Object model;
-    private Class modelClass;
+    private final Object model;
+    private final Class modelClass;
 
     public XTreeFormat(Object model) {
         this.model = model;

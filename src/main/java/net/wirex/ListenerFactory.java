@@ -1,4 +1,4 @@
-package net.wirex.listeners;
+package net.wirex;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -73,7 +73,6 @@ import javax.swing.event.TreeWillExpandListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.tree.ExpandVetoException;
-import net.wirex.AppEngine;
 import net.wirex.exceptions.EventInterruptionException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -82,7 +81,7 @@ import net.wirex.exceptions.WrongComponentException;
  *
  * @author Ritchie Borja
  */
-public abstract class ListenerFactory {
+public final class ListenerFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(ListenerFactory.class.getName());
 

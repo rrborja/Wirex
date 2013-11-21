@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
  * @author Ritchie Borja
  * @param <T>
  */
-public class ServerResponse<T> {
+public final class ServerResponse<T> {
 
     private final HttpStatus status;
     private final T message;
