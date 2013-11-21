@@ -395,6 +395,10 @@ public final class WirexCore implements Wirex {
                         public void display(Class<? extends Window> window, Boolean isVisible) {
                         }
 
+                        @Override
+                        public void display(Class<? extends Window> window) {
+                        }
+
                     };
                 }
                 components.put(panelId, mvp.getView());
@@ -887,6 +891,11 @@ public final class WirexCore implements Wirex {
                 }
                 dialog.setVisible(isVisible);
             });
+        }
+
+        @Override
+        public void display(Class<? extends Window> window) {
+            this.display(window, true);
         }
     }
 }
