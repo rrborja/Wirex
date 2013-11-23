@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -64,6 +65,10 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import net.wirex.annotations.Access;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
@@ -78,8 +83,10 @@ import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
+import net.wirex.annotations.Property;
 import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Snip;
+import net.wirex.annotations.Text;
 import net.wirex.annotations.Type;
 import net.wirex.annotations.View;
 import net.wirex.enums.Media;
@@ -90,6 +97,7 @@ import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import net.wirex.interfaces.Resource;
 import net.wirex.structures.XList;
 import net.wirex.structures.XTreeFormat;
 import org.slf4j.Logger;
@@ -279,12 +287,15 @@ public final class WirexCore implements Wirex {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
         }
 
+        Property property = (Property) viewClass.getAnnotation(Property.class);
+
         Class modelClass = bind.model();
         final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
         ArrayList<Field> drawFields = new ArrayList<>();
         ArrayList<Field> actionFields = new ArrayList<>();
         ArrayList<Field> viewFields = new ArrayList<>();
+        ArrayList<Field> textFields = new ArrayList<>();
         Model model = null;
         try {
             if (models.containsKey(modelClass)) {
@@ -301,6 +312,14 @@ public final class WirexCore implements Wirex {
 
         scanFieldsWithView(viewFields, actionFields);
 
+        Resource resource;
+        try {
+            resource = (Resource) property.value().newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            LOG.warn("Unable to load " + viewClass, ex);
+            resource = null;
+        }
+        
         final JPanel viewPanel;
         try {
             viewPanel = (JPanel) viewClass.newInstance();
@@ -348,7 +367,9 @@ public final class WirexCore implements Wirex {
 
         scanFieldsWithAccess(presenterClass, presenter);
 
-        scanFieldsWithDraw(drawFields, viewPanel, actionFields);
+        scanFieldsWithDraw(drawFields, viewPanel, textFields);
+        
+        scanFieldsWithText(resource, textFields, viewPanel);
 
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
@@ -500,7 +521,7 @@ public final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldsWithDraw(ArrayList<Field> drawFields, final JPanel viewPanel, ArrayList<Field> actionFields) {
+    private void scanFieldsWithDraw(ArrayList<Field> drawFields, final JPanel viewPanel, ArrayList<Field> textFields) {
         drawFields.stream().forEach((field) -> {
             Draw draw = field.getAnnotation(Draw.class);
             if (draw != null) {
@@ -518,7 +539,52 @@ public final class WirexCore implements Wirex {
                     LOG.error("The field {} annotated with resource icon is not a component with image binding.", field.getName());
                 }
             } else {
-                actionFields.add(field);
+                textFields.add(field);
+            }
+        });
+    }
+
+    private void scanFieldsWithText(Resource propertyFile, ArrayList<Field> textFields, final JPanel viewPanel) {
+        textFields.stream().forEach((field) -> {
+            final Text[] texts = field.getAnnotationsByType(Text.class);
+            field.setAccessible(true);
+            if (texts.length > 0) {
+                try {
+                    Object componentInstance = field.get(viewPanel);
+                    Class component = field.getType();
+                    if (component != JTable.class) {
+                        Method setTextMethod = component.getMethod("setText", String.class);
+                        String property = texts[0].value();
+                        Class resourceClass = propertyFile.getClass();
+                        Field resourceField = resourceClass.getField(property);
+                        String textValue = resourceField.get(propertyFile).toString();
+                        setTextMethod.invoke(componentInstance, textValue);
+                    } else {
+                        JTable table = (JTable) componentInstance;
+                        JTableHeader th = new JTableHeader();
+                        TableColumnModel tcm = new DefaultTableColumnModel();
+                        for (int i=0; i<texts.length; i++) {
+                            TableColumn column = new TableColumn();
+                            column.setHeaderValue(texts[i]);
+                            tcm.addColumn(column);
+                        }
+                        th.setColumnModel(tcm);
+                        table.setTableHeader(th);
+                        table.repaint();
+                    }
+                } catch (IllegalArgumentException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NoSuchMethodException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SecurityException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvocationTargetException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NoSuchFieldException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -685,6 +751,7 @@ public final class WirexCore implements Wirex {
      * @throws WrongComponentException Throws this exception when a annotated
      * field declaration is not of type JComponent
      */
+    @Override
     public synchronized void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException {
         Fire fire = method.getAnnotation(Fire.class);
         Dispose dispose = method.getAnnotation(Dispose.class);
