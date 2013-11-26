@@ -11,9 +11,8 @@ import ca.odell.glazedlists.swing.EventTableModel;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import net.wirex.WirexCore;
-import net.wirex.WirexCore.MyObject;
 import net.wirex.structures.XList;
+import net.wirex.structures.XObject;
 
 /**
  *
@@ -25,7 +24,7 @@ public class TestPointer {
         XList list = new XList();
         
         EventList rows = list;
-        TableFormat tf = GlazedLists.tableFormat(MyObject.class, new String[] {"value"}, new String[] {"value"});
+        TableFormat tf = GlazedLists.tableFormat(XObject.class, new String[] {"value"}, new String[] {"value"});
 
         JTable table = new JTable(new EventTableModel(rows, tf));
         

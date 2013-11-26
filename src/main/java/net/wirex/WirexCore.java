@@ -38,7 +38,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,6 +98,7 @@ import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.interfaces.Resource;
 import net.wirex.structures.XList;
+import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +107,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Ritchie Borja
  */
-public final class WirexCore implements Wirex {
+final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
@@ -292,10 +292,7 @@ public final class WirexCore implements Wirex {
         Class modelClass = bind.model();
         final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
-        ArrayList<Field> drawFields = new ArrayList<>();
-        ArrayList<Field> actionFields = new ArrayList<>();
-        ArrayList<Field> viewFields = new ArrayList<>();
-        ArrayList<Field> textFields = new ArrayList<>();
+
         Model model = null;
         try {
             if (models.containsKey(modelClass)) {
@@ -308,9 +305,12 @@ public final class WirexCore implements Wirex {
             LOG.error("Unable to load model", ex);
         }
 
-        scanFieldsWithData(fields, model, viewFields);
-
-        scanFieldsWithView(viewFields, actionFields);
+        for (Field field : fields) {
+            final Data data = field.getAnnotation(Data.class);
+            final View view = field.getAnnotation(View.class);
+            scanFieldWithData(data, field, model);
+            scanFieldWithView(view, field);
+        }
 
         Resource resource;
         try {
@@ -319,7 +319,7 @@ public final class WirexCore implements Wirex {
             LOG.warn("Unable to load " + viewClass, ex);
             resource = null;
         }
-        
+
         final JPanel viewPanel;
         try {
             viewPanel = (JPanel) viewClass.newInstance();
@@ -336,7 +336,22 @@ public final class WirexCore implements Wirex {
             return null;
         }
 
-        scanFieldsWithEvent(actionFields, viewPanel, presenterClass, presenter, drawFields);
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            final Event[] events = field.getAnnotationsByType(Event.class);
+            final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
+            final Draw draw = field.getAnnotation(Draw.class);
+            final Text[] texts = field.getAnnotationsByType(Text.class);
+
+            scanFieldWithEvent(events, field, viewPanel, presenterClass, presenter, eventContainers);
+            scanFieldWithDraw(draw, field, viewPanel);
+            scanFieldWithText(texts, field, viewPanel, resource);
+
+            field.setAccessible(false);
+        }
+
+        scanFieldsWithAccess(presenterClass, presenter);
 
         final Method run;
         try {
@@ -345,6 +360,7 @@ public final class WirexCore implements Wirex {
             LOG.error("Framework bug! Can't access run method.", ex);
             return null;
         }
+
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
         Retrieve retrieve;
         final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>();
@@ -365,138 +381,162 @@ public final class WirexCore implements Wirex {
             }
         }
 
-        scanFieldsWithAccess(presenterClass, presenter);
-
-        scanFieldsWithDraw(drawFields, viewPanel, textFields);
-        
-        scanFieldsWithText(resource, textFields, viewPanel);
-
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
         return new MVPObject(viewPanel);
     }
 
-    private void scanFieldsWithData(Field[] fields, Model model, ArrayList<Field> viewFields) throws WrongComponentException {
-        for (Field field : fields) {
-            Data data = field.getAnnotation(Data.class);
-            if (data != null) {
-                Class clazz = field.getType();
-                if (JComponent.class.isAssignableFrom(clazz)) {
-                    try {
-                        String modelProperty = LegalIdentifierChecker.check(data.value());
-                        bindComponent(clazz, model, modelProperty);
-                    } catch (InstantiationException | IllegalAccessException ex) {
-                        LOG.error("Unable to bind component " + clazz, ex);
-                    } catch (InvalidKeywordFromBindingNameException ex) {
-                        LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
-                    } catch (ReservedKeywordFromBindingNameException ex) {
-                        LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
-                    } catch (PropertyNotFoundException ex) {
-                        LOG.warn("Your binding property '{}' doesn't bind to any existing components", data.value());
+    private void scanFieldWithView(final View view, Field field) throws SecurityException {
+        if (view != null) {
+            field.setAccessible(true);
+            Class subViewClass = field.getType();
+            String panelId = view.value();
+            MVP mvp;
+            try {
+                mvp = prepare(subViewClass);
+            } catch (ViewClassNotBindedException | WrongComponentException ex) {
+                mvp = new MVP() {
+
+                    @Override
+                    public JPanel getView() {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
-                } else {
-                    throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
+
+                    @Override
+                    public void setTitle(String title) {
+                    }
+
+                    @Override
+                    public void display(Class<? extends Window> window, Boolean isVisible) {
+                    }
+
+                    @Override
+                    public void display(Class<? extends Window> window) {
+                    }
+
+                };
+            }
+            components.put(panelId, mvp.getView());
+        }
+    }
+
+    private void scanFieldWithData(final Data data, Field field, Model model) throws WrongComponentException {
+        if (data != null) {
+            Class clazz = field.getType();
+            if (JComponent.class.isAssignableFrom(clazz)) {
+                try {
+                    String modelProperty = LegalIdentifierChecker.check(data.value());
+                    bindComponent(clazz, model, modelProperty);
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    LOG.error("Unable to bind component " + clazz, ex);
+                } catch (InvalidKeywordFromBindingNameException ex) {
+                    LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
+                } catch (ReservedKeywordFromBindingNameException ex) {
+                    LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
+                } catch (PropertyNotFoundException ex) {
+                    LOG.warn("Your binding property '{}' doesn't bind to any existing components", data.value());
                 }
             } else {
-                viewFields.add(field);
+                throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
             }
         }
     }
 
-    private void scanFieldsWithView(ArrayList<Field> viewFields, ArrayList<Field> actionFields) {
-        viewFields.stream().forEach((field) -> {
-            final View view = field.getAnnotation(View.class);
-            if (view != null) {
-                field.setAccessible(true);
-                Class subViewClass = field.getType();
-                String panelId = view.value();
-                MVP mvp;
-                try {
-                    mvp = prepare(subViewClass);
-                } catch (ViewClassNotBindedException | WrongComponentException ex) {
-                    mvp = new MVP() {
-
-                        @Override
-                        public JPanel getView() {
-                            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                        }
-
-                        @Override
-                        public void setTitle(String title) {
-                        }
-
-                        @Override
-                        public void display(Class<? extends Window> window, Boolean isVisible) {
-                        }
-
-                        @Override
-                        public void display(Class<? extends Window> window) {
-                        }
-
-                    };
+    private void scanFieldWithText(final Text[] texts, Field field, final JPanel viewPanel, Resource resource) {
+        if (texts.length > 0) {
+            try {
+                Object componentInstance = field.get(viewPanel);
+                Class component = field.getType();
+                if (component != JTable.class) {
+                    Method setTextMethod = component.getMethod("setText", String.class);
+                    String propertyText = texts[0].value();
+                    Class resourceClass = resource.getClass();
+                    Field resourceField = resourceClass.getDeclaredField(propertyText);
+                    resourceField.setAccessible(true);
+                    String textValue = resourceField.get(resource).toString();
+                    setTextMethod.invoke(componentInstance, textValue);
+                } else {
+                    JTable table = (JTable) componentInstance;
+                    JTableHeader th = new JTableHeader();
+                    TableColumnModel tcm = new DefaultTableColumnModel();
+                    for (Text text : texts) {
+                        TableColumn column = new TableColumn();
+                        column.setHeaderValue(text);
+                        tcm.addColumn(column);
+                    }
+                    th.setColumnModel(tcm);
+                    table.setTableHeader(th);
+                    table.repaint();
                 }
-                components.put(panelId, mvp.getView());
-            } else {
-                actionFields.add(field);
+            } catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException | NoSuchFieldException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
             }
-        });
+        }
     }
 
-    private void scanFieldsWithEvent(ArrayList<Field> actionFields, final JPanel viewPanel, final Class presenterClass, final Object presenter, ArrayList<Field> drawFields) {
-        actionFields.stream().forEach((field) -> {
-            String presenterMethodName = "";
+    private void scanFieldWithDraw(final Draw draw, Field field, final JPanel viewPanel) {
+        if (draw != null) {
+            Class componentClass = null;
             try {
                 field.setAccessible(true);
-                final Event[] events = field.getAnnotationsByType(Event.class);
-                final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
+                Object component = field.get(viewPanel);
+                ImageIcon icon = iconResource.get(draw.value());
+                componentClass = component.getClass();
+                Method setIconMethod = componentClass.getMethod("setIcon", Icon.class);
+                setIconMethod.invoke(component, icon);
+            } catch (IllegalArgumentException | IllegalAccessException | ExecutionException | SecurityException ex) {
+                LOG.error("Cannot set icon in " + componentClass, ex);
+            } catch (NoSuchMethodException | InvocationTargetException ex) {
+                LOG.error("The field {} annotated with resource icon is not a component with image binding.", field.getName());
+            }
+        }
+    }
 
-                if (events.length > 0) {
-                    Class component = field.getType();
-                    Object componentObject = field.get(viewPanel);
-                    Class<?> listenerType = ActionListener.class;
+    private void scanFieldWithEvent(final Event[] events, Field field, final JPanel viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
+        String presenterMethodName = "";
+        try {
+            if (events.length > 0) {
+                Class component = field.getType();
+                Object componentObject = field.get(viewPanel);
+                Class<?> listenerType = ActionListener.class;
+                Map<String, Method> listeners = new HashMap<>();
+                for (Event event : events) {
+                    presenterMethodName = LegalIdentifierChecker.check(event.value());
+                    String listenerMethod = event.at().getMethod();
+                    listenerType = event.at().getListener();
+                    listeners.put(listenerMethod, presenterClass.getMethod(presenterMethodName));
+                }
+                Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
+                Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
+                addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
+            }
+
+            if (eventContainers.length > 0) {
+                Class component = field.getType();
+                Object componentObject = field.get(viewPanel);
+                for (EventContainer eventContainer : eventContainers) {
+                    Class listenerType = eventContainer.listens();
                     Map<String, Method> listeners = new HashMap<>();
-                    for (Event event : events) {
-                        presenterMethodName = LegalIdentifierChecker.check(event.value());
-                        String listenerMethod = event.at().getMethod();
-                        listenerType = event.at().getListener();
-                        listeners.put(listenerMethod, presenterClass.getMethod(presenterMethodName));
-                    }
                     Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
                     Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
+                    for (Event event : eventContainer.events()) {
+                        EventMethod method = event.at();
+                        String listenerMethod = method.getMethod();
+                        presenterMethodName = LegalIdentifierChecker.check(event.value());
+                        Method presenterMethod = presenterClass.getMethod(presenterMethodName);
+                        listeners.put(listenerMethod, presenterMethod);
+                    }
                     addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
                 }
+            }
 
-                if (eventContainers.length > 0) {
-                    Class component = field.getType();
-                    Object componentObject = field.get(viewPanel);
-                    for (EventContainer eventContainer : eventContainers) {
-                        Class listenerType = eventContainer.listens();
-                        Map<String, Method> listeners = new HashMap<>();
-                        Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
-                        Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
-                        for (Event event : eventContainer.events()) {
-                            EventMethod method = event.at();
-                            String listenerMethod = method.getMethod();
-                            presenterMethodName = LegalIdentifierChecker.check(event.value());
-                            Method presenterMethod = presenterClass.getMethod(presenterMethodName);
-                            listeners.put(listenerMethod, presenterMethod);
-                        }
-                        addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
-                    }
-                }
-                field.setAccessible(false);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-                LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
-            } catch (InvalidKeywordFromBindingNameException ex) {
-                LOG.warn("Is the method {} in {} a valid Java keyword?", presenterMethodName, presenterClass);
-            } catch (ReservedKeywordFromBindingNameException ex) {
-                LOG.warn("Is the method {} in {} a reserved Java keyword?", presenterMethodName, presenterClass);
-            }
-            Draw draw = field.getAnnotation(Draw.class);
-            if (draw != null) {
-                drawFields.add(field);
-            }
-        });
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+        } catch (InvalidKeywordFromBindingNameException ex) {
+            LOG.warn("Is the method {} in {} a valid Java keyword?", presenterMethodName, presenterClass);
+        } catch (ReservedKeywordFromBindingNameException ex) {
+            LOG.warn("Is the method {} in {} a reserved Java keyword?", presenterMethodName, presenterClass);
+        }
     }
 
     private void scanFieldsWithAccess(final Class presenterClass, final Object presenter) throws SecurityException {
@@ -519,74 +559,6 @@ public final class WirexCore implements Wirex {
                 }
             }
         }
-    }
-
-    private void scanFieldsWithDraw(ArrayList<Field> drawFields, final JPanel viewPanel, ArrayList<Field> textFields) {
-        drawFields.stream().forEach((field) -> {
-            Draw draw = field.getAnnotation(Draw.class);
-            if (draw != null) {
-                Class componentClass = null;
-                try {
-                    field.setAccessible(true);
-                    Object component = field.get(viewPanel);
-                    ImageIcon icon = iconResource.get(draw.value());
-                    componentClass = component.getClass();
-                    Method setIconMethod = componentClass.getMethod("setIcon", Icon.class);
-                    setIconMethod.invoke(component, icon);
-                } catch (IllegalArgumentException | IllegalAccessException | ExecutionException | SecurityException ex) {
-                    LOG.error("Cannot set icon in " + componentClass, ex);
-                } catch (NoSuchMethodException | InvocationTargetException ex) {
-                    LOG.error("The field {} annotated with resource icon is not a component with image binding.", field.getName());
-                }
-            } else {
-                textFields.add(field);
-            }
-        });
-    }
-
-    private void scanFieldsWithText(Resource propertyFile, ArrayList<Field> textFields, final JPanel viewPanel) {
-        textFields.stream().forEach((field) -> {
-            final Text[] texts = field.getAnnotationsByType(Text.class);
-            field.setAccessible(true);
-            if (texts.length > 0) {
-                try {
-                    Object componentInstance = field.get(viewPanel);
-                    Class component = field.getType();
-                    if (component != JTable.class) {
-                        Method setTextMethod = component.getMethod("setText", String.class);
-                        String property = texts[0].value();
-                        Class resourceClass = propertyFile.getClass();
-                        Field resourceField = resourceClass.getField(property);
-                        String textValue = resourceField.get(propertyFile).toString();
-                        setTextMethod.invoke(componentInstance, textValue);
-                    } else {
-                        JTable table = (JTable) componentInstance;
-                        JTableHeader th = new JTableHeader();
-                        TableColumnModel tcm = new DefaultTableColumnModel();
-                        for (int i=0; i<texts.length; i++) {
-                            TableColumn column = new TableColumn();
-                            column.setHeaderValue(texts[i]);
-                            tcm.addColumn(column);
-                        }
-                        th.setColumnModel(tcm);
-                        table.setTableHeader(th);
-                        table.repaint();
-                    }
-                } catch (IllegalArgumentException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalAccessException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (NoSuchMethodException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (SecurityException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (InvocationTargetException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (NoSuchFieldException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
     }
 
     /**
@@ -616,7 +588,7 @@ public final class WirexCore implements Wirex {
                         });
                     } else {
                         newList.stream().forEach((e) -> {
-                            oldList.add(new MyObject(e));
+                            oldList.add(new XObject(e));
                         });
                     }
 
@@ -841,10 +813,10 @@ public final class WirexCore implements Wirex {
                     EventList list = (XList) componentModel.getValue();
                     propertyNames = new String[]{"value"};
                     for (int i = 0; i < list.size(); i++) {
-                        list.set(i, new MyObject(list.get(i)));
+                        list.set(i, new XObject(list.get(i)));
                     }
                     adapter.setValue(property, list);
-                    listTypeClass = MyObject.class;
+                    listTypeClass = XObject.class;
 //                    System.out.println(listTypeClass);
                 }
 
@@ -886,32 +858,6 @@ public final class WirexCore implements Wirex {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
         window.dispose();
-    }
-
-    /**
-     * Data structure for Wirex simple object. Useful when a value's type is a
-     * primary data type.
-     */
-    public class MyObject {
-
-        private Object value;
-
-        public MyObject(Object value) {
-            this.value = value;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
-        public void setValue(Object value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value.toString();
-        }
     }
 
     public class MyActionListener implements ActionListener {

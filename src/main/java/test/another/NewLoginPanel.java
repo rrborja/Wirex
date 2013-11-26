@@ -11,11 +11,14 @@ import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Draw;
 import net.wirex.annotations.Event;
+import net.wirex.annotations.Property;
+import net.wirex.annotations.Text;
 
 /**
  *
  * @author Ritchie Borja
  */
+@Property(LoginEnglishResource.class)
 @Bind(model=LoginPanelModel.class, presenter=LoginPanelPresenter.class)
 public class NewLoginPanel extends javax.swing.JPanel {
 
@@ -47,28 +50,10 @@ public class NewLoginPanel extends javax.swing.JPanel {
         setPreferredSize(new java.awt.Dimension(400, 200));
 
         lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblLogo.setName("lblLogo"); // NOI18N
-
-        lblUsername.setText("Username:");
-        lblUsername.setName("lblUsername"); // NOI18N
 
         txfUsername.setText("jsy");
-        txfUsername.setName("txfUsername"); // NOI18N
-
-        lblPassword.setText("Password:");
-        lblPassword.setName("lblPassword"); // NOI18N
 
         pwdPassword.setText("password");
-        pwdPassword.setName("pwdPassword"); // NOI18N
-
-        chkRemember.setText("Remember my password");
-        chkRemember.setName("chkRemember"); // NOI18N
-
-        btnCancel.setText("Cancel");
-        btnCancel.setName("btnCancel"); // NOI18N
-
-        btnEnter.setText("Enter");
-        btnEnter.setName("btnEnter"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -87,7 +72,7 @@ public class NewLoginPanel extends javax.swing.JPanel {
                             .addComponent(pwdPassword)
                             .addComponent(chkRemember, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 143, Short.MAX_VALUE)
+                                .addGap(0, 201, Short.MAX_VALUE)
                                 .addComponent(btnEnter)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnCancel))
@@ -110,7 +95,7 @@ public class NewLoginPanel extends javax.swing.JPanel {
                 .addComponent(pwdPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(chkRemember)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 78, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(btnEnter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnCancel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -118,17 +103,22 @@ public class NewLoginPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    @Text("cancel")
     @Draw("cancel_14.png")
     @Event("cancel")
     private javax.swing.JButton btnCancel;
+    @Text("login")
     @Draw("checkmark_sm.png")
     @Event("login")
     private javax.swing.JButton btnEnter;
+    @Text("remember")
     @Data("remember")
     private javax.swing.JCheckBox chkRemember;
     @Draw("VispLogin.png")
     private javax.swing.JLabel lblLogo;
+    @Text("password")
     private javax.swing.JLabel lblPassword;
+    @Text("Username")
     private javax.swing.JLabel lblUsername;
     @Data("password")
     private javax.swing.JPasswordField pwdPassword;

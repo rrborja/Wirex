@@ -35,7 +35,7 @@
                           <Component id="pwdPassword" alignment="0" max="32767" attributes="0"/>
                           <Component id="chkRemember" alignment="0" max="32767" attributes="0"/>
                           <Group type="102" alignment="1" attributes="0">
-                              <EmptySpace min="0" pref="143" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="201" max="32767" attributes="0"/>
                               <Component id="btnEnter" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="btnCancel" min="-2" max="-2" attributes="0"/>
@@ -65,7 +65,7 @@
               <Component id="pwdPassword" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="chkRemember" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="34" max="32767" attributes="0"/>
+              <EmptySpace pref="78" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Component id="btnEnter" alignment="0" max="32767" attributes="0"/>
                   <Component id="btnCancel" alignment="0" max="32767" attributes="0"/>
@@ -79,22 +79,19 @@
     <Component class="javax.swing.JLabel" name="lblLogo">
       <Properties>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="name" type="java.lang.String" value="lblLogo" noResource="true"/>
       </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(&quot;VispLogin.png&quot;)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="lblUsername">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Username:"/>
-        <Property name="name" type="java.lang.String" value="lblUsername" noResource="true"/>
-      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Text(&quot;Username&quot;)"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JTextField" name="txfUsername">
       <Properties>
         <Property name="text" type="java.lang.String" value="jsy"/>
-        <Property name="name" type="java.lang.String" value="txfUsername" noResource="true"/>
       </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;username&quot;)"/>
@@ -102,15 +99,13 @@
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="lblPassword">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Password:"/>
-        <Property name="name" type="java.lang.String" value="lblPassword" noResource="true"/>
-      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Text(&quot;password&quot;)"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JPasswordField" name="pwdPassword">
       <Properties>
         <Property name="text" type="java.lang.String" value="password"/>
-        <Property name="name" type="java.lang.String" value="pwdPassword" noResource="true"/>
       </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JPasswordField.class, &quot;password&quot;)"/>
@@ -118,31 +113,19 @@
       </AuxValues>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkRemember">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Remember my password"/>
-        <Property name="name" type="java.lang.String" value="chkRemember" noResource="true"/>
-      </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(&quot;remember&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;remember&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Text(&quot;remember&quot;)&#xa;@Data(&quot;remember&quot;)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="btnCancel">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Cancel"/>
-        <Property name="name" type="java.lang.String" value="btnCancel" noResource="true"/>
-      </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(&quot;cancel_14.png&quot;)&#xa;@Event(&quot;cancel&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Text(&quot;cancel&quot;)&#xa;@Draw(&quot;cancel_14.png&quot;)&#xa;@Event(&quot;cancel&quot;)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="btnEnter">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Enter"/>
-        <Property name="name" type="java.lang.String" value="btnEnter" noResource="true"/>
-      </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(&quot;checkmark_sm.png&quot;)&#xa;@Event(&quot;login&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Text(&quot;login&quot;)&#xa;@Draw(&quot;checkmark_sm.png&quot;)&#xa;@Event(&quot;login&quot;)"/>
       </AuxValues>
     </Component>
   </SubComponents>
