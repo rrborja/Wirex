@@ -19,6 +19,7 @@ import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -27,6 +28,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +42,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -64,10 +67,14 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import net.wirex.annotations.Access;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
@@ -78,11 +85,13 @@ import net.wirex.annotations.Event;
 import net.wirex.annotations.EventContainer;
 import net.wirex.annotations.Fire;
 import net.wirex.annotations.Form;
+import net.wirex.annotations.Format;
 import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Property;
+import net.wirex.annotations.NotNull;
 import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Snip;
 import net.wirex.annotations.Text;
@@ -97,6 +106,7 @@ import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.interfaces.Resource;
+import net.wirex.interfaces.Validator;
 import net.wirex.structures.XList;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
@@ -124,6 +134,10 @@ final class WirexCore implements Wirex {
             .build(new ServerResponseCacheLoader());
 
     private final ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
+
+    private final ConcurrentMap<Class<? extends Validator>, List> validators = new ConcurrentHashMap();
+
+    private final ConcurrentMap<String, JLabel> mediators = new ConcurrentHashMap();
 
     private final LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
@@ -209,7 +223,21 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private Model checkout(Class<? extends Model> modelClass) {
+    @Override
+    public JLabel mediator(String name) {
+        return mediators.remove(name);
+    }
+
+    @Override
+    public List checkout(Class<? extends Validator> validator) {
+        if (validator != null) {
+            return validators.get(validator);
+        } else {
+            return null;
+        }
+    }
+
+    private Model checkoutModel(Class<? extends Model> modelClass) {
         if (modelClass != null) {
             return models.get(modelClass);
         } else {
@@ -287,6 +315,7 @@ final class WirexCore implements Wirex {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
         }
 
+        Format format = (Format) viewClass.getAnnotation(Format.class);
         Property property = (Property) viewClass.getAnnotation(Property.class);
 
         Class modelClass = bind.model();
@@ -305,10 +334,24 @@ final class WirexCore implements Wirex {
             LOG.error("Unable to load model", ex);
         }
 
+        Validator validator;
+        try {
+            if (format != null) {
+                validator = (Validator) format.value().newInstance();
+            } else {
+                validator = null;
+            }
+        } catch (InstantiationException | IllegalAccessException ex) {
+            LOG.warn("Unable to load validator " + format.value(), ex);
+            validator = null;
+        }
+
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
-            scanFieldWithData(data, field, model);
+            if (format != null) {
+                scanFieldWithData(data, validator, field, model);
+            }
             scanFieldWithView(view, field);
         }
 
@@ -316,7 +359,7 @@ final class WirexCore implements Wirex {
         try {
             resource = (Resource) property.value().newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOG.warn("Unable to load " + viewClass, ex);
+            LOG.warn("Unable to load resource " + property.value(), ex);
             resource = null;
         }
 
@@ -420,25 +463,90 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithData(final Data data, Field field, Model model) throws WrongComponentException {
+    private void scanFieldWithData(final Data data, final Validator validator, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
             Class clazz = field.getType();
+            final String modelProperty;
             if (JComponent.class.isAssignableFrom(clazz)) {
                 try {
-                    String modelProperty = LegalIdentifierChecker.check(data.value());
+                    modelProperty = LegalIdentifierChecker.check(data.value());
                     bindComponent(clazz, model, modelProperty);
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Unable to bind component " + clazz, ex);
+                    return;
                 } catch (InvalidKeywordFromBindingNameException ex) {
                     LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
+                    return;
                 } catch (ReservedKeywordFromBindingNameException ex) {
                     LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
+                    return;
                 } catch (PropertyNotFoundException ex) {
                     LOG.warn("Your binding property '{}' doesn't bind to any existing components", data.value());
+                    return;
                 }
             } else {
                 throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
             }
+            Class validatorClass = validator.getClass();
+            Field propertyField;
+            final String regex;
+            try {
+                propertyField = validatorClass.getDeclaredField(modelProperty);
+                regex = propertyField.get(validator).toString();
+            } catch (NoSuchFieldException | SecurityException ex) {
+                LOG.warn("No such property {} in {} validator class", modelProperty, validator.getClass().getSimpleName());
+                return;
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                LOG.error("Unable to get in validator object " + validator.getClass(), ex);
+                return;
+            }
+            JLabel label = new JLabel();
+            Object component = components.get(modelProperty);
+            if (component instanceof JTextField) {
+                JTextField textField = (JTextField) component;
+                textField.getDocument().addDocumentListener(new DocumentListener() {
+                    public void validate() {
+                        Class modelClass = model.getClass();
+                        Model model = models.get(modelClass);
+                        NotNull notRequired = field.getAnnotation(NotNull.class);
+
+                        PresentationModel adapter = new PresentationModel(model);
+                        ValueModel componentModel = adapter.getModel(modelProperty);
+                        Object value = componentModel.getValue();
+                        String inputText = value != null ? value.toString() : "";
+
+                        if (notRequired != null) {
+                            return;
+                        }
+                        if (inputText.matches(regex)) {
+                            label.setForeground(Color.BLUE);
+                        } else {
+                            label.setForeground(Color.RED);
+                        }
+                    }
+
+                    public void checkChanges() {
+
+                    }
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        validate();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        validate();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        validate();
+                    }
+
+                });
+            }
+            mediators.put(modelProperty, label);
         }
     }
 
@@ -546,7 +654,7 @@ final class WirexCore implements Wirex {
                 field.setAccessible(true);
                 Class<? extends Model> accessModelClass = (Class<? extends Model>) field.getType();
                 try {
-                    Model checkedOutModel = checkout(accessModelClass);
+                    Model checkedOutModel = checkoutModel(accessModelClass);
                     if (checkedOutModel != null) {
                         field.set(presenter, checkedOutModel);
                     } else {

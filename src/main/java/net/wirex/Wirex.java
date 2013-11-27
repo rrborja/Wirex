@@ -1,12 +1,13 @@
 package net.wirex;
 
 import java.lang.reflect.Method;
-import net.wirex.ServerRequest;
-import net.wirex.ServerResponse;
+import java.util.List;
+import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import net.wirex.interfaces.Validator;
 
 /**
  *
@@ -33,6 +34,10 @@ interface Wirex {
      * @return Returns a model-binded component
      */
     <T> T checkout(Class<T> component, String name);
+    
+    List checkout(Class<? extends Validator> validator);
+    
+    JLabel mediator(String name);
     
     /**
      * Connects a Java EE web server that supports REST transactions

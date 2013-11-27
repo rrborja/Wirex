@@ -4,6 +4,7 @@
  */
 package test.another;
 
+import javax.swing.JCheckBox;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
@@ -18,7 +19,7 @@ import net.wirex.annotations.Text;
  *
  * @author Ritchie Borja
  */
-@Property(LoginEnglishResource.class)
+@Property(LoginJapaneseResource.class)
 @Bind(model=LoginPanelModel.class, presenter=LoginPanelPresenter.class)
 public class NewLoginPanel extends javax.swing.JPanel {
 
@@ -43,7 +44,7 @@ public class NewLoginPanel extends javax.swing.JPanel {
         txfUsername = AppEngine.checkout(JTextField.class, "username");
         lblPassword = new javax.swing.JLabel();
         pwdPassword = AppEngine.checkout(JPasswordField.class, "password");
-        chkRemember = AppEngine.checkout("remember");
+        chkRemember = AppEngine.checkout(JCheckBox.class, "remember");
         btnCancel = new javax.swing.JButton();
         btnEnter = new javax.swing.JButton();
 
@@ -118,7 +119,7 @@ public class NewLoginPanel extends javax.swing.JPanel {
     private javax.swing.JLabel lblLogo;
     @Text("password")
     private javax.swing.JLabel lblPassword;
-    @Text("Username")
+    @Text("username")
     private javax.swing.JLabel lblUsername;
     @Data("password")
     private javax.swing.JPasswordField pwdPassword;

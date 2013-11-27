@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package test.another;
+package test.whole;
 
 import net.wirex.interfaces.Resource;
 
@@ -12,10 +12,10 @@ import net.wirex.interfaces.Resource;
  *
  * @author ritchie
  */
-public class LoginEnglishResource implements Resource {
+public class ValidatorResource implements Resource {
     public final String username = "Username:";
     public final String password = "Password:";
-    public final String remember = "Remember my password";
-    public final String login = "Login";
-    public final String cancel = "Cancel";
+    public final String retype = "Retype:";
+    public final String email = "Email:";
+    public final String phoneNumber = "Phone Number:";
 }

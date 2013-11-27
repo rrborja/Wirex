@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.swing.JLabel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.wirex.exceptions.ViewClassNotBindedException;
@@ -48,6 +49,10 @@ public final class AppEngine {
      */
     public static <T> T checkout(Class<T> component, String name) {
         return instance.checkout(component, name);
+    }
+    
+    public static JLabel mediator(String name) {
+        return instance.mediator(name);
     }
 
     /**

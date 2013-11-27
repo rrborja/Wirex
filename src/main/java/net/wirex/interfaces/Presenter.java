@@ -64,6 +64,10 @@ public abstract class Presenter {
     public void interrupt(String msg) throws EventInterruptionException {
         throw new EventInterruptionException(msg);
     }
+    
+    public void submit() {
+        
+    }
 
     private void init(String path, Media media, String rest) {
         this.path = path;
