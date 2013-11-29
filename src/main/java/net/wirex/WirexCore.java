@@ -956,9 +956,14 @@ final class WirexCore implements Wirex {
                 EventList rows = (XList) adapter.getModel(property).getValue();
                 TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyNames);
 
-                JTable table = new JTable(new EventTableModel(rows, tf));
+                if (JTable.class == component || JTable.class.isAssignableFrom(component)) {
+                    JTable table = new JTable(new EventTableModel(rows, tf));
+                    newComponent = table;
+                } else {
+                    JXTable table = new JXTable(new EventTableModel(rows, tf));
+                    newComponent = table;
+                }
 
-                newComponent = table;
             } catch (NoSuchFieldException | SecurityException ex) {
                 LOG.error("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTable();
