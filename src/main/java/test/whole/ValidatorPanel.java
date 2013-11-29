@@ -6,26 +6,34 @@
 
 package test.whole;
 
+import com.visp.validex.EmailConstraintValidator;
+import com.visp.validex.PasswordConstraintValidator;
+import com.visp.validex.PhoneNumberConstraintValidator;
+import com.visp.validex.UsernameValidator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
+import net.wirex.EventMethod;
 import net.wirex.MVP;
+import net.wirex.annotations.Balloon;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
-import net.wirex.annotations.Format;
+import net.wirex.annotations.EventContainer;
+import net.wirex.annotations.Permit;
 import net.wirex.annotations.Property;
+import net.wirex.annotations.Rule;
 import net.wirex.annotations.Text;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
+import test.another.NewLoginPanel;
 
 /**
  *
  * @author ritchie
  */
-@Format(ValidatorValidator.class)
 @Property(ValidatorResource.class)
 @Bind(model = ValidatorModel.class, presenter = ValidatorPresenter.class)
 public class ValidatorPanel extends javax.swing.JPanel {
@@ -139,8 +147,12 @@ public class ValidatorPanel extends javax.swing.JPanel {
 
     public static void main(String[] args) {
         try {
+            AppEngine.setPermissionModel(MyPermissionLevel.class);
+            MVP mvp2 = AppEngine.prepare(PermissionPanel.class);
+            mvp2.display(JDialog.class, Boolean.TRUE);
             MVP mvp = AppEngine.prepare(ValidatorPanel.class);
             mvp.display(JDialog.class, Boolean.TRUE);
+            
         } catch (ViewClassNotBindedException ex) {
             Logger.getLogger(ValidatorPanel.class.getName()).log(Level.SEVERE, null, ex);
         } catch (WrongComponentException ex) {
@@ -150,8 +162,10 @@ public class ValidatorPanel extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     @Event("reset")
+    @Permit("reset")
     private javax.swing.JButton jButton1;
     @Event("submit")
+    @Balloon(NewLoginPanel.class)
     private javax.swing.JButton jButton2;
     @Text("username")
     private javax.swing.JLabel jLabel1;
@@ -164,14 +178,25 @@ public class ValidatorPanel extends javax.swing.JPanel {
     @Text("phoneNumber")
     private javax.swing.JLabel jLabel5;
     @Data("username")
+    @Balloon(text="Enter a valid username")
+    @Rule(UsernameValidator.class)
+    @Permit("username")
     private javax.swing.JTextField jTextField1;
     @Data("password")
+    @Rule(PasswordConstraintValidator.class)
+    @Permit("password")
     private javax.swing.JTextField jTextField2;
     @Data("retype")
+    @Rule(PasswordConstraintValidator.class)
+    @Permit("retype")
     private javax.swing.JTextField jTextField3;
     @Data("email")
+    @Rule(EmailConstraintValidator.class)
+    @Permit("email")
     private javax.swing.JTextField jTextField4;
     @Data("phoneNumber")
+    @Rule(PhoneNumberConstraintValidator.class)
+    @Permit("phoneNumber")
     private javax.swing.JTextField jTextField5;
     // End of variables declaration//GEN-END:variables
 }

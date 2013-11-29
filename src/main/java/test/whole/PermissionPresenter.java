@@ -15,19 +15,10 @@ import net.wirex.interfaces.Presenter;
  *
  * @author ritchie
  */
-public class ValidatorPresenter extends Presenter {
+public class PermissionPresenter extends Presenter {
 
-    public ValidatorPresenter(Model model, JPanel panel) {
+    public PermissionPresenter(Model model, JPanel panel) {
         super(model, panel);
-    }
-    
-    @Override
-    public void submit() {
-        int x = 1/0;
-    }
-    
-    public void reset() {
-        
     }
 
     @Override
