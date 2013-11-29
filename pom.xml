@@ -4,7 +4,7 @@
 
     <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.11-GA</version>
+    <version>1.0.11.2-BETA</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
@@ -141,6 +141,33 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.5</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>net.java.balloontip</groupId>
+            <artifactId>balloontip</artifactId>
+            <version>1.2.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>1.1.0.Final</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.visp</groupId>
+            <artifactId>ValidEx</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.swinglabs.swingx</groupId>
+            <artifactId>swingx-all</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4</version>
         </dependency>
     </dependencies>
 </project>
