@@ -1,5 +1,6 @@
 package net.wirex;
 
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import java.util.List;
 import javax.swing.JLabel;
@@ -35,9 +36,17 @@ interface Wirex {
      */
     <T> T checkout(Class<T> component, String name);
     
+    String getError();
+    
+    BufferedImage getScreenshot();
+    
+    void setPermissionModel(Class<? extends Model> modelClass);
+    
     List checkout(Class<? extends Validator> validator);
     
     JLabel mediator(String name);
+    
+    void showError(Presenter presenter, Exception ex);
     
     /**
      * Connects a Java EE web server that supports REST transactions

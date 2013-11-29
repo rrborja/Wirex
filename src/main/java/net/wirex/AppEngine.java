@@ -1,12 +1,8 @@
 package net.wirex;
 
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import javax.swing.JLabel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
@@ -51,8 +47,24 @@ public final class AppEngine {
         return instance.checkout(component, name);
     }
     
+    public static void setPermissionModel(Class<? extends Model> modelClass) {
+        instance.setPermissionModel(modelClass);
+    }
+    
     public static JLabel mediator(String name) {
         return instance.mediator(name);
+    }
+    
+    protected static void setError(Presenter presenter, Exception ex) {
+        instance.showError(presenter, ex);
+    }
+    
+    public static String getErrorMessage() {
+        return instance.getError();
+    }
+    
+    public static BufferedImage getScreenshot() {
+        return instance.getScreenshot();
     }
 
     /**

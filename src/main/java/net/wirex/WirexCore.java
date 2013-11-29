@@ -23,12 +23,13 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
+import java.awt.image.BufferedImage;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -73,9 +74,12 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import javax.validation.ConstraintValidator;
+import net.java.balloontip.BalloonTip;
+import net.java.balloontip.styles.MinimalBalloonStyle;
+import net.java.balloontip.utils.ToolTipUtils;
 import net.wirex.annotations.Access;
+import net.wirex.annotations.Balloon;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.DELETE;
 import net.wirex.annotations.Data;
@@ -85,14 +89,15 @@ import net.wirex.annotations.Event;
 import net.wirex.annotations.EventContainer;
 import net.wirex.annotations.Fire;
 import net.wirex.annotations.Form;
-import net.wirex.annotations.Format;
 import net.wirex.annotations.GET;
 import net.wirex.annotations.POST;
 import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Property;
 import net.wirex.annotations.NotNull;
+import net.wirex.annotations.Permit;
 import net.wirex.annotations.Retrieve;
+import net.wirex.annotations.Rule;
 import net.wirex.annotations.Snip;
 import net.wirex.annotations.Text;
 import net.wirex.annotations.Type;
@@ -103,6 +108,7 @@ import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
 import net.wirex.exceptions.UnknownComponentException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
+import net.wirex.gui.ErrorReportPanel;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.interfaces.Resource;
@@ -110,6 +116,7 @@ import net.wirex.interfaces.Validator;
 import net.wirex.structures.XList;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
+import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,16 +182,34 @@ final class WirexCore implements Wirex {
 
     private String resourceHostname;
 
+    private Class<? extends Model> privilegeModelClass;
+
+    private String error;
+
+    private BufferedImage screenshot;
+
     public WirexCore() {
         this.totalPreparedViews = 0;
         this.hostname = "http://10.0.1.46:8080/";
         this.resourceHostname = "http://10.0.1.46/~rborja/icons/";
+        this.privilegeModelClass = null;
     }
 
-    public WirexCore(String hostname, String resourceHostname) {
+    public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
         this.totalPreparedViews = 0;
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
+        this.privilegeModelClass = privilegeModelClass;
+    }
+
+    @Override
+    public String getError() {
+        return error;
+    }
+
+    @Override
+    public BufferedImage getScreenshot() {
+        return screenshot;
     }
 
     /**
@@ -221,6 +246,18 @@ final class WirexCore implements Wirex {
                 return null;
             }
         }
+    }
+
+    @Override
+    public void setPermissionModel(Class<? extends Model> modelClass) {
+        this.privilegeModelClass = modelClass;
+        Model model;
+        try {
+            model = modelClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            return;
+        }
+        models.put(modelClass, model);
     }
 
     @Override
@@ -295,6 +332,23 @@ final class WirexCore implements Wirex {
         }
     }
 
+    @Override
+    public void showError(Presenter presenter, Exception error) {
+        try {
+            String resultingError = "Caused by: " + error.getCause().toString() + "\n";
+            StackTraceElement[] errors = error.getCause().getStackTrace();
+            for (StackTraceElement error1 : errors) {
+                resultingError += error1.toString() + "\n";
+            }
+            this.error = resultingError;
+            this.screenshot = createImage(presenter.getPanel());
+            MVP mvp = prepare(ErrorReportPanel.class);
+            mvp.display(JDialog.class);
+        } catch (ViewClassNotBindedException | WrongComponentException ex) {
+            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     /**
      * Prepares a binded view class together with its Presenter and Model
      * classes and binds them together to form an MVP object that contains
@@ -315,7 +369,6 @@ final class WirexCore implements Wirex {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
         }
 
-        Format format = (Format) viewClass.getAnnotation(Format.class);
         Property property = (Property) viewClass.getAnnotation(Property.class);
 
         Class modelClass = bind.model();
@@ -334,30 +387,20 @@ final class WirexCore implements Wirex {
             LOG.error("Unable to load model", ex);
         }
 
-        Validator validator;
-        try {
-            if (format != null) {
-                validator = (Validator) format.value().newInstance();
-            } else {
-                validator = null;
-            }
-        } catch (InstantiationException | IllegalAccessException ex) {
-            LOG.warn("Unable to load validator " + format.value(), ex);
-            validator = null;
-        }
-
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
-            if (format != null) {
-                scanFieldWithData(data, validator, field, model);
-            }
+            scanFieldWithData(data, field, model);
             scanFieldWithView(view, field);
         }
 
         Resource resource;
         try {
-            resource = (Resource) property.value().newInstance();
+            if (property != null) {
+                resource = (Resource) property.value().newInstance();
+            } else {
+                resource = null;
+            }
         } catch (InstantiationException | IllegalAccessException ex) {
             LOG.warn("Unable to load resource " + property.value(), ex);
             resource = null;
@@ -386,10 +429,14 @@ final class WirexCore implements Wirex {
             final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
             final Draw draw = field.getAnnotation(Draw.class);
             final Text[] texts = field.getAnnotationsByType(Text.class);
+            final Balloon balloon = field.getAnnotation(Balloon.class);
+            final Permit permit = field.getAnnotation(Permit.class);
 
             scanFieldWithEvent(events, field, viewPanel, presenterClass, presenter, eventContainers);
             scanFieldWithDraw(draw, field, viewPanel);
             scanFieldWithText(texts, field, viewPanel, resource);
+            scanFieldWithBalloon(balloon, field, viewPanel);
+            scanFieldWithPermit(permit, field, viewPanel);
 
             field.setAccessible(false);
         }
@@ -438,32 +485,13 @@ final class WirexCore implements Wirex {
             try {
                 mvp = prepare(subViewClass);
             } catch (ViewClassNotBindedException | WrongComponentException ex) {
-                mvp = new MVP() {
-
-                    @Override
-                    public JPanel getView() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-
-                    @Override
-                    public void setTitle(String title) {
-                    }
-
-                    @Override
-                    public void display(Class<? extends Window> window, Boolean isVisible) {
-                    }
-
-                    @Override
-                    public void display(Class<? extends Window> window) {
-                    }
-
-                };
+                mvp = new MVPObject(new JPanel());
             }
             components.put(panelId, mvp.getView());
         }
     }
 
-    private void scanFieldWithData(final Data data, final Validator validator, final Field field, final Model model) throws WrongComponentException {
+    private void scanFieldWithData(final Data data, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
             Class clazz = field.getType();
             final String modelProperty;
@@ -487,66 +515,63 @@ final class WirexCore implements Wirex {
             } else {
                 throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
             }
-            Class validatorClass = validator.getClass();
-            Field propertyField;
-            final String regex;
-            try {
-                propertyField = validatorClass.getDeclaredField(modelProperty);
-                regex = propertyField.get(validator).toString();
-            } catch (NoSuchFieldException | SecurityException ex) {
-                LOG.warn("No such property {} in {} validator class", modelProperty, validator.getClass().getSimpleName());
-                return;
-            } catch (IllegalArgumentException | IllegalAccessException ex) {
-                LOG.error("Unable to get in validator object " + validator.getClass(), ex);
-                return;
-            }
-            JLabel label = new JLabel();
-            Object component = components.get(modelProperty);
-            if (component instanceof JTextField) {
-                JTextField textField = (JTextField) component;
-                textField.getDocument().addDocumentListener(new DocumentListener() {
-                    public void validate() {
-                        Class modelClass = model.getClass();
-                        Model model = models.get(modelClass);
-                        NotNull notRequired = field.getAnnotation(NotNull.class);
+            Rule rule = (Rule) field.getAnnotation(Rule.class);
+            if (rule != null) {
+                Class<? extends ConstraintValidator> validatorClass = rule.value();
+                ConstraintValidator validator;
+                try {
+                    validator = validatorClass.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    return;
+                }
+                JLabel label = new JLabel();
+                Object component = components.get(modelProperty);
+                if (component instanceof JTextField) {
+                    JTextField textField = (JTextField) component;
+                    textField.getDocument().addDocumentListener(new DocumentListener() {
+                        public void validate() {
+                            Class modelClass = model.getClass();
+                            Model model = models.get(modelClass);
+                            NotNull notRequired = field.getAnnotation(NotNull.class);
 
-                        PresentationModel adapter = new PresentationModel(model);
-                        ValueModel componentModel = adapter.getModel(modelProperty);
-                        Object value = componentModel.getValue();
-                        String inputText = value != null ? value.toString() : "";
+                            PresentationModel adapter = new PresentationModel(model);
+                            ValueModel componentModel = adapter.getModel(modelProperty);
+                            Object value = componentModel.getValue();
+                            String inputText = value != null ? value.toString() : "";
 
-                        if (notRequired != null) {
-                            return;
+                            if (notRequired != null) {
+                                return;
+                            }
+                            if (validator.isValid(inputText, null)) {
+                                label.setForeground(Color.BLUE);
+                            } else {
+                                label.setForeground(Color.RED);
+                            }
                         }
-                        if (inputText.matches(regex)) {
-                            label.setForeground(Color.BLUE);
-                        } else {
-                            label.setForeground(Color.RED);
+
+                        public void checkChanges() {
+
                         }
-                    }
 
-                    public void checkChanges() {
+                        @Override
+                        public void insertUpdate(DocumentEvent e) {
+                            validate();
+                        }
 
-                    }
+                        @Override
+                        public void removeUpdate(DocumentEvent e) {
+                            validate();
+                        }
 
-                    @Override
-                    public void insertUpdate(DocumentEvent e) {
-                        validate();
-                    }
+                        @Override
+                        public void changedUpdate(DocumentEvent e) {
+                            validate();
+                        }
 
-                    @Override
-                    public void removeUpdate(DocumentEvent e) {
-                        validate();
-                    }
-
-                    @Override
-                    public void changedUpdate(DocumentEvent e) {
-                        validate();
-                    }
-
-                });
+                    });
+                }
+                mediators.put(modelProperty, label);
             }
-            mediators.put(modelProperty, label);
         }
     }
 
@@ -892,7 +917,7 @@ final class WirexCore implements Wirex {
                 LOG.warn("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTree();
             }
-        } else if (JTable.class == component || JTable.class.isAssignableFrom(component)) {
+        } else if (JTable.class == component || JTable.class.isAssignableFrom(component) || JXTable.class == component || JXTable.class.isAssignableFrom(component)) {
             try {
                 /*
                  * Throw exception if List has no generic types
@@ -966,6 +991,84 @@ final class WirexCore implements Wirex {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
         window.dispose();
+        totalPreparedViews--;
+    }
+
+    private void scanFieldWithBalloon(final Balloon balloon, final Field field, final JPanel viewPanel) throws ViewClassNotBindedException, WrongComponentException {
+        try {
+            if (balloon != null) {
+                JComponent fieldComponent = (JComponent) field.get(viewPanel);
+                String text = balloon.text();
+                Class<? extends JComponent> componentClass = balloon.value();
+                Integer seconds = balloon.seconds();
+                if (componentClass == JPanel.class) {
+                    JLabel label = new JLabel(text);
+                    label.setForeground(new Color(230, 230, 230));
+                    BalloonTip balloonTip = new BalloonTip(fieldComponent, label,
+                            new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                            BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                            0, 5, false);
+                    ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000);
+                } else {
+                    Object component = componentClass.newInstance();
+                    if (component instanceof JPanel) {
+                        JPanel view = (JPanel) component;
+                        Class viewClass = view.getClass();
+                        Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+                        JPanel finalBalloonPanel;
+                        if (bind != null) {
+                            MVP mvp = prepare(viewClass);
+                            finalBalloonPanel = mvp.getView();
+                        } else {
+                            finalBalloonPanel = (JPanel) viewClass.newInstance();
+                        }
+                        BalloonTip balloonTip = new BalloonTip(fieldComponent, finalBalloonPanel,
+                                new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                0, 5, false);
+                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                    } else {
+                        BalloonTip balloonTip = new BalloonTip(fieldComponent, (JComponent) component,
+                                new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                0, 5, false);
+                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                    }
+                }
+            }
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void scanFieldWithPermit(final Permit permit, final Field field, final JPanel viewPanel) {
+        if (permit != null) {
+            try {
+                Model privilegeModel = models.get(privilegeModelClass);
+                String property = permit.value();
+                PresentationModel adapter = new PresentationModel(privilegeModel);
+                ValueModel componentModel = adapter.getModel(property);
+                Boolean value = (Boolean) componentModel.getValue();
+
+                JComponent component = (JComponent) field.get(viewPanel);
+
+                BeanAdapter beanAdapter = new BeanAdapter(privilegeModel, true);
+                Bindings.bind(component, "enabled", beanAdapter.getValueModel(property));
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private BufferedImage createImage(JPanel panel) {
+        int w = panel.getWidth();
+        int h = panel.getHeight();
+        BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = bi.createGraphics();
+        panel.paint(g);
+        return bi;
     }
 
     public class MyActionListener implements ActionListener {

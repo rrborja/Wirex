@@ -76,6 +76,7 @@ import javax.swing.tree.ExpandVetoException;
 import net.wirex.exceptions.EventInterruptionException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
+import net.wirex.interfaces.Presenter;
 
 /**
  *
@@ -103,7 +104,7 @@ public final class ListenerFactory {
                 LOG.info("The method " + listener + " throws an error: " + ex.getMessage(), ex);
             } else {
                 LOG.error("Unable to invoke {}", listener);
-                ex.printStackTrace();
+                AppEngine.setError((Presenter)presenter, ex);
             }
         }
     }
