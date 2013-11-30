@@ -68,7 +68,7 @@ public abstract class Presenter {
     public void submit() {
         
     }
-
+    
     private void init(String path, Media media, String rest) {
         this.path = path;
         this.media = media;

@@ -36,8 +36,8 @@ public class LoginPanelPresenter extends Presenter {
     @Path("user/login")
     @Type(Media.JSON)
     @POST
-    @Fire(view = PhoneView.class, type = JDialog.class)
-    @Dispose
+    @Fire(view = PhoneView.class, type = JDialog.class, depends = true, dynamic = false)
+//    @Dispose
     public void login() throws EventInterruptionException {
         LoginPanelModel model = (LoginPanelModel) getModel();
         Map<String, String> args = new ConcurrentHashMap<>();
@@ -53,7 +53,7 @@ public class LoginPanelPresenter extends Presenter {
             super.interrupt("Password Invalid");
         } else {
             JOptionPane.showMessageDialog(getPanel(), "Something's wrong with the server.", "Server Error", JOptionPane.ERROR_MESSAGE);
-            super.interrupt("Unknown Error");
+//            super.interrupt("Unknown Error");
         }
 
     }

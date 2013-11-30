@@ -66,7 +66,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
             ServerRequest newRequest = new ServerRequest("GET", resultModel.getMessage().toString(), Media.URLENCODED, null, null);
             return load(newRequest);
         }
-        
+
         return resultModel;
     }
 }
