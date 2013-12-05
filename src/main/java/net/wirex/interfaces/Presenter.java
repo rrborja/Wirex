@@ -1,11 +1,14 @@
 package net.wirex.interfaces;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
+import net.wirex.PresenterModel;
 import net.wirex.ServerRequest;
 import net.wirex.ServerResponse;
 import net.wirex.enums.Media;
@@ -64,11 +67,18 @@ public abstract class Presenter {
     public void interrupt(String msg) throws EventInterruptionException {
         throw new EventInterruptionException(msg);
     }
-    
-    public void submit() {
-        
+
+    public ServerResponse submit(ImmutableMap form) {
+        return submit(form, new HashMap());
     }
-    
+
+    public ServerResponse submit(ImmutableMap form, Map<String, String> args) {
+        PresenterModel presenterModel = new PresenterModel(form);
+        ServerRequest request = new ServerRequest(rest, path, media, args, presenterModel);
+        ServerResponse response = AppEngine.push(request);
+        return response;
+    }
+
     private void init(String path, Media media, String rest) {
         this.path = path;
         this.media = media;
@@ -104,7 +114,7 @@ public abstract class Presenter {
         ServerRequest request = new ServerRequest(rest, path, media, variables, model);
         ServerResponse response = AppEngine.push(request);
         if (response.isSerializable()) {
-            AppEngine.deserialize(model, (Model)response.getMessage());
+            AppEngine.deserialize(model, (Model) response.getMessage());
         }
         return response;
     }

@@ -34,6 +34,7 @@ public class MyPermissionLevel extends Model {
         retype = true;
         email = true;
         phoneNumber = true;
+        reset = true;
     }
 
     public boolean isUsername() {

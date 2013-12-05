@@ -10,6 +10,7 @@ import ca.odell.glazedlists.swing.EventTreeModel;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jgoodies.binding.PresentationModel;
@@ -94,7 +95,7 @@ import net.wirex.annotations.POST;
 import net.wirex.annotations.PUT;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Property;
-import net.wirex.annotations.NotNull;
+import net.wirex.annotations.Optional;
 import net.wirex.annotations.Permit;
 import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Rule;
@@ -125,27 +126,29 @@ import org.slf4j.LoggerFactory;
  * @author Ritchie Borja
  */
 final class WirexCore implements Wirex {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
-    
+
     static {
         DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         Date date = new Date();
         LOG.info("Wirex Framework {}", dateFormat.format(date));
     }
-    
+
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new ServerResponseCacheLoader());
-    
+
+    private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap();
+
     private final ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
-    
+
     private final ConcurrentMap<Class<? extends Validator>, List> validators = new ConcurrentHashMap();
-    
+
     private final ConcurrentMap<String, JLabel> mediators = new ConcurrentHashMap();
-    
+
     private final LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
             .expireAfterWrite(1, TimeUnit.MINUTES)
@@ -156,9 +159,9 @@ final class WirexCore implements Wirex {
                             return models.get(name);
                         }
                     });
-    
+
     private final ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap();
-    
+
     private final LoadingCache<String, ImageIcon> iconResource = CacheBuilder.newBuilder()
             .maximumSize(10)
             .expireAfterWrite(1, TimeUnit.MINUTES)
@@ -175,38 +178,38 @@ final class WirexCore implements Wirex {
                     return new ImageIcon(resource);
                 }
             });
-    
+
     private int totalPreparedViews;
-    
+
     private String hostname;
-    
+
     private String resourceHostname;
-    
+
     private Class<? extends Model> privilegeModelClass;
-    
+
     private String error;
-    
+
     private BufferedImage screenshot;
-    
+
     public WirexCore() {
         this.totalPreparedViews = 0;
         this.hostname = "http://10.0.1.46:8080/";
         this.resourceHostname = "http://10.0.1.46/~rborja/icons/";
         this.privilegeModelClass = null;
     }
-    
+
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
         this.totalPreparedViews = 0;
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
     }
-    
+
     @Override
     public String getError() {
         return error;
     }
-    
+
     @Override
     public BufferedImage getScreenshot() {
         return screenshot;
@@ -247,7 +250,7 @@ final class WirexCore implements Wirex {
             }
         }
     }
-    
+
     @Override
     public void setPermissionModel(Class<? extends Model> modelClass) {
         this.privilegeModelClass = modelClass;
@@ -259,12 +262,12 @@ final class WirexCore implements Wirex {
         }
         models.put(modelClass, model);
     }
-    
+
     @Override
     public JLabel mediator(String name) {
         return mediators.remove(name);
     }
-    
+
     @Override
     public List checkout(Class<? extends Validator> validator) {
         if (validator != null) {
@@ -273,7 +276,7 @@ final class WirexCore implements Wirex {
             return null;
         }
     }
-    
+
     private Model checkoutModel(Class<? extends Model> modelClass) {
         if (modelClass != null) {
             return models.get(modelClass);
@@ -331,7 +334,7 @@ final class WirexCore implements Wirex {
             return null;
         }
     }
-    
+
     @Override
     public void showError(Presenter presenter, Exception error) {
         try {
@@ -365,20 +368,20 @@ final class WirexCore implements Wirex {
     public MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
         return prepare(viewClass, null);
     }
-    
+
     protected MVP prepare(Class viewClass, Window parent) throws ViewClassNotBindedException, WrongComponentException {
-        
+
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
         if (bind == null) {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
         }
-        
+
         Property property = (Property) viewClass.getAnnotation(Property.class);
-        
+
         Class modelClass = bind.model();
         final Class presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
-        
+
         Model model = null;
         try {
             if (models.containsKey(modelClass)) {
@@ -390,14 +393,14 @@ final class WirexCore implements Wirex {
         } catch (InstantiationException | IllegalAccessException | ExecutionException ex) {
             LOG.error("Unable to load model", ex);
         }
-        
+
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
             scanFieldWithData(data, field, model);
             scanFieldWithView(view, field);
         }
-        
+
         Resource resource;
         try {
             if (property != null) {
@@ -409,7 +412,7 @@ final class WirexCore implements Wirex {
             LOG.warn("Unable to load resource " + property.value(), ex);
             resource = null;
         }
-        
+
         final JPanel viewPanel;
         try {
             viewPanel = (JPanel) viewClass.newInstance();
@@ -417,7 +420,7 @@ final class WirexCore implements Wirex {
             LOG.error("Unable to create " + viewClass, ex);
             return null;
         }
-        
+
         final Object presenter;
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
@@ -425,28 +428,28 @@ final class WirexCore implements Wirex {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
         }
-        
+
         for (Field field : fields) {
             field.setAccessible(true);
-            
+
             final Event[] events = field.getAnnotationsByType(Event.class);
             final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
             final Draw draw = field.getAnnotation(Draw.class);
             final Text[] texts = field.getAnnotationsByType(Text.class);
             final Balloon balloon = field.getAnnotation(Balloon.class);
             final Permit permit = field.getAnnotation(Permit.class);
-            
+
             scanFieldWithEvent(events, field, viewPanel, presenterClass, presenter, eventContainers);
             scanFieldWithDraw(draw, field, viewPanel);
             scanFieldWithText(texts, field, viewPanel, resource);
             scanFieldWithBalloon(balloon, field, viewPanel);
             scanFieldWithPermit(permit, field, viewPanel);
-            
+
             field.setAccessible(false);
         }
-        
+
         scanFieldsWithAccess(presenterClass, presenter);
-        
+
         final Method run;
         try {
             run = presenterClass.getMethod("run", ConcurrentHashMap.class);
@@ -454,7 +457,7 @@ final class WirexCore implements Wirex {
             LOG.error("Framework bug! Can't access run method.", ex);
             return null;
         }
-        
+
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
         Retrieve retrieve;
         final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>();
@@ -466,7 +469,7 @@ final class WirexCore implements Wirex {
                 runMethodParameters.put(methodName, invokeCode);
             }
         }
-        
+
         if (retrieveAnnotations[0].length > 0) {
             try {
                 run.invoke(presenter, runMethodParameters);
@@ -474,12 +477,12 @@ final class WirexCore implements Wirex {
                 LOG.error("Framework bug! Cannot invoke run in " + presenter.getClass(), ex);
             }
         }
-        
+
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
-        
+
         return new MVPObject(viewPanel, parent);
     }
-    
+
     private void scanFieldWithView(final View view, Field field) throws SecurityException {
         if (view != null) {
             field.setAccessible(true);
@@ -494,7 +497,7 @@ final class WirexCore implements Wirex {
             components.put(panelId, mvp.getView());
         }
     }
-    
+
     private void scanFieldWithData(final Data data, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
             Class clazz = field.getType();
@@ -536,13 +539,13 @@ final class WirexCore implements Wirex {
                         public void validate() {
                             Class modelClass = model.getClass();
                             Model model = models.get(modelClass);
-                            NotNull notRequired = field.getAnnotation(NotNull.class);
-                            
+                            Optional notRequired = field.getAnnotation(Optional.class);
+
                             PresentationModel adapter = new PresentationModel(model);
                             ValueModel componentModel = adapter.getModel(modelProperty);
                             Object value = componentModel.getValue();
                             String inputText = value != null ? value.toString() : "";
-                            
+
                             if (notRequired != null) {
                                 return;
                             }
@@ -552,33 +555,33 @@ final class WirexCore implements Wirex {
                                 label.setForeground(Color.RED);
                             }
                         }
-                        
+
                         public void checkChanges() {
-                            
+
                         }
-                        
+
                         @Override
                         public void insertUpdate(DocumentEvent e) {
                             validate();
                         }
-                        
+
                         @Override
                         public void removeUpdate(DocumentEvent e) {
                             validate();
                         }
-                        
+
                         @Override
                         public void changedUpdate(DocumentEvent e) {
                             validate();
                         }
-                        
+
                     });
                 }
                 mediators.put(modelProperty, label);
             }
         }
     }
-    
+
     private void scanFieldWithText(final Text[] texts, Field field, final JPanel viewPanel, Resource resource) {
         if (texts.length > 0) {
             try {
@@ -610,7 +613,7 @@ final class WirexCore implements Wirex {
             }
         }
     }
-    
+
     private void scanFieldWithDraw(final Draw draw, Field field, final JPanel viewPanel) {
         if (draw != null) {
             Class componentClass = null;
@@ -628,7 +631,7 @@ final class WirexCore implements Wirex {
             }
         }
     }
-    
+
     private void scanFieldWithEvent(final Event[] events, Field field, final JPanel viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
         String presenterMethodName = "";
         try {
@@ -647,7 +650,7 @@ final class WirexCore implements Wirex {
                 Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
                 addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
             }
-            
+
             if (eventContainers.length > 0) {
                 Class component = field.getType();
                 Object componentObject = field.get(viewPanel);
@@ -666,7 +669,7 @@ final class WirexCore implements Wirex {
                     addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
                 }
             }
-            
+
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
             LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
         } catch (InvalidKeywordFromBindingNameException ex) {
@@ -675,8 +678,9 @@ final class WirexCore implements Wirex {
             LOG.warn("Is the method {} in {} a reserved Java keyword?", presenterMethodName, presenterClass);
         }
     }
-    
+
     private void scanFieldsWithAccess(final Class presenterClass, final Object presenter) throws SecurityException {
+        PresenterModel presenterModel = new PresenterModel();
         for (Field field : presenterClass.getDeclaredFields()) {
             Access access = field.getAnnotation(Access.class);
             if (access != null) {
@@ -686,16 +690,28 @@ final class WirexCore implements Wirex {
                     Model checkedOutModel = checkoutModel(accessModelClass);
                     if (checkedOutModel != null) {
                         field.set(presenter, checkedOutModel);
+                        presenterModel.put(field.getName(), checkedOutModel);
                     } else {
                         Model newModel = (Model) accessModelClass.newInstance();
                         models.put(accessModelClass, newModel);
                         field.set(presenter, newModel);
+                        presenterModel.put(field.getName(), newModel);
                     }
                 } catch (IllegalArgumentException | IllegalAccessException | InstantiationException ex) {
                     LOG.error("Unable to set model object " + accessModelClass, ex);
                 }
             }
         }
+        if (!presenterModel.isEmpty()) {
+            presenterModels.put(presenterClass, presenterModel);
+        }
+    }
+
+    @Override
+    public ImmutableMap form(Presenter presenter) {
+        Class<? extends Presenter> presenterClass = presenter.getClass();
+        PresenterModel presenterModel = presenterModels.get(presenterClass);
+        return presenterModel.getForm();
     }
 
     /**
@@ -716,7 +732,7 @@ final class WirexCore implements Wirex {
                 if (listClass == XList.class) {
                     XList oldList = (XList) field.get(model);
                     XList newList = (XList) field.get(fromJson);
-                    
+
                     oldList.clear();
                     ParameterizedType pType = (ParameterizedType) field.getGenericType();
                     System.out.println((Class<?>) pType.getActualTypeArguments()[0]);
@@ -739,7 +755,7 @@ final class WirexCore implements Wirex {
                             }
                         });
                     }
-                    
+
                     field.set(model, oldList);
                 } else {
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
@@ -755,7 +771,7 @@ final class WirexCore implements Wirex {
             }
         }
     }
-    
+
     @Override
     public String encodeToUrl(Model body) {
         String encodedUrl = "";
@@ -794,17 +810,23 @@ final class WirexCore implements Wirex {
     public String snip(Model model) throws IllegalArgumentException, IllegalAccessException {
         Gson gson = new GsonBuilder().create();
         Class modelClass = model.getClass();
-        String json = gson.toJson(model);
-        Model clonedModel = (Model) gson.fromJson(json, modelClass);
-        for (Field field : modelClass.getDeclaredFields()) {
-            Snip snip = field.getAnnotation(Snip.class);
-            if (snip != null) {
-                field.setAccessible(true);
-                field.set(clonedModel, "*snipped*");
-                field.setAccessible(false);
+        String json;
+        if (modelClass.isAssignableFrom(PresenterModel.class)) {
+            PresenterModel presenterModel = (PresenterModel) model;
+            return gson.toJson(presenterModel.getForm());
+        } else {
+            json = gson.toJson(model);
+            Model clonedModel = (Model) gson.fromJson(json, modelClass);
+            for (Field field : modelClass.getDeclaredFields()) {
+                Snip snip = field.getAnnotation(Snip.class);
+                if (snip != null) {
+                    field.setAccessible(true);
+                    field.set(clonedModel, "*snipped*");
+                    field.setAccessible(false);
+                }
             }
+            return gson.toJson(clonedModel);
         }
-        return gson.toJson(clonedModel);
     }
 
     /**
@@ -823,7 +845,7 @@ final class WirexCore implements Wirex {
         GET get = method.getAnnotation(GET.class);
         PUT put = method.getAnnotation(PUT.class);
         DELETE delete = method.getAnnotation(DELETE.class);
-        
+
         String urlPath;
         if (path != null) {
             Method initMethod = null;
@@ -877,7 +899,7 @@ final class WirexCore implements Wirex {
         Dispose dispose = method.getAnnotation(Dispose.class);
         if (fire != null) {
             Class<? extends JPanel> panelClass = fire.view();
-            Window parent = SwingUtilities.getWindowAncestor(((Presenter)presenter).getPanel());
+            Window parent = SwingUtilities.getWindowAncestor(((Presenter) presenter).getPanel());
             MVP mvp = prepare(panelClass, parent);
             mvp.setTitle(fire.title());
             mvp.display(fire.type(), true);
@@ -887,7 +909,7 @@ final class WirexCore implements Wirex {
             dispose((Presenter) presenter);
         }
     }
-    
+
     private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
@@ -940,10 +962,10 @@ final class WirexCore implements Wirex {
                 /*
                  * Throw exception if List has no generic types
                  */
-                
+
                 Field listField = bean.getClass().getDeclaredField(property);
                 java.lang.reflect.Type type = listField.getGenericType();
-                
+
                 ParameterizedType listType;
                 Class<?> listTypeClass;
                 if (type instanceof Class) {
@@ -952,7 +974,7 @@ final class WirexCore implements Wirex {
                     listType = (ParameterizedType) type;
                     listTypeClass = (Class<?>) listType.getActualTypeArguments()[0];
                 }
-                
+
                 Field[] fields = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
                 if (Model.class.isAssignableFrom(listTypeClass)) {
@@ -970,10 +992,10 @@ final class WirexCore implements Wirex {
                     listTypeClass = XObject.class;
 //                    System.out.println(listTypeClass);
                 }
-                
+
                 EventList rows = (XList) adapter.getModel(property).getValue();
                 TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyNames);
-                
+
                 if (JTable.class == component) {
                     JTable table = new JTable(new EventTableModel(rows, tf));
                     newComponent = table;
@@ -981,12 +1003,12 @@ final class WirexCore implements Wirex {
                     JXTable table = new JXTable(new EventTableModel(rows, tf));
                     newComponent = table;
                 }
-                
+
             } catch (NoSuchFieldException | SecurityException ex) {
                 LOG.error("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTable();
             }
-            
+
         } else if (JPasswordField.class == component || JPasswordField.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createPasswordField(componentModel);
         } else {
@@ -1016,7 +1038,7 @@ final class WirexCore implements Wirex {
         window.dispose();
         totalPreparedViews--;
     }
-    
+
     private void scanFieldWithBalloon(final Balloon balloon, final Field field, final JPanel viewPanel) throws ViewClassNotBindedException, WrongComponentException {
         try {
             if (balloon != null) {
@@ -1065,7 +1087,7 @@ final class WirexCore implements Wirex {
             java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void scanFieldWithPermit(final Permit permit, final Field field, final JPanel viewPanel) {
         if (permit != null) {
             try {
@@ -1074,9 +1096,9 @@ final class WirexCore implements Wirex {
                 PresentationModel adapter = new PresentationModel(privilegeModel);
                 ValueModel componentModel = adapter.getModel(property);
                 Boolean value = (Boolean) componentModel.getValue();
-                
+
                 JComponent component = (JComponent) field.get(viewPanel);
-                
+
                 BeanAdapter beanAdapter = new BeanAdapter(privilegeModel, true);
                 Bindings.bind(component, "enabled", beanAdapter.getValueModel(property));
             } catch (IllegalArgumentException | IllegalAccessException ex) {
@@ -1084,7 +1106,7 @@ final class WirexCore implements Wirex {
             }
         }
     }
-    
+
     private BufferedImage createImage(JPanel panel) {
         int w = panel.getWidth();
         int h = panel.getHeight();
@@ -1093,19 +1115,19 @@ final class WirexCore implements Wirex {
         panel.paint(g);
         return bi;
     }
-    
+
     public class MyActionListener implements ActionListener {
-        
+
         private final String methodName;
         private final Class presenterClass;
         private final Object presenter;
-        
+
         public MyActionListener(Class presenterClass, Object presenter, String methodName) {
             this.methodName = methodName;
             this.presenterClass = presenterClass;
             this.presenter = presenter;
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -1117,28 +1139,28 @@ final class WirexCore implements Wirex {
             }
         }
     }
-    
+
     private class MVPObject implements MVP {
-        
+
         private final JPanel viewPanel;
         private final Window parent;
-        
+
         public MVPObject(JPanel viewPanel) {
             this(viewPanel, null);
         }
-        
+
         public MVPObject(JPanel viewPanel, Window parent) {
             this.viewPanel = viewPanel;
             this.parent = parent;
         }
-        
+
         private String title = "Untitled";
-        
+
         @Override
         public JPanel getView() {
             return viewPanel;
         }
-        
+
         @Override
         public void setTitle(String title) {
             this.title = title;
@@ -1151,7 +1173,7 @@ final class WirexCore implements Wirex {
                 }
             }
         }
-        
+
         @Override
         public void display(final Class<? extends Window> window, final Boolean isVisible) {
             EventQueue.invokeLater(() -> {
@@ -1169,7 +1191,7 @@ final class WirexCore implements Wirex {
                 dialog.pack();
                 dialog.setMinimumSize(dialog.getPreferredSize());
                 Container parent = dialog.getParent();
-                
+
                 if (parent != null) {
                     dialog.setLocationRelativeTo(parent);
                 } else {
@@ -1181,12 +1203,12 @@ final class WirexCore implements Wirex {
                 dialog.setVisible(isVisible);
             });
         }
-        
+
         @Override
         public void display(Class<? extends Window> window) {
             this.display(window, true);
         }
-        
+
         @Override
         public void setResizable(boolean resizable) {
             Window window = SwingUtilities.getWindowAncestor(viewPanel);
@@ -1200,6 +1222,6 @@ final class WirexCore implements Wirex {
                 LOG.warn("Current window type {} doesn't support yet in this framework", window.getType());
             }
         }
-        
+
     }
 }

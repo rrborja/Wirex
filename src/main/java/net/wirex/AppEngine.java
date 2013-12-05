@@ -1,5 +1,6 @@
 package net.wirex;
 
+import com.google.common.collect.ImmutableMap;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import javax.swing.JLabel;
@@ -65,6 +66,10 @@ public final class AppEngine {
     
     public static BufferedImage getScreenshot() {
         return instance.getScreenshot();
+    }
+    
+    public static ImmutableMap form(Presenter presenter) {
+        return instance.form(presenter);
     }
 
     /**

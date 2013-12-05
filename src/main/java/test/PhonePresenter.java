@@ -50,7 +50,7 @@ public class PhonePresenter extends Presenter {
     @Type(Media.JSON)
     @Form(PhoneModel.class)
     @POST
-    public void submit() {
+    public void submit2() {
         super.call();
     }
     

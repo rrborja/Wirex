@@ -1,5 +1,6 @@
 package net.wirex;
 
+import com.google.common.collect.ImmutableMap;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -47,6 +48,8 @@ interface Wirex {
     JLabel mediator(String name);
     
     void showError(Presenter presenter, Exception ex);
+    
+    ImmutableMap form(Presenter presenter);
     
     /**
      * Connects a Java EE web server that supports REST transactions

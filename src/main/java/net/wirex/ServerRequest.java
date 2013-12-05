@@ -27,12 +27,13 @@ public final class ServerRequest<T extends Model> {
     private final Class<? extends Model> model;
 
     public ServerRequest(String rest, String path, Media media, Map<String, String> variables, Model body) {
-        this.rest = REST.valueOf(rest);
+        this.rest = rest != null ? REST.valueOf(rest) : null;
         this.path = path;
         this.media = media;
         this.variables = variables != null ? variables : new HashMap<>();
         this.model = body != null ? body.getClass() : Model.class;
-        this.body = body != null ? body : new Model() {};
+        this.body = body != null ? body : new Model() {
+        };
     }
 
     public Class getModel() {
@@ -60,7 +61,13 @@ public final class ServerRequest<T extends Model> {
             case URLENCODED:
                 return AppEngine.encodeToUrl(body);
             default:
-                return new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create().toJson(body);
+                if (model == PresenterModel.class) {
+                    PresenterModel presenterBody = (PresenterModel)body;
+                    System.out.println("presenterBody = " + presenterBody);
+                    return presenterBody.toString();
+                } else {
+                    return new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create().toJson(body);
+                }
         }
     }
 

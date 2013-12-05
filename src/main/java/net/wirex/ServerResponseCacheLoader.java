@@ -3,10 +3,8 @@ package net.wirex;
 import com.google.common.cache.CacheLoader;
 import java.util.Map;
 import net.wirex.enums.Media;
-import net.wirex.enums.REST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.wirex.exceptions.UnsupportedMediaTypeException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpEntity;
@@ -14,7 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
@@ -41,7 +38,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
     public @Override
     ServerResponse load(ServerRequest request) throws Exception {
         init();
-
+        
         HttpMethod rest = request.getRest();
         String uri = request.getPath();
         MediaType type = request.getMedia();
@@ -57,7 +54,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
 
         RequestCallback requestCallback = new ServerRequestCallback(entity);
         ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
-
+        
         LOG.info("Attempting {} {} {}", rest, new UriTemplate(uri).expand(variables), requestBody);
 
         ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
