@@ -3,6 +3,7 @@ package net.wirex;
 import com.google.common.collect.ImmutableMap;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -70,6 +71,10 @@ public final class AppEngine {
     
     public static ImmutableMap form(Presenter presenter) {
         return instance.form(presenter);
+    }
+    
+    public static Icon icon(String filename) {
+        return instance.icon(filename);
     }
 
     /**

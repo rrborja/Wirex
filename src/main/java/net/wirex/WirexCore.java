@@ -215,6 +215,16 @@ final class WirexCore implements Wirex {
         return screenshot;
     }
 
+    @Override
+    public Icon icon(String filename) {
+        try {
+            return iconResource.get(filename);
+        } catch (ExecutionException ex) {
+            LOG.warn("IO error in icon retrieval of {}", filename);
+            return new ImageIcon();
+        }
+    }
+
     /**
      * Checkouts a binded component.
      *

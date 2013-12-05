@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import java.util.List;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -48,6 +49,8 @@ interface Wirex {
     JLabel mediator(String name);
     
     void showError(Presenter presenter, Exception ex);
+    
+    Icon icon(String filename);
     
     ImmutableMap form(Presenter presenter);
     
