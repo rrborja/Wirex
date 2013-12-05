@@ -7,12 +7,14 @@ package net.visp.mvpshortcut;
 import java.awt.event.KeyListener;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.EventContainer;
+import net.wirex.annotations.View;
 
 /**
  *
@@ -44,6 +46,7 @@ public class MyView extends javax.swing.JPanel {
         jTextField3 = (JTextField)AppEngine.checkout("lastname");
         jButton1 = new javax.swing.JButton();
         jComboBox1 = (JComboBox) AppEngine.checkout("combo");
+        subView1 = AppEngine.checkout(SubView.class, "subview");
 
         btnSubmit.setText("Submit");
 
@@ -76,7 +79,10 @@ public class MyView extends javax.swing.JPanel {
                                 .addComponent(jCheckBox1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(80, 80, 80)
+                        .addComponent(subView1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(82, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -96,7 +102,9 @@ public class MyView extends javax.swing.JPanel {
                     .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(89, Short.MAX_VALUE))
+                .addGap(26, 26, 26)
+                .addComponent(subView1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(26, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -117,5 +125,7 @@ public class MyView extends javax.swing.JPanel {
     @EventContainer(events={@Event("update"), @Event("update2"), @Event("update3")}, listens=KeyListener.class)
     @Data("lastname")
     private javax.swing.JTextField jTextField3;
+    @View("subview")
+    private net.visp.mvpshortcut.SubView subView1;
     // End of variables declaration//GEN-END:variables
 }

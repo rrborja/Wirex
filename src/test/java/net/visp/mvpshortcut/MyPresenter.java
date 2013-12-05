@@ -34,7 +34,7 @@ public class MyPresenter extends Presenter {
     @Type(Media.JSON)
     @Form(MyModel.class)
     @POST
-    public void submit() {
+    public void submit2() {
         MyModel model = (MyModel) super.getModel();
         model.setNewText(model.getName() + " " + model.getLastname());
         super.call();
