@@ -11,6 +11,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Queues;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jgoodies.binding.PresentationModel;
@@ -75,6 +76,7 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.tree.TreeModel;
 import javax.validation.ConstraintValidator;
 import net.java.balloontip.BalloonTip;
 import net.java.balloontip.styles.MinimalBalloonStyle;
@@ -141,6 +143,7 @@ final class WirexCore implements Wirex {
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new ServerResponseCacheLoader());
 
+//    private final Queues accessQueue = Queues.synchronizedQueue(null);
     private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap();
 
     private final ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
@@ -159,6 +162,8 @@ final class WirexCore implements Wirex {
                             return models.get(name);
                         }
                     });
+
+    private final ConcurrentMap<Class<? extends Presenter>, Presenter> presenters = new ConcurrentHashMap();
 
     private final ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap();
 
@@ -362,6 +367,16 @@ final class WirexCore implements Wirex {
         }
     }
 
+    @Override
+    public <T> T access(Class<T> presenterClass) {
+        if (presenters.containsKey(presenterClass)) {
+            return (T) presenters.get(presenterClass);
+        } else {
+            LOG.warn("Presenter ({}) doesn't not or still not yet existed", presenterClass);
+            return null;
+        }
+    }
+
     /**
      * Prepares a binded view class together with its Presenter and Model
      * classes and binds them together to form an MVP object that contains
@@ -434,6 +449,7 @@ final class WirexCore implements Wirex {
         final Object presenter;
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
+            presenters.put(presenterClass, (Presenter)presenter);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
@@ -947,7 +963,13 @@ final class WirexCore implements Wirex {
                 EventList eventList = (XList) model;
                 SortedList sortedList = new SortedList(eventList, null);
                 TreeList list = new TreeList(sortedList, new XTreeFormat(model), TreeList.NODES_START_EXPANDED);
-                JTree tree = new JTree(new EventTreeModel(list));
+//                JTree tree = new JTree(new EventTreeModel(list));
+                if (JTree.class == component) {
+                    JTree tree = new JTree(new EventTreeModel(list));
+                    newComponent = tree;
+                } else {
+                    newComponent = (JComponent) component.getConstructor(TreeModel.class).newInstance(new EventTreeModel(list));
+                }
 //                tree.setCellRenderer(new TreeCellRenderer() {
 //                    @Override
 //                    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -962,10 +984,16 @@ final class WirexCore implements Wirex {
 //                        }
 //                    }
 //                });
-                newComponent = tree;
+//                newComponent = tree;
             } catch (NoSuchFieldException | SecurityException ex) {
                 LOG.warn("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTree();
+            } catch (NoSuchMethodException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (JTable.class == component || JTable.class.isAssignableFrom(component) || JXTable.class == component || JXTable.class.isAssignableFrom(component)) {
             try {

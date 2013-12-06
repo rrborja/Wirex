@@ -77,6 +77,10 @@ public final class AppEngine {
         return instance.icon(filename);
     }
 
+    public static <T> T access(Class<T> presenter) {
+        return instance.access(presenter);
+    }
+
     /**
      * Connects a Java EE web server that supports REST transactions
      *

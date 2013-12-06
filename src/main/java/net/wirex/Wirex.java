@@ -54,6 +54,8 @@ interface Wirex {
     
     ImmutableMap form(Presenter presenter);
     
+    <T> T access(Class<T> presenter);
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *
