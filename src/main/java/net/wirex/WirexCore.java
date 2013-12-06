@@ -449,7 +449,6 @@ final class WirexCore implements Wirex {
         final Object presenter;
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
-            presenters.put(presenterClass, (Presenter)presenter);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
@@ -503,6 +502,8 @@ final class WirexCore implements Wirex {
                 LOG.error("Framework bug! Cannot invoke run in " + presenter.getClass(), ex);
             }
         }
+
+        presenters.put(presenterClass, (Presenter) presenter);
 
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
