@@ -44,10 +44,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +60,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -143,7 +145,8 @@ final class WirexCore implements Wirex {
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new ServerResponseCacheLoader());
 
-//    private final Queues accessQueue = Queues.synchronizedQueue(null);
+    private final Queue accessQueue = new ConcurrentLinkedQueue();
+
     private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap();
 
     private final ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
@@ -948,6 +951,8 @@ final class WirexCore implements Wirex {
         if (JTextField.class == component || JTextField.class.isAssignableFrom(component)) {
             Bindings.bind((JTextField) newComponent, componentModel);
         } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
+            Bindings.bind((JFormattedTextField) newComponent, componentModel);
+        } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
             Bindings.bind((JLabel) newComponent, componentModel);
         } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
             Bindings.bind((JCheckBox) newComponent, componentModel);
@@ -1183,6 +1188,13 @@ final class WirexCore implements Wirex {
         }
     }
 
+    private class AccessTask {
+
+        Presenter presenter;
+        Field field;
+
+    }
+
     private class MVPObject implements MVP {
 
         private final JPanel viewPanel;
@@ -1225,12 +1237,13 @@ final class WirexCore implements Wirex {
                     dialog = new JFrame();
                     ((JFrame) dialog).setTitle(title);
                     ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                    ((JFrame) dialog).setContentPane(viewPanel);
                 } else {
                     dialog = new JDialog(parent);
                     ((JDialog) dialog).setTitle(title);
                     ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                    ((JDialog) dialog).setContentPane(viewPanel);
                 }
-                dialog.add(viewPanel);
                 dialog.pack();
                 dialog.setMinimumSize(dialog.getPreferredSize());
                 Container parent = dialog.getParent();
