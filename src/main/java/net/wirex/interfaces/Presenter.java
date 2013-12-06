@@ -33,7 +33,7 @@ public abstract class Presenter {
         this.view = panel;
     }
 
-    public Model getModel() {
+    protected Model getModel() {
         return model;
     }
 
