@@ -11,7 +11,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Queues;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jgoodies.binding.PresentationModel;
@@ -45,6 +44,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -369,10 +369,15 @@ final class WirexCore implements Wirex {
 
     @Override
     public <T> T access(Class<T> presenterClass) {
-        if (presenters.containsKey(presenterClass)) {
-            return (T) presenters.get(presenterClass);
+        if (!Presenter.class.isAssignableFrom(presenterClass)) {
+            LOG.warn("Is the {} of Presenter type? Please review your code.", presenterClass);
+            return null;
+        }
+        Class<? extends Presenter> presenter = (Class<? extends Presenter>) presenterClass;
+        if (presenters.containsKey(presenter)) {
+            return (T) presenters.get(presenter);
         } else {
-            LOG.warn("Presenter ({}) doesn't not or still not yet existed", presenterClass);
+            LOG.warn("Presenter ({}) does not or still not yet existed", presenterClass);
             return null;
         }
     }
@@ -449,6 +454,7 @@ final class WirexCore implements Wirex {
         final Object presenter;
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
+            presenters.put(presenterClass, (Presenter) presenter);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
@@ -502,8 +508,6 @@ final class WirexCore implements Wirex {
                 LOG.error("Framework bug! Cannot invoke run in " + presenter.getClass(), ex);
             }
         }
-
-        presenters.put(presenterClass, (Presenter) presenter);
 
         LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
 
