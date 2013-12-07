@@ -80,6 +80,10 @@ public final class AppEngine {
     public static <T> T access(Class<T> presenter) {
         return instance.access(presenter);
     }
+    
+    protected static Model checkoutModel(Class<? extends Model> modelClass) {
+        return instance.checkoutModel(modelClass);
+    }
 
     /**
      * Connects a Java EE web server that supports REST transactions

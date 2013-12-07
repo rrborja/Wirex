@@ -92,21 +92,23 @@ public final class ListenerFactory {
             return;
         }
         AppEngine.injectRestSpec(presenter, listener);
-        try {
-            if (listener.getParameterTypes().length > 0) {
-                listener.invoke(presenter, e);
-            } else {
-                listener.invoke(presenter);
+        new Thread(() -> {
+            try {
+                if (listener.getParameterTypes().length > 0) {
+                    listener.invoke(presenter, e);
+                } else {
+                    listener.invoke(presenter);
+                }
+                AppEngine.proceed(presenter, listener);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ViewClassNotBindedException | WrongComponentException ex) {
+                if (ex instanceof EventInterruptionException) {
+                    LOG.info("The method " + listener + " throws an error: " + ex.getMessage(), ex);
+                } else {
+                    LOG.error("Unable to invoke {}", listener);
+                    AppEngine.setError((Presenter) presenter, ex);
+                }
             }
-            AppEngine.proceed(presenter, listener);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ViewClassNotBindedException | WrongComponentException ex) {
-            if (ex instanceof EventInterruptionException) {
-                LOG.info("The method " + listener + " throws an error: " + ex.getMessage(), ex);
-            } else {
-                LOG.error("Unable to invoke {}", listener);
-                AppEngine.setError((Presenter)presenter, ex);
-            }
-        }
+        }).start();
     }
 
     public static ActionListener ActionListener(final Object presenter, final Map<String, Method> listener) {

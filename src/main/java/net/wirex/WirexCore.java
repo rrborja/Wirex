@@ -295,7 +295,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private Model checkoutModel(Class<? extends Model> modelClass) {
+    public Model checkoutModel(Class<? extends Model> modelClass) {
         if (modelClass != null) {
             return models.get(modelClass);
         } else {

@@ -56,6 +56,8 @@ interface Wirex {
     
     <T> T access(Class<T> presenter);
     
+    Model checkoutModel(Class<? extends Model> modelClass);
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *

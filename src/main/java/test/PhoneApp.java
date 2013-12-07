@@ -4,6 +4,7 @@
  */
 package test;
 
+import java.awt.Toolkit;
 import java.util.logging.Level;
 import javax.swing.JFrame;
 import net.wirex.AppEngine;
@@ -48,6 +49,7 @@ public class PhoneApp {
             AppEngine.locateResource("http://10.0.1.46/~rborja/icons/");
             MVP app = AppEngine.prepare(NewLoginPanel.class);
             app.display(JFrame.class, true);
+            Toolkit.getDefaultToolkit().beep();
         } catch (ViewClassNotBindedException | WrongComponentException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
