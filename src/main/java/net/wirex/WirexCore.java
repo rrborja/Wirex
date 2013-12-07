@@ -668,6 +668,7 @@ final class WirexCore implements Wirex {
 
     private void scanFieldWithEvent(final Event[] events, Field field, final JPanel viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
         String presenterMethodName = "";
+        Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
         try {
             if (events.length > 0) {
                 Class component = field.getType();
@@ -678,7 +679,11 @@ final class WirexCore implements Wirex {
                     presenterMethodName = LegalIdentifierChecker.check(event.value());
                     String listenerMethod = event.at().getMethod();
                     listenerType = event.at().getListener();
-                    listeners.put(listenerMethod, presenterClass.getMethod(presenterMethodName));
+                    if (!presenterMethods.containsKey(presenterMethodName)) {
+                        LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+                        continue;
+                    }
+                    listeners.put(listenerMethod, presenterMethods.get(presenterMethodName));
                 }
                 Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
                 Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
@@ -697,7 +702,11 @@ final class WirexCore implements Wirex {
                         EventMethod method = event.at();
                         String listenerMethod = method.getMethod();
                         presenterMethodName = LegalIdentifierChecker.check(event.value());
-                        Method presenterMethod = presenterClass.getMethod(presenterMethodName);
+                        if (!presenterMethods.containsKey(presenterMethodName)) {
+                            LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+                            continue;
+                        }
+                        Method presenterMethod = presenterMethods.get(presenterMethodName);
                         listeners.put(listenerMethod, presenterMethod);
                     }
                     addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
@@ -705,7 +714,7 @@ final class WirexCore implements Wirex {
             }
 
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+            LOG.warn("Framework bug! Check event annotation scanning subroutine.");
         } catch (InvalidKeywordFromBindingNameException ex) {
             LOG.warn("Is the method {} in {} a valid Java keyword?", presenterMethodName, presenterClass);
         } catch (ReservedKeywordFromBindingNameException ex) {
@@ -739,6 +748,15 @@ final class WirexCore implements Wirex {
         if (!presenterModel.isEmpty()) {
             presenterModels.put(presenterClass, presenterModel);
         }
+    }
+
+    private static Map getMethods(Method[] methods) {
+        Map<String, Method> map = new HashMap<>();
+        for (Method method : methods) {
+            String name = method.getName();
+            map.put(name, method);
+        }
+        return map;
     }
 
     @Override
