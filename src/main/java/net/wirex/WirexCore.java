@@ -10,7 +10,6 @@ import ca.odell.glazedlists.swing.EventTreeModel;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jgoodies.binding.PresentationModel;
@@ -42,11 +41,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -187,6 +188,10 @@ final class WirexCore implements Wirex {
                 }
             });
 
+    private int stackCount;
+
+    private Stack<String> preStackCounts;
+
     private int totalPreparedViews;
 
     private String hostname;
@@ -201,6 +206,8 @@ final class WirexCore implements Wirex {
 
     public WirexCore() {
         this.totalPreparedViews = 0;
+        this.stackCount = 0;
+        this.preStackCounts = new Stack();
         this.hostname = "http://10.0.1.46:8080/";
         this.resourceHostname = "http://10.0.1.46/~rborja/icons/";
         this.privilegeModelClass = null;
@@ -208,6 +215,8 @@ final class WirexCore implements Wirex {
 
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
         this.totalPreparedViews = 0;
+        this.stackCount = 0;
+        this.preStackCounts = new Stack();
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
@@ -356,7 +365,12 @@ final class WirexCore implements Wirex {
     @Override
     public void showError(Presenter presenter, Exception error) {
         try {
-            String resultingError = "Caused by: " + error.getCause().toString() + "\n";
+            String resultingError;
+            if (error.getCause() != null) {
+                resultingError = "Caused by: " + error.getCause().toString() + "\n";
+            } else {
+                resultingError = "Caused by: " + error.toString() + "\n";
+            }
             StackTraceElement[] errors = error.getCause().getStackTrace();
             for (StackTraceElement error1 : errors) {
                 resultingError += error1.toString() + "\n";
@@ -404,6 +418,9 @@ final class WirexCore implements Wirex {
 
     protected MVP prepare(Class viewClass, Window parent) throws ViewClassNotBindedException, WrongComponentException {
 
+        int numberOfData = 0;
+        int numberOfView = 0;
+
         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
         if (bind == null) {
             throw new ViewClassNotBindedException("Have you annotated @Bind to your " + viewClass.getSimpleName() + " class?");
@@ -432,6 +449,8 @@ final class WirexCore implements Wirex {
             final View view = field.getAnnotation(View.class);
             scanFieldWithData(data, field, model);
             scanFieldWithView(view, field);
+            numberOfData = data != null ? numberOfData + 1 : numberOfData;
+            numberOfView = view != null ? numberOfView + 1 : numberOfView;
         }
 
         Resource resource;
@@ -512,9 +531,40 @@ final class WirexCore implements Wirex {
             }
         }
 
-        LOG.info("{} loaded. Total prepared views: {}", viewClass.getName(), ++totalPreparedViews);
+        LOG.info("{}{} loaded. Total prepared MVPs: {}", stackTab(), viewClass.getName(), ++totalPreparedViews);
+
+        stackCount--;
+
+        checkUncheckedOut(viewClass, numberOfData + numberOfView);
 
         return new MVPObject(viewPanel, parent);
+    }
+
+    private void checkUncheckedOut(Class viewClass, int numberOfPush) {
+        boolean flagDisplayedFirstLineWarning = true;
+        for (int i = 0; i < numberOfPush; i++) {
+            String identifier = preStackCounts.pop();
+            if (components.containsKey(identifier)) {
+                JComponent component = components.remove(identifier);
+                if (flagDisplayedFirstLineWarning) {
+                    flagDisplayedFirstLineWarning = false;
+                    LOG.warn("Here are your components that were forgot to checkout in {}:", viewClass.getSimpleName());
+                }
+                LOG.warn("\t{} of {}", identifier, component.getClass());
+            }
+        }
+    }
+
+    private String stackTab() {
+        if (stackCount <= 0) {
+            return "";
+        } else {
+            String result = "";
+            for (int i = 0; i < stackCount; i++) {
+                result += ".";
+            }
+            return result;
+        }
     }
 
     private void scanFieldWithView(final View view, Field field) throws SecurityException {
@@ -524,11 +574,13 @@ final class WirexCore implements Wirex {
             String panelId = view.value();
             MVP mvp;
             try {
+                stackCount++;
                 mvp = prepare(subViewClass);
             } catch (ViewClassNotBindedException | WrongComponentException ex) {
                 mvp = new MVPObject(new JPanel());
             }
             components.put(panelId, mvp.getView());
+            preStackCounts.add(panelId);
         }
     }
 
@@ -713,7 +765,9 @@ final class WirexCore implements Wirex {
                 }
             }
 
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+        } catch (NoSuchMethodException ex) {
+            LOG.warn("You're event {} may not work on your type {}.", presenterMethodName, field.getType().getSimpleName());
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             LOG.warn("Framework bug! Check event annotation scanning subroutine.");
         } catch (InvalidKeywordFromBindingNameException ex) {
             LOG.warn("Is the method {} in {} a valid Java keyword?", presenterMethodName, presenterClass);
@@ -760,7 +814,7 @@ final class WirexCore implements Wirex {
     }
 
     @Override
-    public ImmutableMap form(Presenter presenter) {
+    public Map form(Presenter presenter) {
         Class<? extends Presenter> presenterClass = presenter.getClass();
         PresenterModel presenterModel = presenterModels.get(presenterClass);
         return presenterModel.getForm();
@@ -781,35 +835,7 @@ final class WirexCore implements Wirex {
             try {
                 field.setAccessible(true);
                 Class listClass = field.getType();
-                if (listClass == XList.class) {
-                    XList oldList = (XList) field.get(model);
-                    XList newList = (XList) field.get(fromJson);
-
-                    oldList.clear();
-                    ParameterizedType pType = (ParameterizedType) field.getGenericType();
-                    System.out.println((Class<?>) pType.getActualTypeArguments()[0]);
-                    if (Model.class.isAssignableFrom((Class<?>) pType.getActualTypeArguments()[0])) {
-                        newList.stream().forEach(e -> {
-                            oldList.getReadWriteLock().readLock().lock();
-                            try {
-                                oldList.add(e);
-                            } finally {
-                                oldList.getReadWriteLock().readLock().unlock();
-                            }
-                        });
-                    } else {
-                        newList.stream().forEach(e -> {
-                            oldList.getReadWriteLock().readLock().lock();
-                            try {
-                                oldList.add(new XObject(e));
-                            } finally {
-                                oldList.getReadWriteLock().readLock().unlock();
-                            }
-                        });
-                    }
-
-                    field.set(model, oldList);
-                } else {
+                if (listClass != XList.class) {
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
                     Object newValue = field.get(fromJson) != null ? field.get(fromJson) : "";
                     field.set(model, field.get(fromJson));
@@ -860,7 +886,7 @@ final class WirexCore implements Wirex {
      */
     @Override
     public String snip(Model model) throws IllegalArgumentException, IllegalAccessException {
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder().serializeNulls().create();
         Class modelClass = model.getClass();
         String json;
         if (modelClass.isAssignableFrom(PresenterModel.class)) {
@@ -968,7 +994,7 @@ final class WirexCore implements Wirex {
         JComponent newComponent = (JComponent) component.newInstance();
         if (JTextField.class == component || JTextField.class.isAssignableFrom(component)) {
             Bindings.bind((JTextField) newComponent, componentModel);
-        } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
+        } else if (JFormattedTextField.class == component || JFormattedTextField.class.isAssignableFrom(component)) {
             Bindings.bind((JFormattedTextField) newComponent, componentModel);
         } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
             Bindings.bind((JLabel) newComponent, componentModel);
@@ -1090,6 +1116,7 @@ final class WirexCore implements Wirex {
             }
         }
         components.put(property, newComponent);
+        preStackCounts.add(property);
     }
 
     /**
@@ -1204,13 +1231,6 @@ final class WirexCore implements Wirex {
                 LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
         }
-    }
-
-    private class AccessTask {
-
-        Presenter presenter;
-        Field field;
-
     }
 
     private class MVPObject implements MVP {

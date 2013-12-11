@@ -1,7 +1,5 @@
 package net.wirex.interfaces;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,11 +66,11 @@ public abstract class Presenter {
         throw new EventInterruptionException(msg);
     }
 
-    public ServerResponse submit(ImmutableMap form) {
+    public ServerResponse submit(Map form) {
         return submit(form, new HashMap());
     }
 
-    public ServerResponse submit(ImmutableMap form, Map<String, String> args) {
+    public ServerResponse submit(Map form, Map<String, String> args) {
         PresenterModel presenterModel = new PresenterModel(form);
         ServerRequest request = new ServerRequest(rest, path, media, args, presenterModel);
         ServerResponse response = AppEngine.push(request);

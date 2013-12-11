@@ -1,8 +1,8 @@
 package net.wirex;
 
-import com.google.common.collect.ImmutableMap;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
+import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
@@ -69,7 +69,7 @@ public final class AppEngine {
         return instance.getScreenshot();
     }
     
-    public static ImmutableMap form(Presenter presenter) {
+    public static Map form(Presenter presenter) {
         return instance.form(presenter);
     }
     

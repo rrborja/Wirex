@@ -63,7 +63,6 @@ public final class ServerRequest<T extends Model> {
             default:
                 if (model == PresenterModel.class) {
                     PresenterModel presenterBody = (PresenterModel)body;
-                    System.out.println("presenterBody = " + presenterBody);
                     return presenterBody.toString();
                 } else {
                     return new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create().toJson(body);

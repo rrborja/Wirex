@@ -23,11 +23,11 @@ public abstract class Model {
         changeSupport.firePropertyChange(fieldName, oldValue, newValue);
     }
     
-    public Object returnLiveData() {
+    public Object streamData() {
         throw new UnsupportedOperationException("You need to override this method in " + this.getClass().getSimpleName());
     }
     
-    public Class returnLiveType() {
+    public Class streamType() {
         throw new UnsupportedOperationException("You need to override this method in " + this.getClass().getSimpleName());
     }
 }
