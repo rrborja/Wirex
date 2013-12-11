@@ -41,9 +41,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -190,7 +191,9 @@ final class WirexCore implements Wirex {
 
     private int stackCount;
 
-    private Stack<String> preStackCounts;
+    private Stack<String> preStackUncheckedOutComponentCounts;
+
+    private Queue<String> preStackNoResourcePropertyCounts;
 
     private int totalPreparedViews;
 
@@ -207,7 +210,8 @@ final class WirexCore implements Wirex {
     public WirexCore() {
         this.totalPreparedViews = 0;
         this.stackCount = 0;
-        this.preStackCounts = new Stack();
+        this.preStackUncheckedOutComponentCounts = new Stack();
+        this.preStackNoResourcePropertyCounts = new LinkedList();
         this.hostname = "http://10.0.1.46:8080/";
         this.resourceHostname = "http://10.0.1.46/~rborja/icons/";
         this.privilegeModelClass = null;
@@ -216,7 +220,8 @@ final class WirexCore implements Wirex {
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
         this.totalPreparedViews = 0;
         this.stackCount = 0;
-        this.preStackCounts = new Stack();
+        this.preStackUncheckedOutComponentCounts = new Stack();
+        this.preStackNoResourcePropertyCounts = new LinkedList();
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
@@ -536,6 +541,7 @@ final class WirexCore implements Wirex {
         stackCount--;
 
         checkUncheckedOut(viewClass, numberOfData + numberOfView);
+        checkNoResources(property);
 
         return new MVPObject(viewPanel, parent);
     }
@@ -543,14 +549,29 @@ final class WirexCore implements Wirex {
     private void checkUncheckedOut(Class viewClass, int numberOfPush) {
         boolean flagDisplayedFirstLineWarning = true;
         for (int i = 0; i < numberOfPush; i++) {
-            String identifier = preStackCounts.pop();
+            String identifier = preStackUncheckedOutComponentCounts.pop();
             if (components.containsKey(identifier)) {
                 JComponent component = components.remove(identifier);
                 if (flagDisplayedFirstLineWarning) {
                     flagDisplayedFirstLineWarning = false;
-                    LOG.warn("Here are your components that were forgot to checkout in {}:", viewClass.getSimpleName());
+                    LOG.warn("Here are your components that were not checked out in {}:", viewClass.getSimpleName());
                 }
                 LOG.warn("\t{} of {}", identifier, component.getClass());
+            }
+        }
+    }
+
+    private void checkNoResources(Property property) {
+        boolean flagDisplayedFirstLineWarning = true;
+        if (property != null) {
+            Iterator it = preStackNoResourcePropertyCounts.iterator();
+            while (it.hasNext()) {
+                String propertyName = it.next().toString();
+                if (flagDisplayedFirstLineWarning) {
+                    flagDisplayedFirstLineWarning = false;
+                    LOG.warn("Here are your resources that were not supplied in {}:", property.value());
+                }
+                LOG.warn("\t{}", propertyName);
             }
         }
     }
@@ -580,7 +601,7 @@ final class WirexCore implements Wirex {
                 mvp = new MVPObject(new JPanel());
             }
             components.put(panelId, mvp.getView());
-            preStackCounts.add(panelId);
+            preStackUncheckedOutComponentCounts.add(panelId);
         }
     }
 
@@ -669,13 +690,14 @@ final class WirexCore implements Wirex {
     }
 
     private void scanFieldWithText(final Text[] texts, Field field, final JPanel viewPanel, Resource resource) {
+        String propertyText = "";
         if (texts.length > 0) {
             try {
                 Object componentInstance = field.get(viewPanel);
                 Class component = field.getType();
                 if (component != JTable.class) {
                     Method setTextMethod = component.getMethod("setText", String.class);
-                    String propertyText = texts[0].value();
+                    propertyText = texts[0].value();
                     Class resourceClass = resource.getClass();
                     Field resourceField = resourceClass.getDeclaredField(propertyText);
                     resourceField.setAccessible(true);
@@ -694,8 +716,10 @@ final class WirexCore implements Wirex {
                     table.setTableHeader(th);
                     table.repaint();
                 }
-            } catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException | NoSuchFieldException ex) {
+            } catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
                 java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchFieldException ex) {
+                preStackNoResourcePropertyCounts.offer(propertyText);
             }
         }
     }
@@ -1116,7 +1140,7 @@ final class WirexCore implements Wirex {
             }
         }
         components.put(property, newComponent);
-        preStackCounts.add(property);
+        preStackUncheckedOutComponentCounts.add(property);
     }
 
     /**
