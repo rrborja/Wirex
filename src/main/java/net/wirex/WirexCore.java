@@ -566,9 +566,8 @@ final class WirexCore implements Wirex {
     private void checkNoResources(Property property) {
         boolean flagDisplayedFirstLineWarning = true;
         if (property != null) {
-            Iterator it = preStackNoResourcePropertyCounts.iterator();
-            while (it.hasNext()) {
-                String propertyName = it.next().toString();
+            while (!preStackNoResourcePropertyCounts.isEmpty()) {
+                String propertyName = preStackNoResourcePropertyCounts.poll();
                 if (flagDisplayedFirstLineWarning) {
                     flagDisplayedFirstLineWarning = false;
                     LOG.warn("Here are your resources that were not supplied in {}:", property.value());
