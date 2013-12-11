@@ -56,6 +56,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -74,6 +75,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableColumnModel;
@@ -695,15 +697,7 @@ final class WirexCore implements Wirex {
             try {
                 Object componentInstance = field.get(viewPanel);
                 Class component = field.getType();
-                if (component != JTable.class) {
-                    Method setTextMethod = component.getMethod("setText", String.class);
-                    propertyText = texts[0].value();
-                    Class resourceClass = resource.getClass();
-                    Field resourceField = resourceClass.getDeclaredField(propertyText);
-                    resourceField.setAccessible(true);
-                    String textValue = resourceField.get(resource).toString();
-                    setTextMethod.invoke(componentInstance, textValue);
-                } else {
+                if (component == JTable.class || JTable.class.isAssignableFrom(component)) {
                     JTable table = (JTable) componentInstance;
                     JTableHeader th = new JTableHeader();
                     TableColumnModel tcm = new DefaultTableColumnModel();
@@ -715,6 +709,22 @@ final class WirexCore implements Wirex {
                     th.setColumnModel(tcm);
                     table.setTableHeader(th);
                     table.repaint();
+                } else if (component == JPanel.class || JPanel.class.isAssignableFrom(component)) {
+                    Method setBorderTextMethod = component.getMethod("setBorder", Border.class);
+                    propertyText = texts[0].value();
+                    Class resourceClass = resource.getClass();
+                    Field resourceField = resourceClass.getDeclaredField(propertyText);
+                    resourceField.setAccessible(true);
+                    String textValue = resourceField.get(resource).toString();
+                    setBorderTextMethod.invoke(componentInstance, BorderFactory.createTitledBorder(textValue));
+                } else {
+                    Method setTextMethod = component.getMethod("setText", String.class);
+                    propertyText = texts[0].value();
+                    Class resourceClass = resource.getClass();
+                    Field resourceField = resourceClass.getDeclaredField(propertyText);
+                    resourceField.setAccessible(true);
+                    String textValue = resourceField.get(resource).toString();
+                    setTextMethod.invoke(componentInstance, textValue);
                 }
             } catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
                 java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
