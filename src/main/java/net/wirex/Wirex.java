@@ -58,6 +58,12 @@ interface Wirex {
     
     Model checkoutModel(Class<? extends Model> modelClass);
     
+    List listModels();
+    
+    List listViews();
+    
+    List listPresenters();
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *

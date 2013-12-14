@@ -41,16 +41,16 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -139,8 +139,10 @@ final class WirexCore implements Wirex {
 
     static {
         DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        Date date = new Date();
-        LOG.info("Wirex Framework {}", dateFormat.format(date));
+        Date dateObject = new Date();
+        String version = "1.0.13.6-BETA";
+        String date = dateFormat.format(dateObject);
+        LOG.info("Wirex Framework v{} {}", version, date);
     }
 
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
@@ -148,8 +150,6 @@ final class WirexCore implements Wirex {
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new ServerResponseCacheLoader());
-
-    private final Queue accessQueue = new ConcurrentLinkedQueue();
 
     private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap();
 
@@ -162,13 +162,12 @@ final class WirexCore implements Wirex {
     private final LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
             .expireAfterWrite(1, TimeUnit.MINUTES)
-            .build(
-                    new CacheLoader<Class<? extends Model>, Model>() {
-                        public @Override
-                        Model load(Class<? extends Model> name) {
-                            return models.get(name);
-                        }
-                    });
+            .build(new CacheLoader<Class<? extends Model>, Model>() {
+                public @Override
+                Model load(Class<? extends Model> name) {
+                    return models.get(name);
+                }
+            });
 
     private final ConcurrentMap<Class<? extends Presenter>, Presenter> presenters = new ConcurrentHashMap();
 
@@ -210,13 +209,7 @@ final class WirexCore implements Wirex {
     private BufferedImage screenshot;
 
     public WirexCore() {
-        this.totalPreparedViews = 0;
-        this.stackCount = 0;
-        this.preStackUncheckedOutComponentCounts = new Stack();
-        this.preStackNoResourcePropertyCounts = new LinkedList();
-        this.hostname = "http://10.0.1.46:8080/";
-        this.resourceHostname = "http://10.0.1.46/~rborja/icons/";
-        this.privilegeModelClass = null;
+        this("http://10.0.1.46:8080/", "http://10.0.1.46/~rborja/icons/", null);
     }
 
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
@@ -227,6 +220,7 @@ final class WirexCore implements Wirex {
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
+        new ConsoleProcess("console").start();
     }
 
     @Override
@@ -311,12 +305,32 @@ final class WirexCore implements Wirex {
         }
     }
 
+    @Override
     public Model checkoutModel(Class<? extends Model> modelClass) {
+        if (!Model.class.isAssignableFrom(modelClass)) {
+            LOG.warn("Is the {} of Model type? Please review your code.", modelClass);
+            return null;
+        }
         if (modelClass != null) {
             return models.get(modelClass);
         } else {
             return null;
         }
+    }
+    
+    @Override
+    public List listModels() {
+        return new ArrayList<>(models.keySet());
+    }
+    
+    @Override
+    public List listViews() {
+        return null;
+    }
+    
+    @Override
+    public List listPresenters() {
+        return new ArrayList<>(presenters.keySet());
     }
 
     /**
@@ -531,11 +545,13 @@ final class WirexCore implements Wirex {
         }
 
         if (retrieveAnnotations[0].length > 0) {
-            try {
-                run.invoke(presenter, runMethodParameters);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                LOG.error("Framework bug! Cannot invoke run in " + presenter.getClass(), ex);
-            }
+            new Thread(() -> {
+                try {
+                    run.invoke(presenter, runMethodParameters);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }, "init-" + presenter.getClass().getSimpleName()).start();
         }
 
         LOG.info("{}{} loaded. Total prepared MVPs: {}", stackTab(), viewClass.getName(), ++totalPreparedViews);

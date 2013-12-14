@@ -200,4 +200,8 @@ public final class AppEngine {
     public static void dispose(Presenter presenter) {
         instance.dispose(presenter);
     }
+    
+    protected static Wirex getInstance() {
+        return instance;
+    }
 }

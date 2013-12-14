@@ -108,7 +108,7 @@ public final class ListenerFactory {
                     AppEngine.setError((Presenter) presenter, ex);
                 }
             }
-        }).start();
+        }, listener.getName()).start();
     }
 
     public static ActionListener ActionListener(final Object presenter, final Map<String, Method> listener) {
