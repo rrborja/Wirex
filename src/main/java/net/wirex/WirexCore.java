@@ -30,6 +30,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -42,7 +43,6 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -178,10 +178,15 @@ final class WirexCore implements Wirex {
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .build(new CacheLoader<String, ImageIcon>() {
                 @Override
-                public ImageIcon load(String iconName) throws Exception {
+                public ImageIcon load(String iconName) {
                     String name = resourceHostname + iconName;
-                    URL url = new URL(name);
-                    Image resource = ImageIO.read(url);
+                    Image resource = null;
+                    try {
+                        URL url = new URL(name);
+                        resource = ImageIO.read(url);
+                    } catch (IOException ex) {
+                        LOG.warn("Icon at {} not found", name);
+                    }
                     if (resource == null) {
                         LOG.warn("Missing icon at {}", name);
                         return new ImageIcon();
@@ -317,17 +322,17 @@ final class WirexCore implements Wirex {
             return null;
         }
     }
-    
+
     @Override
     public List listModels() {
         return new ArrayList<>(models.keySet());
     }
-    
+
     @Override
     public List listViews() {
         return null;
     }
-    
+
     @Override
     public List listPresenters() {
         return new ArrayList<>(presenters.keySet());
