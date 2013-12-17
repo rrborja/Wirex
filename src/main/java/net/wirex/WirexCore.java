@@ -142,7 +142,7 @@ final class WirexCore implements Wirex {
     static {
         DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         Date dateObject = new Date();
-        String version = "1.0.13.6-BETA";
+        String version = "1.0.13.7-BETA";
         String date = dateFormat.format(dateObject);
         LOG.info("Wirex Framework v{} {}", version, date);
     }

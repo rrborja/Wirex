@@ -40,7 +40,7 @@ class ConsoleEngine {
         Class runtime = ConsoleEngine.class;
         Method methods[] = runtime.getDeclaredMethods();
         for (Method method : methods) {
-            LOG.info("{} {} {} {}", method.getName(), method.getParameterCount(), params.length, (method.getName().equals(command) && method.getParameterCount() == params.length && params.length > 0));
+//            LOG.info("{} {} {} {}", method.getName(), method.getParameterCount(), params.length, (method.getName().equals(command) && method.getParameterCount() == params.length && params.length > 0));
             if (method.getName().equals(command) && method.getParameterCount() <= 0 && params.length <= 0) {
                 try {
                     method.invoke(null);

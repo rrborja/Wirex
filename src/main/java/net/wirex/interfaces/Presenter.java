@@ -1,8 +1,12 @@
 package net.wirex.interfaces;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
@@ -11,12 +15,15 @@ import net.wirex.ServerRequest;
 import net.wirex.ServerResponse;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.EventInterruptionException;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Ritchie Borja
  */
 public abstract class Presenter {
+    
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Presenter.class.getSimpleName());
 
     private Model model;
     private JPanel view;
@@ -42,15 +49,33 @@ public abstract class Presenter {
      * @deprecated Replacing the model will lose all bindings to all components
      */
     @Deprecated
-    public void setModel(Model model) {
+    protected void setModel(Model model) {
         this.model = model;
     }
 
+    @Deprecated
     public JPanel getPanel() {
         return view;
     }
+    
+    protected <T> T touch(Class<T> componentClass, String componentName) {
+        try {
+            Class viewClass = view.getClass();
+            Field componentField = viewClass.getField(componentName);
+            return (T) componentField.get(view);
+        } catch (NoSuchFieldException ex) {
+            LOG.error("Field {} not found in {}", componentName, componentClass.getName());
+        } catch (SecurityException ex) {
+            Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalArgumentException ex) {
+            Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
 
-    public void setPanel(JPanel panel) {
+    protected void setPanel(JPanel panel) {
         this.view = panel;
     }
 

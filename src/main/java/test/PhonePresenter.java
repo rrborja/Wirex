@@ -4,10 +4,8 @@
  */
 package test;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
@@ -17,7 +15,6 @@ import net.wirex.annotations.POST;
 import net.wirex.annotations.Path;
 import net.wirex.annotations.Type;
 import net.wirex.enums.Media;
-import net.wirex.exceptions.EventInterruptionException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import test.another.LoginPanelPresenter;
@@ -47,7 +44,7 @@ public class PhonePresenter extends Presenter {
 //        super.call(args);
         LoginPanelPresenter presenter = AppEngine.access(LoginPanelPresenter.class);
         presenter.cancel();
-
+        touch(JButton.class, "hi").addActionListener(null);
     }
 
     @Path("phonelabel/add")
