@@ -44,6 +44,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,6 +126,7 @@ import net.wirex.interfaces.Validator;
 import net.wirex.structures.XList;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
+import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -772,7 +774,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithEvent(final Event[] events, Field field, final JPanel viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
+    private <T> void scanFieldWithEvent(final Event[] events, Field field, final JPanel viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
         String presenterMethodName = "";
         Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
         try {
@@ -791,6 +793,10 @@ final class WirexCore implements Wirex {
                     }
                     listeners.put(listenerMethod, presenterMethods.get(presenterMethodName));
                 }
+                Method removeListenerFromComponentMethod = component.getMethod("remove" + listenerType.getSimpleName(), listenerType);
+                Method getAllListeners = component.getMethod("get" + listenerType.getSimpleName() + "s");
+                removeAllListeners((Class<T>) listenerType, componentObject, removeListenerFromComponentMethod, (T[]) getAllListeners.invoke(componentObject));
+
                 Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
                 Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
                 addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
@@ -855,6 +861,12 @@ final class WirexCore implements Wirex {
         }
         if (!presenterModel.isEmpty()) {
             presenterModels.put(presenterClass, presenterModel);
+        }
+    }
+
+    private <T> void removeAllListeners(Class<T> listenerType, Object component, Method invoke, T[] listeners) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        for (T listener : listeners) {
+            invoke.invoke(component, listener);
         }
     }
 
@@ -1063,6 +1075,9 @@ final class WirexCore implements Wirex {
             Bindings.bind(newComponent, "indeterminate", beanAdapter.getValueModel(property + 2));
         } else if (JTextArea.class == component || JTextArea.class.isAssignableFrom(component)) {
             Bindings.bind((JTextArea) newComponent, componentModel);
+        } else if (JXHyperlink.class == component || JXHyperlink.class.isAssignableFrom(component)) {
+            BeanAdapter beanAdapter = new BeanAdapter(bean, true);
+            Bindings.bind(newComponent, "text", beanAdapter.getValueModel(property));
         } else if (JTree.class == component || JTree.class.isAssignableFrom(component)) {
             try {
                 Field listField = bean.getClass().getDeclaredField(property);
