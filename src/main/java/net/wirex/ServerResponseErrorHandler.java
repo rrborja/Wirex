@@ -28,7 +28,7 @@ public final class ServerResponseErrorHandler implements ResponseErrorHandler {
     public void handleError(ClientHttpResponse response) throws IOException {
         InputStream in = response.getBody();
         String body = IOUtils.toString(in, "UTF-8");
-//        LOG.warn(body);
+        LOG.warn(body);
     }
     
 

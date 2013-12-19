@@ -1,10 +1,13 @@
 package net.wirex;
 
 import com.google.gson.GsonBuilder;
+import java.awt.Window;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.slf4j.LoggerFactory;
 import net.wirex.enums.Media;
 import net.wirex.enums.REST;
@@ -25,8 +28,10 @@ public final class ServerRequest<T extends Model> {
     private final Map<String, String> variables;
     private final Model body;
     private final Class<? extends Model> model;
+    private final Window parent;
 
-    public ServerRequest(String rest, String path, Media media, Map<String, String> variables, Model body) {
+    public ServerRequest(String rest, String path, Media media, Map<String, String> variables, Model body, JPanel panel) {
+        this.parent = SwingUtilities.getWindowAncestor(panel);
         this.rest = rest != null ? REST.valueOf(rest) : null;
         this.path = path;
         this.media = media;
@@ -54,6 +59,10 @@ public final class ServerRequest<T extends Model> {
 
     public MediaType getMedia() {
         return media.value();
+    }
+    
+    public Window getParent() {
+        return parent;
     }
 
     public String getBody() {

@@ -6,6 +6,7 @@ package test.another;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -58,8 +59,9 @@ public class LoginPanelPresenter extends Presenter {
 
     }
 
-    @Dispose
+//    @Dispose
     public void cancel() {
+        System.out.println(touch(JCheckBox.class, "chkRemember").isSelected());
     }
 
     @Override

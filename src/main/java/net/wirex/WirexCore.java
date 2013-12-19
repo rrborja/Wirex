@@ -44,7 +44,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -142,7 +141,7 @@ final class WirexCore implements Wirex {
     static {
         DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         Date dateObject = new Date();
-        String version = "1.0.13.7-BETA";
+        String version = "1.0.13.8-BETA";
         String date = dateFormat.format(dateObject);
         LOG.info("Wirex Framework v{} {}", version, date);
     }

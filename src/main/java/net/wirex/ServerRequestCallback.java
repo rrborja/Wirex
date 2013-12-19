@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequest;
@@ -18,7 +16,6 @@ import org.springframework.web.client.RequestCallback;
  */
 public final class ServerRequestCallback implements RequestCallback {
 
-    protected final Log logger = LogFactory.getLog(getClass());
     private final HttpEntity requestEntity;
 
     public ServerRequestCallback(HttpEntity requestEntity) {

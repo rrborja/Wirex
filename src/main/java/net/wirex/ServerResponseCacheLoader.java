@@ -1,6 +1,7 @@
 package net.wirex;
 
 import com.google.common.cache.CacheLoader;
+import java.awt.Window;
 import java.util.Map;
 import net.wirex.enums.Media;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         String body = request.getBody();
         Class model = request.getModel();
         String requestBody = request.getRequestBody();
+        Window parent = request.getParent();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(type);
@@ -53,14 +55,14 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         HttpEntity entity = new HttpEntity(body, headers);
 
         RequestCallback requestCallback = new ServerRequestCallback(entity);
-        ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(model, rt.getMessageConverters());
+        ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(parent, model, rt.getMessageConverters());
         
         LOG.info("Attempting {} {} {}", rest, new UriTemplate(uri).expand(variables), requestBody);
 
         ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
         
         if (resultModel.getStatus().equals(HttpStatus.FOUND)) {
-            ServerRequest newRequest = new ServerRequest("GET", resultModel.getMessage().toString(), Media.URLENCODED, null, null);
+            ServerRequest newRequest = new ServerRequest("GET", resultModel.getMessage().toString(), Media.URLENCODED, null, null, null);
             return load(newRequest);
         }
 

@@ -59,12 +59,13 @@ public abstract class Presenter {
     }
     
     protected <T> T touch(Class<T> componentClass, String componentName) {
+        Class viewClass = view.getClass();
         try {
-            Class viewClass = view.getClass();
-            Field componentField = viewClass.getField(componentName);
+            Field componentField = viewClass.getDeclaredField(componentName);
+            componentField.setAccessible(true);
             return (T) componentField.get(view);
         } catch (NoSuchFieldException ex) {
-            LOG.error("Field {} not found in {}", componentName, componentClass.getName());
+            LOG.error("Field {} not found in {}", componentName, viewClass.getName());
         } catch (SecurityException ex) {
             Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalArgumentException ex) {
@@ -97,7 +98,7 @@ public abstract class Presenter {
 
     public ServerResponse submit(Map form, Map<String, String> args) {
         PresenterModel presenterModel = new PresenterModel(form);
-        ServerRequest request = new ServerRequest(rest, path, media, args, presenterModel);
+        ServerRequest request = new ServerRequest(rest, path, media, args, presenterModel, view);
         ServerResponse response = AppEngine.push(request);
         return response;
     }
@@ -134,7 +135,7 @@ public abstract class Presenter {
     }
 
     private ServerResponse request(String path, Map variables) {
-        ServerRequest request = new ServerRequest(rest, path, media, variables, model);
+        ServerRequest request = new ServerRequest(rest, path, media, variables, model, view);
         ServerResponse response = AppEngine.push(request);
         if (response.isSerializable()) {
             AppEngine.deserialize(model, (Model) response.getMessage());
