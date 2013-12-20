@@ -5,11 +5,10 @@
  */
 package net.wirex;
 
-import com.googlecode.lanterna.TerminalFacade;
-import com.googlecode.lanterna.gui.DefaultBackgroundRenderer;
 import com.googlecode.lanterna.gui.GUIScreen;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.ScreenWriter;
+import com.googlecode.lanterna.terminal.swing.SwingTerminal;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -36,7 +35,7 @@ class ConsoleProcess extends Thread {
 
     protected static String systemUser = "";
 
-    private final static GUIScreen screen = new GUIScreen(new Screen(TerminalFacade.createTerminal()));
+    private final static GUIScreen screen = new GUIScreen(new Screen(new SwingTerminal()));
 
     public static int ycursor = 0;
 

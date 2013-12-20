@@ -222,7 +222,7 @@ final class WirexCore implements Wirex {
     private BufferedImage screenshot;
 
     public WirexCore() {
-        this("http://10.0.1.69:8080/", "http://10.0.1.46/~rborja/icons/", null);
+        this("http://10.0.1.69:8080/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
     }
 
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
@@ -240,7 +240,7 @@ final class WirexCore implements Wirex {
     public void setTrayIcon(String iconName) {
         ImageIcon icon;
         try {
-            icon = iconResource.get(iconName);
+            icon = iconResource.get(iconName + ".png");
         } catch (ExecutionException ex) {
             LOG.warn("Error loading {}", resourceHostname + iconName);
             return;

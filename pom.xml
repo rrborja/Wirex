@@ -4,7 +4,7 @@
 
     <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.13.9-BETA</version>
+    <version>1.0.13.10-BETA</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
@@ -69,11 +69,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     
-    <distributionManagement>
+<!--    <distributionManagement>
         <repository>
             <id>maven2</id>
             <name>maven2</name>
             <url>scp://10.0.1.46/var/www/html/maven2/</url>
+        </repository>
+    </distributionManagement>-->
+
+    <distributionManagement>
+        <repository>
+            <id>rborjamaven</id>
+            <name>rborja</name>
+            <url>scp://10.10.0.40/home/rborja/public_html/maven2</url>
         </repository>
     </distributionManagement>
 

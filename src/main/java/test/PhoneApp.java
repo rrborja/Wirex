@@ -46,7 +46,7 @@ public class PhoneApp {
             //</editor-fold>
 
             AppEngine.connect("http://staging.userservices.net:8080/g7");
-            AppEngine.locateResource("http://10.0.1.46/~rborja/icons/");
+            AppEngine.locateResource("jar:http://10.0.1.69:8080/g7/icon!/");
             AppEngine.setTrayIcon("VispIcon_small");
             MVP app = AppEngine.prepare(NewLoginPanel.class);
             app.display(JFrame.class, true);
