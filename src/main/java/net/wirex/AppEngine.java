@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import java.util.Map;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -83,6 +84,10 @@ public final class AppEngine {
     
     protected static Model checkoutModel(Class<? extends Model> modelClass) {
         return instance.checkoutModel(modelClass);
+    }
+    
+    public static void setTrayIcon(String iconName) {
+        instance.setTrayIcon(iconName);
     }
 
     /**

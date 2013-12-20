@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -63,6 +64,8 @@ interface Wirex {
     List listViews();
     
     List listPresenters();
+    
+    void setTrayIcon(String iconName);
     
     /**
      * Connects a Java EE web server that supports REST transactions

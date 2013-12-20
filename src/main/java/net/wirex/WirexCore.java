@@ -31,6 +31,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +41,7 @@ import java.lang.reflect.ParameterizedType;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -138,10 +140,11 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
+    public static final String version = "1.0.13.8-BETA";
+
     static {
         DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         Date dateObject = new Date();
-        String version = "1.0.13.8-BETA";
         String date = dateFormat.format(dateObject);
         LOG.info("Wirex Framework v{} {}", version, date);
     }
@@ -184,7 +187,11 @@ final class WirexCore implements Wirex {
                     Image resource = null;
                     try {
                         URL url = new URL(name);
-                        resource = ImageIO.read(url);
+                        URLConnection con = url.openConnection();
+                        con.setConnectTimeout(3000);
+                        con.setReadTimeout(3000);
+                        InputStream in = con.getInputStream();
+                        resource = ImageIO.read(in);
                     } catch (IOException ex) {
                         LOG.warn("Icon at {} not found", name);
                     }
@@ -215,7 +222,7 @@ final class WirexCore implements Wirex {
     private BufferedImage screenshot;
 
     public WirexCore() {
-        this("http://10.0.1.46:8080/", "http://10.0.1.46/~rborja/icons/", null);
+        this("http://10.0.1.69:8080/", "http://10.0.1.46/~rborja/icons/", null);
     }
 
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
@@ -227,6 +234,18 @@ final class WirexCore implements Wirex {
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
         new ConsoleProcess("console").start();
+    }
+
+    @Override
+    public void setTrayIcon(String iconName) {
+        ImageIcon icon;
+        try {
+            icon = iconResource.get(iconName);
+        } catch (ExecutionException ex) {
+            LOG.warn("Error loading {}", resourceHostname + iconName);
+            return;
+        }
+        WirexSystemTray.init(icon);
     }
 
     @Override

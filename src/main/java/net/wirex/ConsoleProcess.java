@@ -5,8 +5,16 @@
  */
 package net.wirex;
 
+import com.googlecode.lanterna.TerminalFacade;
+import com.googlecode.lanterna.gui.DefaultBackgroundRenderer;
+import com.googlecode.lanterna.gui.GUIScreen;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.ScreenWriter;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.util.Scanner;
-import java.util.StringTokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,19 +22,56 @@ import org.slf4j.LoggerFactory;
  *
  * @author ritchie
  */
-public class ConsoleProcess extends Thread {
+class ConsoleProcess extends Thread {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConsoleProcess.class.getSimpleName());
 
-    protected static String systemUser;
+    private final PipedInputStream pin = new PipedInputStream();
+    private final PipedInputStream pin2 = new PipedInputStream();
+
+    private Thread reader;
+    private Thread reader2;
+
+    private boolean quit;
+
+    protected static String systemUser = "";
+
+    private final static GUIScreen screen = new GUIScreen(new Screen(TerminalFacade.createTerminal()));
+
+    public static int ycursor = 0;
 
     public ConsoleProcess(String name) {
         super(name);
-        this.systemUser = "";
+    }
+
+    public void initSystem() {
+        screen.getScreen().startScreen();
+        try {
+            PipedOutputStream pout = new PipedOutputStream(this.pin);
+            System.setOut(new PrintStream(pout, true));
+        } catch (java.io.IOException io) {
+        } catch (SecurityException se) {
+        }
+        try {
+            PipedOutputStream pout2 = new PipedOutputStream(this.pin2);
+            System.setErr(new PrintStream(pout2, true));
+        } catch (java.io.IOException io) {
+        } catch (SecurityException se) {
+        }
+        quit = false;
+
+        reader = new SystemIOThread();
+        reader.setDaemon(true);
+        reader.start();
+
+        reader2 = new SystemIOThread();
+        reader2.setDaemon(true);
+        reader2.start();
     }
 
     @Override
     public void run() {
+        initSystem();
         Scanner sc = new Scanner(System.in);
         while (sc.hasNextLine()) {
             String command = sc.nextLine();
@@ -44,5 +89,70 @@ public class ConsoleProcess extends Thread {
             }
         }
     }
+    
+    public static Screen getScreen() {
+        return screen.getScreen();
+    }
+
+    public class SystemIOThread extends Thread {
+
+        @Override
+        public synchronized void run() {
+            try {
+                while (Thread.currentThread() == reader) {
+                    try {
+                        this.wait(100);
+                    } catch (InterruptedException ie) {
+                    }
+                    if (pin.available() != 0) {
+                        String input = this.readLine(pin);
+
+                        ScreenWriter writer = new ScreenWriter(screen.getScreen());
+                        writer.drawString(0, ycursor++, input);
+                        screen.getScreen().refresh();
+                    }
+                    if (quit) {
+                        return;
+                    }
+                }
+
+                while (Thread.currentThread() == reader2) {
+                    try {
+                        this.wait(100);
+                    } catch (InterruptedException ie) {
+                    }
+                    if (pin2.available() != 0) {
+                        String input = this.readLine(pin2);
+                        ScreenWriter writer = new ScreenWriter(screen.getScreen());
+                        writer.drawString(0, ycursor++, input);
+                        screen.getScreen().refresh();
+                    }
+                    if (quit) {
+                        return;
+                    }
+                }
+            } catch (IOException e) {
+
+            }
+
+        }
+
+        public synchronized String readLine(PipedInputStream in) throws IOException {
+            String input = "";
+            do {
+                int available = in.available();
+                if (available == 0) {
+                    break;
+                }
+                byte b[] = new byte[available];
+                in.read(b);
+                input = input + new String(b, 0, b.length);
+            } while (!input.endsWith("\n") && !input.endsWith("\r\n") && !quit);
+            return input;
+        }
+
+    }
+
+
 
 }
