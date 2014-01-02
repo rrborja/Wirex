@@ -143,10 +143,15 @@ final class WirexCore implements Wirex {
     public static final String version = "1.0.13.8-BETA";
 
     static {
-        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        Date dateObject = new Date();
-        String date = dateFormat.format(dateObject);
-        LOG.info("Wirex Framework v{} {}", version, date);
+        try {
+            DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            Date dateObject = new Date();
+            String date = dateFormat.format(dateObject);
+            LOG.info("Wirex Framework v{} {}", version, date);
+        } catch (Throwable t) {
+//            LOG.info("UI Development inside IDE");
+            System.out.println(t);
+        }
     }
 
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
@@ -233,7 +238,7 @@ final class WirexCore implements Wirex {
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
-        new ConsoleProcess("console").start();
+//        new ConsoleProcess("console").start();
     }
 
     @Override

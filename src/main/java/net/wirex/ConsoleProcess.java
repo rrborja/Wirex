@@ -5,10 +5,6 @@
  */
 package net.wirex;
 
-import com.googlecode.lanterna.gui.GUIScreen;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.ScreenWriter;
-import com.googlecode.lanterna.terminal.swing.SwingTerminal;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -35,8 +31,6 @@ class ConsoleProcess extends Thread {
 
     protected static String systemUser = "";
 
-    private final static GUIScreen screen = new GUIScreen(new Screen(new SwingTerminal()));
-
     public static int ycursor = 0;
 
     public ConsoleProcess(String name) {
@@ -44,7 +38,7 @@ class ConsoleProcess extends Thread {
     }
 
     public void initSystem() {
-        screen.getScreen().startScreen();
+//        screen.getScreen().startScreen();
         try {
             PipedOutputStream pout = new PipedOutputStream(this.pin);
             System.setOut(new PrintStream(pout, true));
@@ -70,7 +64,7 @@ class ConsoleProcess extends Thread {
 
     @Override
     public void run() {
-        initSystem();
+//        initSystem();
         Scanner sc = new Scanner(System.in);
         while (sc.hasNextLine()) {
             String command = sc.nextLine();
@@ -89,9 +83,6 @@ class ConsoleProcess extends Thread {
         }
     }
     
-    public static Screen getScreen() {
-        return screen.getScreen();
-    }
 
     public class SystemIOThread extends Thread {
 
@@ -106,9 +97,9 @@ class ConsoleProcess extends Thread {
                     if (pin.available() != 0) {
                         String input = this.readLine(pin);
 
-                        ScreenWriter writer = new ScreenWriter(screen.getScreen());
-                        writer.drawString(0, ycursor++, input);
-                        screen.getScreen().refresh();
+//                        ScreenWriter writer = new ScreenWriter(screen.getScreen());
+//                        writer.drawString(0, ycursor++, input);
+//                        screen.getScreen().refresh();
                     }
                     if (quit) {
                         return;
@@ -122,9 +113,9 @@ class ConsoleProcess extends Thread {
                     }
                     if (pin2.available() != 0) {
                         String input = this.readLine(pin2);
-                        ScreenWriter writer = new ScreenWriter(screen.getScreen());
-                        writer.drawString(0, ycursor++, input);
-                        screen.getScreen().refresh();
+//                        ScreenWriter writer = new ScreenWriter(screen.getScreen());
+//                        writer.drawString(0, ycursor++, input);
+//                        screen.getScreen().refresh();
                     }
                     if (quit) {
                         return;
