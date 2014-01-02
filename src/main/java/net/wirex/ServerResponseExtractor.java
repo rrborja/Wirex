@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import net.wirex.exceptions.ViewClassNotBindedException;
+import net.wirex.exceptions.WrongComponentException;
+import net.wirex.gui.DetailModel;
+import net.wirex.gui.ErrorReportPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.wirex.interfaces.Model;
@@ -73,6 +78,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 LOG.info("[{}] Server has encountered error", status.value());
                 return new ServerResponse<>(HttpStatus.valueOf(status.value()), "");
         }
+
     }
 
     private ServerResponse ok(JsonReader reader, int status) throws IOException {
@@ -153,6 +159,18 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                         break;
                 }
                 break;
+            case BUG:
+                ErrorResponseStructure errorResponse = gson.fromJson(reader, ErrorResponseStructure.class);
+                MVP mvp;
+                try {
+                    mvp = AppEngine.prepare(ErrorReportPanel.class);
+                } catch (ViewClassNotBindedException | WrongComponentException ex) {
+                    reader.close();
+                    break;
+                }
+                DetailModel errorModel = (DetailModel) AppEngine.checkoutModel(DetailModel.class);
+                errorModel.setReport("Caused by: " + errorResponse.getException() + ": " + errorResponse.getMessage() + "\n" + errorResponse.getLogs());
+                mvp.display(JDialog.class);
         }
         return new ServerResponse(HttpStatus.OK, new Model() {
         });
@@ -173,6 +191,56 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
         public static final int INFO = 1;
         public static final int WARN = 2;
         public static final int QUESTION = 3;
+
+    }
+
+    private class ErrorResponseStructure {
+
+        private int kind;
+        private String message;
+        private String exception;
+        private String cause;
+        private String logs;
+
+        public int getKind() {
+            return kind;
+        }
+
+        public void setKind(int kind) {
+            this.kind = kind;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public String getException() {
+            return exception;
+        }
+
+        public void setException(String exception) {
+            this.exception = exception;
+        }
+
+        public String getCause() {
+            return cause;
+        }
+
+        public void setCause(String cause) {
+            this.cause = cause;
+        }
+
+        public String getLogs() {
+            return logs;
+        }
+
+        public void setLogs(String logs) {
+            this.logs = logs;
+        }
 
     }
 

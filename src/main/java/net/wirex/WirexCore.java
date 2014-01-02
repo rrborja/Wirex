@@ -140,7 +140,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.13.8-BETA";
+    public static final String version = "1.0.13.14-BETA";
 
     static {
         try {
@@ -157,7 +157,7 @@ final class WirexCore implements Wirex {
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
-            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .expireAfterAccess(1, TimeUnit.SECONDS)
             .build(new ServerResponseCacheLoader());
 
     private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap();
