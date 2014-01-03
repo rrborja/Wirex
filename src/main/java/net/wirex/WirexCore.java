@@ -141,7 +141,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14-GA";
+    public static final String version = "1.0.14.1-BETA";
 
     static {
         try {
@@ -1226,6 +1226,10 @@ final class WirexCore implements Wirex {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
         window.dispose();
+        presenters.remove(presenter.getClass());
+        Class clazz = panel.getClass();
+        Bind bind = (Bind) clazz.getAnnotation(Bind.class);
+        models.remove(bind.model());
         totalPreparedViews--;
     }
 
