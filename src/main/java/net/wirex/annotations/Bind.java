@@ -14,6 +14,6 @@ import net.wirex.interfaces.Presenter;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Bind {
-    Class<? extends Model> model();
+    Class<? extends Model> model() default Model.class;
     Class<? extends Presenter> presenter();
 }

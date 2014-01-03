@@ -31,7 +31,7 @@ public final class ServerRequest<T extends Model> {
     private final Window parent;
 
     public ServerRequest(String rest, String path, Media media, Map<String, String> variables, Model body, JPanel panel) {
-        this.parent = SwingUtilities.getWindowAncestor(panel);
+        this.parent = panel != null ? SwingUtilities.getWindowAncestor(panel) : null;
         this.rest = rest != null ? REST.valueOf(rest) : null;
         this.path = path;
         this.media = media;

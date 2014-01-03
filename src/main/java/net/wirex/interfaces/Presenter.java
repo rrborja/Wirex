@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
@@ -27,12 +27,17 @@ public abstract class Presenter {
 
     private Model model;
     private JPanel view;
+    private JMenuBar menu;
     private String path;
     private Media media;
     private Model form;
     private Model domain;
     private String rest;
 
+    public Presenter(JMenuBar menu) {
+        this.menu = menu;
+    }
+    
     public Presenter(Model model, JPanel panel) {
         this.model = model;
         this.view = panel;
@@ -58,6 +63,15 @@ public abstract class Presenter {
         return view;
     }
     
+    /**
+     * 
+     * @param <T>
+     * @param componentClass
+     * @param componentName
+     * @return
+     * @deprecated Because it's cheating and also a security problem
+     */
+    @Deprecated
     protected <T> T touch(Class<T> componentClass, String componentName) {
         Class viewClass = view.getClass();
         try {

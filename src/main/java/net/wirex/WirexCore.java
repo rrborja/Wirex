@@ -68,6 +68,7 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
@@ -140,7 +141,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.13.14-BETA";
+    public static final String version = "1.0.14-GA";
 
     static {
         try {
@@ -516,9 +517,9 @@ final class WirexCore implements Wirex {
             resource = null;
         }
 
-        final JPanel viewPanel;
+        final Object viewPanel;
         try {
-            viewPanel = (JPanel) viewClass.newInstance();
+            viewPanel = viewClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
             LOG.error("Unable to create " + viewClass, ex);
             return null;
@@ -526,7 +527,11 @@ final class WirexCore implements Wirex {
 
         final Object presenter;
         try {
-            presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
+            if (viewPanel instanceof JPanel) {
+                presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
+            } else {
+                presenter = presenterClass.getDeclaredConstructor(JMenuBar.class).newInstance(viewPanel);
+            }
             presenters.put(presenterClass, (Presenter) presenter);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
@@ -736,7 +741,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithText(final Text[] texts, Field field, final JPanel viewPanel, Resource resource) {
+    private void scanFieldWithText(final Text[] texts, Field field, final Object viewPanel, Resource resource) {
         String propertyText = "";
         if (texts.length > 0) {
             try {
@@ -779,7 +784,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithDraw(final Draw draw, Field field, final JPanel viewPanel) {
+    private void scanFieldWithDraw(final Draw draw, Field field, final Object viewPanel) {
         if (draw != null) {
             Class componentClass = null;
             try {
@@ -797,7 +802,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private <T> void scanFieldWithEvent(final Event[] events, Field field, final JPanel viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
+    private <T> void scanFieldWithEvent(final Event[] events, Field field, final Object viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
         String presenterMethodName = "";
         Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
         try {
@@ -1091,7 +1096,7 @@ final class WirexCore implements Wirex {
             Bindings.bind((JCheckBox) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
-            Bindings.bind((JComboBox) newComponent, selectionModel, "");
+//            Bindings.bind((JComboBox) newComponent, selectionModel, "");
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
             BeanAdapter beanAdapter = new BeanAdapter(bean, true);
             Bindings.bind(newComponent, "value", beanAdapter.getValueModel(property));
@@ -1224,7 +1229,7 @@ final class WirexCore implements Wirex {
         totalPreparedViews--;
     }
 
-    private void scanFieldWithBalloon(final Balloon balloon, final Field field, final JPanel viewPanel) throws ViewClassNotBindedException, WrongComponentException {
+    private void scanFieldWithBalloon(final Balloon balloon, final Field field, final Object viewPanel) throws ViewClassNotBindedException, WrongComponentException {
         try {
             if (balloon != null) {
                 JComponent fieldComponent = (JComponent) field.get(viewPanel);
@@ -1273,7 +1278,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithPermit(final Permit permit, final Field field, final JPanel viewPanel) {
+    private void scanFieldWithPermit(final Permit permit, final Field field, final Object viewPanel) {
         if (permit != null) {
             try {
                 Model privilegeModel = models.get(privilegeModelClass);
@@ -1330,12 +1335,18 @@ final class WirexCore implements Wirex {
         private final JPanel viewPanel;
         private final Window parent;
 
-        public MVPObject(JPanel viewPanel) {
+        public MVPObject(Object viewPanel) {
             this(viewPanel, null);
         }
 
-        public MVPObject(JPanel viewPanel, Window parent) {
-            this.viewPanel = viewPanel;
+        public MVPObject(Object viewPanel, Window parent) {
+            if (viewPanel instanceof JPanel) {
+                this.viewPanel = (JPanel) viewPanel;
+            } else {
+                JPanel panel = new JPanel();
+                panel.add((JComponent) viewPanel);
+                this.viewPanel = panel;
+            }
             this.parent = parent;
         }
 
