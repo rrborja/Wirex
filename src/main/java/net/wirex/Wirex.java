@@ -67,6 +67,10 @@ interface Wirex {
     
     void setTrayIcon(String iconName);
     
+    <T> T checkout(Class<T> component, String name, String url);
+    
+    <T> T settle(Class<T> menuBarClass);
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *

@@ -69,6 +69,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
@@ -141,7 +142,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.1-BETA";
+    public static final String version = "1.0.14.4-BETA";
 
     static {
         try {
@@ -311,6 +312,20 @@ final class WirexCore implements Wirex {
     }
 
     @Override
+    public <T> T checkout(Class<T> component, String name, String path) {
+        ServerRequest request = new ServerRequest("GET", path, Media.JSON, null, null, null);
+        ServerResponse response;
+        try {
+            response = cacheResource.get(request);
+        } catch (ExecutionException ex) {
+            LOG.warn("Can't load component {} from {}", name, hostname + path);
+            return null;
+        }
+//        response.getMessage()
+        return checkout(component, name);
+    }
+
+    @Override
     public void setPermissionModel(Class<? extends Model> modelClass) {
         this.privilegeModelClass = modelClass;
         Model model;
@@ -451,6 +466,56 @@ final class WirexCore implements Wirex {
         }
     }
 
+    @Override
+    public <T> T settle(Class<T> menuClass) {
+        if (!JMenuBar.class.isAssignableFrom(menuClass)) {
+
+        }
+        Bind bind = (Bind) menuClass.getAnnotation(Bind.class);
+        Class<? extends Presenter> presenterClass = bind.presenter();
+        try {
+            JMenuBar menuBar = (JMenuBar) menuClass.newInstance();
+            final Presenter presenter = presenterClass.newInstance();
+            Field[] fields = menuClass.getDeclaredFields();
+            for (Field field : fields) {
+                final Draw draw = field.getAnnotation(Draw.class);
+                final Event event = field.getAnnotation(Event.class);
+                if (draw != null) {
+                    scanFieldWithDraw(draw, field, menuBar);
+                }
+                if (event != null) {
+                    try {
+                        field.setAccessible(true);
+                        String presenterMethodName = LegalIdentifierChecker.check(event.value());
+                        Method presenterMethod = presenterClass.getMethod(presenterMethodName);
+                        Object component = field.get(menuBar);
+                        Class clazz = field.getType();
+                        Method injectListener = clazz.getMethod("addActionListener", ActionEvent.class);
+                        injectListener.invoke(component, (ActionListener) new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                try {
+                                    presenterMethod.invoke(presenter);
+                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                    LOG.error("Framework bug or your menubar presenter methods has one or more args! Fix the bug asap");
+                                }
+                            }
+                        });
+                        field.set(menuBar, component);
+                    } catch (InvalidKeywordFromBindingNameException ex) {
+                        LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
+                    } catch (ReservedKeywordFromBindingNameException ex) {
+                        LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
+                    } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | SecurityException ex) {
+                        LOG.error("Framework bug or your menubar presenter methods has one or more args! Fix the bug asap");
+                    }
+                }
+            }
+            return (T) menuBar;
+        } catch (InstantiationException | IllegalAccessException ex) {
+            return null;
+        }
+    }
+
     /**
      * Prepares a binded view class together with its Presenter and Model
      * classes and binds them together to form an MVP object that contains
@@ -469,6 +534,11 @@ final class WirexCore implements Wirex {
     }
 
     protected MVP prepare(Class viewClass, Window parent) throws ViewClassNotBindedException, WrongComponentException {
+
+        if (!JPanel.class.isAssignableFrom(viewClass)) {
+            LOG.error("Attempted to prepare a non-JPanel {}", viewClass);
+            return null;
+        }
 
         int numberOfData = 0;
         int numberOfView = 0;
@@ -517,9 +587,9 @@ final class WirexCore implements Wirex {
             resource = null;
         }
 
-        final Object viewPanel;
+        final JPanel viewPanel;
         try {
-            viewPanel = viewClass.newInstance();
+            viewPanel = (JPanel) viewClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
             LOG.error("Unable to create " + viewClass, ex);
             return null;
@@ -527,11 +597,7 @@ final class WirexCore implements Wirex {
 
         final Object presenter;
         try {
-            if (viewPanel instanceof JPanel) {
-                presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
-            } else {
-                presenter = presenterClass.getDeclaredConstructor(JMenuBar.class).newInstance(viewPanel);
-            }
+            presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
             presenters.put(presenterClass, (Presenter) presenter);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
@@ -1254,7 +1320,7 @@ final class WirexCore implements Wirex {
                         JPanel view = (JPanel) component;
                         Class viewClass = view.getClass();
                         Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
-                        JPanel finalBalloonPanel;
+                        JComponent finalBalloonPanel;
                         if (bind != null) {
                             MVP mvp = prepare(viewClass);
                             finalBalloonPanel = mvp.getView();
@@ -1348,6 +1414,7 @@ final class WirexCore implements Wirex {
                 this.viewPanel = (JPanel) viewPanel;
             } else {
                 JPanel panel = new JPanel();
+                panel.removeAll();
                 panel.add((JComponent) viewPanel);
                 this.viewPanel = panel;
             }

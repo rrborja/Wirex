@@ -89,7 +89,15 @@ public final class AppEngine {
     public static void setTrayIcon(String iconName) {
         instance.setTrayIcon(iconName);
     }
+    
+    public static <T> T settle(Class<T> menuBar) {
+        return instance.settle(menuBar);
+    }
 
+    public static <T> T checkout(Class<T> component, String name, String url) {
+        return instance.checkout(component, name, url);
+    }
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *
