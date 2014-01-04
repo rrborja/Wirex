@@ -142,7 +142,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.4-BETA";
+    public static final String version = "1.0.14.5-BETA";
 
     static {
         try {
