@@ -764,14 +764,14 @@ final class WirexCore implements Wirex {
                         public void validate() {
                             Class modelClass = model.getClass();
                             Model model = models.get(modelClass);
-                            Optional notRequired = field.getAnnotation(Optional.class);
+                            Optional optional = field.getAnnotation(Optional.class);
 
                             PresentationModel adapter = new PresentationModel(model);
                             ValueModel componentModel = adapter.getModel(modelProperty);
                             Object value = componentModel.getValue();
                             String inputText = value != null ? value.toString() : "";
 
-                            if (notRequired != null) {
+                            if (optional != null) {
                                 return;
                             }
                             if (validator.isValid(inputText, null)) {
