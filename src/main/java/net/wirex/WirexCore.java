@@ -1123,7 +1123,7 @@ final class WirexCore implements Wirex {
             Bindings.bind((JCheckBox) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
-//            Bindings.bind((JComboBox) newComponent, selectionModel, "");
+            Bindings.bind((JComboBox) newComponent, selectionModel, "");
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
             Bindings.bind((JRadioButton) newComponent, componentModel);
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
