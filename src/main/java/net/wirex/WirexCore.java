@@ -69,10 +69,10 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -142,7 +142,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.5-BETA";
+    public static final String version = "1.0.14.6-BETA";
 
     static {
         try {
@@ -760,47 +760,8 @@ final class WirexCore implements Wirex {
                 Object component = components.get(modelProperty);
                 if (component instanceof JTextField) {
                     JTextField textField = (JTextField) component;
-                    textField.getDocument().addDocumentListener(new DocumentListener() {
-                        public void validate() {
-                            Class modelClass = model.getClass();
-                            Model model = models.get(modelClass);
-                            Optional optional = field.getAnnotation(Optional.class);
-
-                            PresentationModel adapter = new PresentationModel(model);
-                            ValueModel componentModel = adapter.getModel(modelProperty);
-                            Object value = componentModel.getValue();
-                            String inputText = value != null ? value.toString() : "";
-
-                            if (optional != null) {
-                                return;
-                            }
-                            if (validator.isValid(inputText, null)) {
-                                label.setForeground(Color.BLUE);
-                            } else {
-                                label.setForeground(Color.RED);
-                            }
-                        }
-
-                        public void checkChanges() {
-
-                        }
-
-                        @Override
-                        public void insertUpdate(DocumentEvent e) {
-                            validate();
-                        }
-
-                        @Override
-                        public void removeUpdate(DocumentEvent e) {
-                            validate();
-                        }
-
-                        @Override
-                        public void changedUpdate(DocumentEvent e) {
-                            validate();
-                        }
-
-                    });
+                    textField.getDocument()
+                            .addDocumentListener(new MediatorFieldListener(field, model, validator, label, modelProperty));
                 }
                 mediators.put(modelProperty, label);
             }
@@ -1163,6 +1124,8 @@ final class WirexCore implements Wirex {
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             SelectionInList selectionModel = new SelectionInList(componentModel);
 //            Bindings.bind((JComboBox) newComponent, selectionModel, "");
+        } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
+            Bindings.bind((JRadioButton) newComponent, componentModel);
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
             BeanAdapter beanAdapter = new BeanAdapter(bean, true);
             Bindings.bind(newComponent, "value", beanAdapter.getValueModel(property));
@@ -1398,6 +1361,64 @@ final class WirexCore implements Wirex {
                 LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
         }
+    }
+
+    private class MediatorFieldListener implements DocumentListener {
+
+        private final Field field;
+        private final Model model;
+        private final ConstraintValidator validator;
+        private final JLabel label;
+        private final String modelProperty;
+        
+        public MediatorFieldListener(Field field, Model model, ConstraintValidator validator, JLabel label, String modelProperty) {
+            this.field = field;
+            this.model = model;
+            this.validator = validator;
+            this.label = label;
+            this.modelProperty = modelProperty;
+        }
+        
+        public void validate() {
+            Class modelClass = model.getClass();
+            Model model = models.get(modelClass);
+            Optional optional = field.getAnnotation(Optional.class);
+
+            PresentationModel adapter = new PresentationModel(model);
+            ValueModel componentModel = adapter.getModel(modelProperty);
+            Object value = componentModel.getValue();
+            String inputText = value != null ? value.toString() : "";
+
+            if (optional != null) {
+                return;
+            }
+            if (validator.isValid(inputText, null)) {
+                label.setForeground(Color.BLUE);
+            } else {
+                label.setForeground(Color.RED);
+            }
+
+        }
+
+        public void checkChanges() {
+
+        }
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            validate();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            validate();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            validate();
+        }
+
     }
 
     private class MVPObject implements MVP {
