@@ -5,8 +5,10 @@ import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.SortedList;
 import ca.odell.glazedlists.TreeList;
 import ca.odell.glazedlists.gui.TableFormat;
+import ca.odell.glazedlists.swing.DefaultEventComboBoxModel;
 import ca.odell.glazedlists.swing.EventTableModel;
 import ca.odell.glazedlists.swing.EventTreeModel;
+import ca.odell.glazedlists.swing.GlazedListsSwing;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -17,7 +19,6 @@ import com.jgoodies.binding.adapter.BasicComponentFactory;
 import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
-import com.jgoodies.binding.list.SelectionInList;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.Color;
 import java.awt.Container;
@@ -142,7 +143,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.6-BETA";
+    public static final String version = "1.0.14.11-BETA";
 
     static {
         try {
@@ -475,7 +476,7 @@ final class WirexCore implements Wirex {
         Class<? extends Presenter> presenterClass = bind.presenter();
         try {
             JMenuBar menuBar = (JMenuBar) menuClass.newInstance();
-            final Presenter presenter = presenterClass.newInstance();
+            final Presenter presenter = presenterClass.getConstructor(JMenuBar.class).newInstance(menuBar);
             Field[] fields = menuClass.getDeclaredFields();
             for (Field field : fields) {
                 final Draw draw = field.getAnnotation(Draw.class);
@@ -511,7 +512,8 @@ final class WirexCore implements Wirex {
                 }
             }
             return (T) menuBar;
-        } catch (InstantiationException | IllegalAccessException ex) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+            ex.printStackTrace();
             return null;
         }
     }
@@ -598,7 +600,6 @@ final class WirexCore implements Wirex {
         final Object presenter;
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
-            presenters.put(presenterClass, (Presenter) presenter);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
@@ -662,6 +663,7 @@ final class WirexCore implements Wirex {
         checkUncheckedOut(viewClass, numberOfData + numberOfView);
         checkNoResources(property);
 
+        presenters.put(presenterClass, (Presenter) presenter);
         return new MVPObject(viewPanel, parent);
     }
 
@@ -730,7 +732,13 @@ final class WirexCore implements Wirex {
             if (JComponent.class.isAssignableFrom(clazz)) {
                 try {
                     modelProperty = LegalIdentifierChecker.check(data.value());
-                    bindComponent(clazz, model, modelProperty);
+                    if (data.data().equals("")) {
+                        bindComponent(clazz, model, modelProperty);
+                    } else {
+                        String selectedItemProperty = LegalIdentifierChecker.check(data.data());
+                        bindComponent(clazz, model, modelProperty, selectedItemProperty);
+                    }
+
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Unable to bind component " + clazz, ex);
                     return;
@@ -1110,6 +1118,10 @@ final class WirexCore implements Wirex {
     }
 
     private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+        bindComponent(component, bean, property, null);
+    }
+
+    private void bindComponent(Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
         JComponent newComponent = (JComponent) component.newInstance();
@@ -1122,8 +1134,14 @@ final class WirexCore implements Wirex {
         } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
             Bindings.bind((JCheckBox) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
-            SelectionInList selectionModel = new SelectionInList(componentModel);
-            Bindings.bind((JComboBox) newComponent, selectionModel, "");
+            XList list = (XList) componentModel.getValue();
+            if (list != null) {
+                DefaultEventComboBoxModel model = GlazedListsSwing.eventComboBoxModelWithThreadProxyList(list);
+                newComponent = new JComboBox(model);
+            }
+            if (property2 != null) {
+                Bindings.bind(newComponent, "selectedItem", adapter.getModel(property2));
+            }
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
             Bindings.bind((JRadioButton) newComponent, componentModel);
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
@@ -1370,7 +1388,7 @@ final class WirexCore implements Wirex {
         private final ConstraintValidator validator;
         private final JLabel label;
         private final String modelProperty;
-        
+
         public MediatorFieldListener(Field field, Model model, ConstraintValidator validator, JLabel label, String modelProperty) {
             this.field = field;
             this.model = model;
@@ -1378,7 +1396,7 @@ final class WirexCore implements Wirex {
             this.label = label;
             this.modelProperty = modelProperty;
         }
-        
+
         public void validate() {
             Class modelClass = model.getClass();
             Model model = models.get(modelClass);
