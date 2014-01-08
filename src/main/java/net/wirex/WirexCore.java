@@ -30,6 +30,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -143,7 +145,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.11-BETA";
+    public static final String version = "1.0.14.12-BETA";
 
     static {
         try {
@@ -1141,6 +1143,12 @@ final class WirexCore implements Wirex {
             }
             if (property2 != null) {
                 Bindings.bind(newComponent, "selectedItem", adapter.getModel(property2));
+                ((JComboBox) newComponent).addItemListener((ItemEvent event) -> {
+                    if (event.getStateChange() == ItemEvent.SELECTED) {
+                        Object item = event.getItem();
+                        adapter.getModel(property2).setValue(item);
+                    }
+                });
             }
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
             Bindings.bind((JRadioButton) newComponent, componentModel);
