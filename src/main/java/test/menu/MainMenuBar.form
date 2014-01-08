@@ -1,0 +1,839 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.4" maxVersion="1.8">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,0,21,0,0,1,-112"/>
+  </AuxValues>
+
+  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+    <Property name="useNullLayout" type="boolean" value="true"/>
+  </Layout>
+  <SubComponents>
+    <Menu class="javax.swing.JMenu" name="mnuFile">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="File"/>
+        <Property name="name" type="java.lang.String" value="mnuFile" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="itmNewSubscriber">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+N"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="New Subscriber"/>
+            <Property name="name" type="java.lang.String" value="itmNewSubscriber" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_ADDSUBSCRIBER_16)&#xa;@Event(&quot;addNewSubscriber&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmISPConfiguration">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="ISP Configuration"/>
+            <Property name="name" type="java.lang.String" value="itmISPConfiguration" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_GEARS_16)&#xa;@Event(&quot;showIspSettings&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmUpdatePassword">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Update Password"/>
+            <Property name="name" type="java.lang.String" value="itmUpdatePassword" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_LOCK)&#xa;@Event(&quot;updatePassword&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep1">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep1" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmDeleteSubscriber">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+D"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Delete Subscriber"/>
+            <Property name="name" type="java.lang.String" value="itmDeleteSubscriber" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SUBSCRIBER_DELETE_16)&#xa;@Event(&quot;deleteSubscriber&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep2">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep2" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmPrint">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+P"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Print"/>
+            <Property name="name" type="java.lang.String" value="itmPrint" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_PRINTER)&#xa;@Event(&quot;print&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep3">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep3" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmExit">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Alt+F4"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Exit"/>
+            <Property name="name" type="java.lang.String" value="itmExit" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_STOP_16)&#xa;@Event(&quot;exit&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+      </SubComponents>
+    </Menu>
+    <Menu class="javax.swing.JMenu" name="mnuEdit">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Edit"/>
+        <Property name="name" type="java.lang.String" value="mnuEdit" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="itmSave">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+S"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Save"/>
+            <Property name="name" type="java.lang.String" value="itmSave" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_DISK_BLUE_SMALL)&#xa;@Event(&quot;save&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmCancel">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="ESCAPE"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Cancel"/>
+            <Property name="name" type="java.lang.String" value="itmCancel" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_CANCEL_SMALL)&#xa;@Event(&quot;cancel&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep4">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep4" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmCut">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+X"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Cut"/>
+            <Property name="name" type="java.lang.String" value="itmCut" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_CUT)&#xa;@Event(&quot;cut&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmCopy">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+C"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Copy"/>
+            <Property name="name" type="java.lang.String" value="itmCopy" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_COPY)&#xa;@Event(&quot;copy&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmPaste">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+V"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Paste"/>
+            <Property name="name" type="java.lang.String" value="itmPaste" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_PASTE)&#xa;@Event(&quot;paste&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep5">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep5" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmSelectAll">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+A"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Select All"/>
+            <Property name="name" type="java.lang.String" value="itmSelectAll" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;selectAll&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep6">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep6" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmFind">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Ctrl+F"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Find"/>
+            <Property name="name" type="java.lang.String" value="itmFind" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_VIEW)&#xa;@Event(&quot;find&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+      </SubComponents>
+    </Menu>
+    <Menu class="javax.swing.JMenu" name="mnuView">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="View"/>
+        <Property name="name" type="java.lang.String" value="mnuView" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <MenuItem class="javax.swing.JCheckBoxMenuItem" name="chkToolBar">
+          <Properties>
+            <Property name="selected" type="boolean" value="true"/>
+            <Property name="text" type="java.lang.String" value="Tool Bar"/>
+            <Property name="name" type="java.lang.String" value="chkToolBar" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;toggleToolBar&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JCheckBoxMenuItem" name="chkStatusBar">
+          <Properties>
+            <Property name="selected" type="boolean" value="true"/>
+            <Property name="text" type="java.lang.String" value="Status Bar"/>
+            <Property name="name" type="java.lang.String" value="chkStatusBar" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;toggleStatusBar&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmChooseColumns">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Choose Columns..."/>
+            <Property name="name" type="java.lang.String" value="itmChooseColumns" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;showColumnChooser&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <Menu class="javax.swing.JMenu" name="mnuFilter">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Filter"/>
+            <Property name="name" type="java.lang.String" value="mnuFilter" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="itmPaidUp">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Paid Up"/>
+                <Property name="name" type="java.lang.String" value="itmPaidUp" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SUBSCRIBERCURRENT_16)&#xa;@Event(&quot;filterPaidUp&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmDue">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Due"/>
+                <Property name="name" type="java.lang.String" value="itmDue" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SUBSCRIBERDUE_16)&#xa;@Event(&quot;filterDue&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmPastDue">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Past Due"/>
+                <Property name="name" type="java.lang.String" value="itmPastDue" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SUBSCRIBERPASTDUE_16)&#xa;@Event(&quot;filterPastDue&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmSuspended">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Suspended"/>
+                <Property name="name" type="java.lang.String" value="itmSuspended" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SUBSCRIBERSUSPENDED_16)&#xa;@Event(&quot;filterSuspended&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmInactive">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Inactive"/>
+                <Property name="name" type="java.lang.String" value="itmInactive" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SUBSCRIBERUNACTIVE_16)&#xa;@Event(&quot;filterInactive&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
+        <MenuItem class="javax.swing.JMenuItem" name="itmRefresh">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="F5"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Refresh"/>
+            <Property name="name" type="java.lang.String" value="itmRefresh" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_REFRESH_16)&#xa;@Event(&quot;refresh&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+      </SubComponents>
+    </Menu>
+    <Menu class="javax.swing.JMenu" name="mnuSubscriber">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Subscriber"/>
+        <Property name="name" type="java.lang.String" value="mnuSubscriber" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <Menu class="javax.swing.JMenu" name="mnuAdd">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Add"/>
+            <Property name="name" type="java.lang.String" value="mnuAdd" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="itmNote">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Alt+N"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Note"/>
+                <Property name="name" type="java.lang.String" value="itmNote" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_NOTE_ADD)&#xa;@Event(&quot;showAddNote&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmTicket">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+T"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Ticket"/>
+                <Property name="name" type="java.lang.String" value="itmTicket" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_TICKET_ADD_16)&#xa;@Event(&quot;showAddTicket&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="mnuAccounting">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Accounting"/>
+            <Property name="name" type="java.lang.String" value="mnuAccounting" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="itmEditInvoice">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+I"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Edit Invoice"/>
+                <Property name="name" type="java.lang.String" value="itmEditInvoice" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_CURRENCY_DOLLAR_SMALL)&#xd;&#xa;@Event(&quot;editInvoice&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmStatementPreview">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Alt+I"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Statement Preview"/>
+                <Property name="name" type="java.lang.String" value="itmStatementPreview" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_DOCUMENT_VIEW)&#xd;&#xa;@Event(&quot;showStatementPreview&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmReceivePayment">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+R"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Receive Payment"/>
+                <Property name="name" type="java.lang.String" value="itmReceivePayment" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_CASHIER_16)&#xd;&#xa;@Event(&quot;toggleReceivePayment&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmCreditDebitMemo">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Alt+C"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Credit/Debit Memo"/>
+                <Property name="name" type="java.lang.String" value="itmCreditDebitMemo" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_MONEY_ENVELOPE_SMALL)&#xd;&#xa;@Event(&quot;showCreditDebitMemo&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="mnuActions">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Actions"/>
+            <Property name="name" type="java.lang.String" value="mnuActions" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <Menu class="javax.swing.JMenu" name="mnuEmailSubscriber">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Email Subscriber"/>
+                <Property name="name" type="java.lang.String" value="mnuEmailSubscriber" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_EMAIL_SUBSCRIBER_SMALL)"/>
+              </AuxValues>
+              <SubComponents>
+                <MenuItem class="javax.swing.JMenuItem" name="itmUsingUBO">
+                  <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                      <KeyStroke key="Ctrl+M"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="using Ultimate Back Office"/>
+                    <Property name="name" type="java.lang.String" value="itmUsingUBO" noResource="true"/>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;sendMailUsingUBO&quot;)"/>
+                  </AuxValues>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmDefaultMailSoftware">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="using default mail software"/>
+                    <Property name="name" type="java.lang.String" value="itmDefaultMailSoftware" noResource="true"/>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;sendMailDefault&quot;)"/>
+                  </AuxValues>
+                </MenuItem>
+              </SubComponents>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="mnuEmailReminder">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Email Reminder"/>
+                <Property name="name" type="java.lang.String" value="mnuEmailReminder" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_MAIL_ATTACHMENT_SMALL)"/>
+              </AuxValues>
+            </Menu>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="mnuSubscriberTools">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Subscriber Tools"/>
+            <Property name="name" type="java.lang.String" value="mnuSubscriberTools" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="itmAccountManager">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Alt+A"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Account Manager"/>
+                <Property name="name" type="java.lang.String" value="itmAccountManager" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_ACCOUNT_MANAGER_16)&#xd;&#xa;@Event(&quot;showAccountManager&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <Menu class="javax.swing.JMenu" name="mnuCheckEmail">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Check Email"/>
+                <Property name="name" type="java.lang.String" value="mnuCheckEmail" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_MAILBOX_FULL_SMALL)"/>
+              </AuxValues>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="mnuSpamFilter">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Spam Filter"/>
+                <Property name="name" type="java.lang.String" value="mnuSpamFilter" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SPAM16X16)"/>
+              </AuxValues>
+            </Menu>
+            <MenuItem class="javax.swing.JMenuItem" name="itmDialupUsageShaping">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Alt+D"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Dialup Usage Shaping"/>
+                <Property name="name" type="java.lang.String" value="itmDialupUsageShaping" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_USAGEBASED_BILLING_16)&#xd;&#xa;@Event(&quot;dialupUsageShaping&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itmCheckPOPs">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+O"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Check POPs"/>
+                <Property name="name" type="java.lang.String" value="itmCheckPOPs" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_POPS_16)&#xd;&#xa;@Event(&quot;checkPops&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <Menu class="javax.swing.JMenu" name="mnuPrequalifySubscriber">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Prequalify Subscriber"/>
+                <Property name="name" type="java.lang.String" value="mnuPrequalifySubscriber" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_EARTH_LOCATION_16)"/>
+              </AuxValues>
+              <SubComponents>
+                <MenuItem class="javax.swing.JMenuItem" name="itmSubscriberAddress">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Subscriber Address"/>
+                    <Property name="name" type="java.lang.String" value="itmSubscriberAddress" noResource="true"/>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;prequalifySubscriberAddress&quot;)"/>
+                  </AuxValues>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmBillingAddress">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Billing Address"/>
+                    <Property name="name" type="java.lang.String" value="itmBillingAddress" noResource="true"/>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;prequalifyBillingAddress&quot;)"/>
+                  </AuxValues>
+                </MenuItem>
+              </SubComponents>
+            </Menu>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="mnuSubscriberReports">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Subscriber Reports"/>
+            <Property name="name" type="java.lang.String" value="mnuSubscriberReports" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="itmSubscriberInstructions">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Alt+P"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Subscriber Instructions"/>
+                <Property name="name" type="java.lang.String" value="itmSubscriberInstructions" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_PRINTINSTRUCTIONS_16)&#xa;@Event(&quot;showSubscriberInstructions&quot;)"/>
+              </AuxValues>
+            </MenuItem>
+            <Menu class="javax.swing.JMenu" name="mnuServiceCallReport">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Service Call Report"/>
+                <Property name="name" type="java.lang.String" value="mnuServiceCallReport" noResource="true"/>
+              </Properties>
+              <SubComponents>
+                <MenuItem class="javax.swing.JMenuItem" name="itmAcceleratedDialup">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Accelerated Dialup"/>
+                    <Property name="name" type="java.lang.String" value="itmAcceleratedDialup" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmAlias">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Alias"/>
+                    <Property name="name" type="java.lang.String" value="itmAlias" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmAttDSL">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="AT&amp;T DSL"/>
+                    <Property name="name" type="java.lang.String" value="itmAttDSL" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmCenturyLinkDSL">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="CenturyLink DSL"/>
+                    <Property name="name" type="java.lang.String" value="itmCenturyLinkDSL" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmDialup">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Dialup"/>
+                    <Property name="name" type="java.lang.String" value="itmDialup" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmEmail">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Email"/>
+                    <Property name="name" type="java.lang.String" value="itmEmail" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmHosting">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Hosting"/>
+                    <Property name="name" type="java.lang.String" value="itmHosting" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="itmWireless">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Wireless"/>
+                    <Property name="name" type="java.lang.String" value="itmWireless" noResource="true"/>
+                  </Properties>
+                </MenuItem>
+              </SubComponents>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="mnuCheckLogins">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Check Logins"/>
+                <Property name="name" type="java.lang.String" value="mnuCheckLogins" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_LOGINSCHECK_16)"/>
+              </AuxValues>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="mnuCheckUsage">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Check Usage"/>
+                <Property name="name" type="java.lang.String" value="mnuCheckUsage" noResource="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_CHART_SMALL)"/>
+              </AuxValues>
+            </Menu>
+          </SubComponents>
+        </Menu>
+      </SubComponents>
+    </Menu>
+    <Menu class="javax.swing.JMenu" name="mnuTools">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Tools"/>
+        <Property name="name" type="java.lang.String" value="mnuTools" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="itmMassEmail">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Mass Email"/>
+            <Property name="name" type="java.lang.String" value="itmMassEmail" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SERVER_MAIL_UPLOAD_SMALL)&#xa;@Event(&quot;toggleMassEmail&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmFilter">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Filter"/>
+            <Property name="name" type="java.lang.String" value="itmFilter" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_FUNNEL)&#xa;@Event(&quot;toggleFilter&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmCheckOnlineUsers">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Alt+O"/>
+            </Property>
+            <Property name="mnemonic" type="int" value="79"/>
+            <Property name="text" type="java.lang.String" value="Check Online Users"/>
+            <Property name="name" type="java.lang.String" value="itmCheckOnlineUsers" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_USER_MONITOR16)&#xa;@Event(&quot;checkOnlineUsers&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmEquipmentManager">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Alt+Q"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Equipment Manager"/>
+            <Property name="name" type="java.lang.String" value="itmEquipmentManager" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_SHELF_16)&#xa;@Event(&quot;showEquipmentManager&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmTicketScheduleManager">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="Alt+K"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Ticket &amp; Schedule Manager"/>
+            <Property name="name" type="java.lang.String" value="itmTicketScheduleManager" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_TICKET_MANAGER_16)&#xa;@Event(&quot;showTicketScheduleManager&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmMonitoringMapping">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Monitoring &amp; Mapping"/>
+            <Property name="name" type="java.lang.String" value="itmMonitoringMapping" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_EARTH_LOCATION_16)&#xa;@Event(&quot;showMonitoringMapping&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmDomainHosting">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Domain Hosting"/>
+            <Property name="name" type="java.lang.String" value="itmDomainHosting" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_HOSTIN2)&#xa;@Event(&quot;domainHosting&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmRadiusLogs">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="RADIUS Logs"/>
+            <Property name="name" type="java.lang.String" value="itmRadiusLogs" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_RADIUS_LOGS_16)&#xa;@Event(&quot;showRadiusLogs&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+      </SubComponents>
+    </Menu>
+    <Menu class="javax.swing.JMenu" name="mnuReports">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Reports"/>
+        <Property name="name" type="java.lang.String" value="mnuReports" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="itmReportCenter">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Report Center"/>
+            <Property name="name" type="java.lang.String" value="itmReportCenter" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_DOCUMENT_16)&#xa;@Event(&quot;showReportCenter&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+      </SubComponents>
+    </Menu>
+    <Menu class="javax.swing.JMenu" name="mnuHelp">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Help"/>
+        <Property name="name" type="java.lang.String" value="mnuHelp" noResource="true"/>
+      </Properties>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="itmHelp">
+          <Properties>
+            <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+              <KeyStroke key="F1"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Help"/>
+            <Property name="name" type="java.lang.String" value="itmHelp" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_HELP2_16)&#xa;@Event(&quot;showOnlineHelp&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmResetTutorialDialogs">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Reset Tutorial Dialogs"/>
+            <Property name="name" type="java.lang.String" value="itmResetTutorialDialogs" noResource="true"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="itmResetTutorialDialogsActionPerformed"/>
+          </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_REFRESH)&#xa;@Event(&quot;resetTutorialDialogs&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmNocNuuz">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="NOC Nuuz"/>
+            <Property name="name" type="java.lang.String" value="itmNocNuuz" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_NEWS)&#xa;@Event(&quot;showNocNuuz&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmChangeLog">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Change Log"/>
+            <Property name="name" type="java.lang.String" value="itmChangeLog" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_NEWS_CHANGE)&#xd;&#xa;@Event(&quot;showChangeLog&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmBugTracker">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Bug Tracker"/>
+            <Property name="name" type="java.lang.String" value="itmBugTracker" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_BUG_RED)&#xd;&#xa;@Event(&quot;showBugTracker&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmUBOLicenseAgreement">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="UBO License Agreement"/>
+            <Property name="name" type="java.lang.String" value="itmUBOLicenseAgreement" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_REPORTS16)&#xa;@Event(&quot;showLicenseAgreement&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+        <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep7">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="sep7" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="itmAboutUBO">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="About UBO"/>
+            <Property name="name" type="java.lang.String" value="itmAboutUBO" noResource="true"/>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Draw(ICON_VISPICON_SMALL)&#xd;&#xa;@Event(&quot;showAbout&quot;)"/>
+          </AuxValues>
+        </MenuItem>
+      </SubComponents>
+    </Menu>
+  </SubComponents>
+</Form>

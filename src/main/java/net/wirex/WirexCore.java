@@ -31,7 +31,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -97,6 +96,7 @@ import net.java.balloontip.utils.ToolTipUtils;
 import net.wirex.annotations.Access;
 import net.wirex.annotations.Balloon;
 import net.wirex.annotations.Bind;
+import net.wirex.annotations.Column;
 import net.wirex.annotations.DELETE;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Dispose;
@@ -145,7 +145,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.12-BETA";
+    public static final String version = "1.0.14.13-BETA";
 
     static {
         try {
@@ -1224,7 +1224,14 @@ final class WirexCore implements Wirex {
                 if (Model.class.isAssignableFrom(listTypeClass)) {
                     propertyNames = new String[fields.length];
                     for (int i = 0; i < propertyNames.length; i++) {
-                        propertyNames[i] = fields[i].getName();
+                        Column column = (Column) fields[i].getAnnotation(Column.class);
+                        String columnName;
+                        if (column != null) {
+                            columnName = column.value();
+                        } else {
+                            columnName = fields[i].getName();
+                        }
+                        propertyNames[i] = columnName;
                     }
                 } else {
                     EventList list = (XList) componentModel.getValue();

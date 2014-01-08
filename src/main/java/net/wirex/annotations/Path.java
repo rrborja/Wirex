@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  *
  * @author Ritchie Borja
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Path {
     String value() default "/";
