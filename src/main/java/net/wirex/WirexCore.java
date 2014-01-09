@@ -33,7 +33,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -535,11 +534,11 @@ final class WirexCore implements Wirex {
      * declaration is not of type JComponent
      */
     @Override
-    public MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException {
+    public MVP prepare(Class viewClass) {
         return prepare(viewClass, null);
     }
 
-    protected MVP prepare(Class viewClass, Window parent) throws ViewClassNotBindedException, WrongComponentException {
+    protected MVP prepare(Class viewClass, Window parent) {
 
         if (!JPanel.class.isAssignableFrom(viewClass)) {
             LOG.error("Attempted to prepare a non-JPanel {}", viewClass);
