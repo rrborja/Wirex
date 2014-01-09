@@ -32,6 +32,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -1137,18 +1139,40 @@ final class WirexCore implements Wirex {
             Bindings.bind((JCheckBox) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             XList list = (XList) componentModel.getValue();
-            if (list != null) {
+            if (list != null && property2 != null) {
                 DefaultEventComboBoxModel model = GlazedListsSwing.eventComboBoxModelWithThreadProxyList(list);
                 newComponent = new JComboBox(model);
-            }
-            if (property2 != null) {
-                Bindings.bind(newComponent, "selectedItem", adapter.getModel(property2));
-                ((JComboBox) newComponent).addItemListener((ItemEvent event) -> {
+
+                final JComboBox comboboxComponent = (JComboBox) newComponent;
+                comboboxComponent.addItemListener((ItemEvent event) -> {
                     if (event.getStateChange() == ItemEvent.SELECTED) {
                         Object item = event.getItem();
                         adapter.getModel(property2).setValue(item);
                     }
                 });
+                adapter.getModel(property2).addPropertyChangeListener((PropertyChangeEvent evt) -> {
+                    Object value = evt.getNewValue();
+                    if (list.contains(value)) {
+                        comboboxComponent.setSelectedItem(value);
+                    } else {
+                        comboboxComponent.setSelectedItem(null);
+                    }
+                });
+
+            } else {
+                if (list == null && property2 == null) {
+                    LOG.warn("This is embarrassing. Do you have the Selected "
+                            + "Value and List Value properties for your combo "
+                            + "box binding in your Model {}?", bean.getClass());
+                } else if (list != null && property2 == null) {
+                    LOG.warn("This is embarrassing. Do you have the Selected "
+                            + "Value property for your combo box binding "
+                            + "in your Model {}?", bean.getClass());
+                } else if (list == null && property2 != null) {
+                    LOG.warn("This is embarrassing. Do you have the Selected "
+                            + "List Value properties for your combo "
+                            + "box binding in your Model {}?", bean.getClass());
+                }
             }
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
             Bindings.bind((JRadioButton) newComponent, componentModel);
