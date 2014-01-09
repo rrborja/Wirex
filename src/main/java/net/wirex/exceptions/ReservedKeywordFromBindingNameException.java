@@ -4,7 +4,7 @@ package net.wirex.exceptions;
  *
  * @author Ritchie Borja
  */
-public class ReservedKeywordFromBindingNameException extends RuntimeException {
+public class ReservedKeywordFromBindingNameException extends Exception {
     
     private final String token;
     
