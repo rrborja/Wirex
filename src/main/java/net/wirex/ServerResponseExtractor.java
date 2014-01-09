@@ -125,13 +125,6 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 Model model = AppEngine.checkoutModel(responseModel);
                 XList list = (XList) model.streamData();
                 while (reader.hasNext()) {
-                    try {
-                        Random generator = new Random();
-                        int i = generator.nextInt(300) + 1;
-                        Thread.sleep(i);
-                    } catch (InterruptedException ex) {
-                        java.util.logging.Logger.getLogger(ServerResponseExtractor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
                     Object object = gson.fromJson(reader, model.streamType());
                     list.add(object);
                 }
