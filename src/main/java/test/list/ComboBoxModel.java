@@ -5,6 +5,7 @@
  */
 package test.list;
 
+import net.wirex.annotations.Path;
 import net.wirex.interfaces.Model;
 import net.wirex.structures.XList;
 
@@ -14,9 +15,20 @@ import net.wirex.structures.XList;
  */
 public class ComboBoxModel extends Model {
 
-//    @Path("components/combobox")
+    @Path("http://10.0.1.69/g7/component/statefield/get")
     private XList combo;
     private String selected;
+    private String select;
+
+    public String getSelect() {
+        return select;
+    }
+
+    public void setSelect(String newValue) {
+        String oldValue = select;
+        this.select = newValue;
+        fireChanges("combo", oldValue, newValue);
+    }
 
     public ComboBoxModel() {
         combo = new XList();

@@ -734,6 +734,19 @@ final class WirexCore implements Wirex {
             final String modelProperty;
             if (JComponent.class.isAssignableFrom(clazz)) {
                 try {
+                    Field listField = model.getClass().getDeclaredField(data.value());
+                    Path path = (Path) listField.getAnnotation(Path.class);
+                    if (path != null) {
+                        String url = path.value();
+                        ServerRequest request = new ServerRequest("GET", url, Media.JSON, null, new ComponentModel(), null);
+                        ServerResponse response = cacheResource.get(request);
+                        if (response != null) {
+                            ComponentModel componentModel = (ComponentModel)response.getMessage();
+                            listField.setAccessible(true);
+                            listField.set(model, componentModel.getComponent());
+                            listField.setAccessible(false);
+                        }
+                    }
                     modelProperty = LegalIdentifierChecker.check(data.value());
                     if (data.data().equals("")) {
                         bindComponent(clazz, model, modelProperty);
@@ -741,7 +754,6 @@ final class WirexCore implements Wirex {
                         String selectedItemProperty = LegalIdentifierChecker.check(data.data());
                         bindComponent(clazz, model, modelProperty, selectedItemProperty);
                     }
-
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Unable to bind component " + clazz, ex);
                     return;
@@ -753,6 +765,9 @@ final class WirexCore implements Wirex {
                     return;
                 } catch (PropertyNotFoundException ex) {
                     LOG.warn("Your binding property '{}' doesn't bind to any existing components", data.value());
+                    return;
+                } catch (NoSuchFieldException | SecurityException | ExecutionException ex) {
+                    LOG.warn("Framework bug! Check combo box binding implementation");
                     return;
                 }
             } else {
@@ -1417,6 +1432,25 @@ final class WirexCore implements Wirex {
                 LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
         }
+    }
+
+    private class ComponentModel extends Model {
+
+        private XList component;
+
+        public XList getComponent() {
+            return component;
+        }
+
+        public void setComponent(XList component) {
+            this.component = component;
+        }
+
+        @Override
+        public String toString() {
+            return "ComponentModel{" + "component=" + component + '}';
+        }
+
     }
 
     private class MediatorFieldListener implements DocumentListener {

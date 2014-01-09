@@ -7,13 +7,12 @@ package test.list;
 
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
+import javax.swing.JTextField;
 import net.wirex.AppEngine;
 import net.wirex.MVP;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
-import test.menu.MainMenuBar;
 
 /**
  *
@@ -39,8 +38,12 @@ public class ComboBoxPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         jButton1 = new javax.swing.JButton();
+        jTextField1 = AppEngine.checkout(JTextField.class, "select");
+        jButton2 = new javax.swing.JButton();
 
         jButton1.setText("jButton1");
+
+        jButton2.setText("jButton2");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -50,8 +53,12 @@ public class ComboBoxPanel extends javax.swing.JPanel {
                 .addGap(70, 70, 70)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(115, Short.MAX_VALUE))
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton2)))
+                .addContainerGap(84, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -60,7 +67,11 @@ public class ComboBoxPanel extends javax.swing.JPanel {
                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(64, 64, 64)
                 .addComponent(jButton1)
-                .addContainerGap(123, Short.MAX_VALUE))
+                .addGap(50, 50, 50)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
+                .addContainerGap(50, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -68,11 +79,15 @@ public class ComboBoxPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     @Event("go")
     private javax.swing.JButton jButton1;
+    @Event("selectNow")
+    private javax.swing.JButton jButton2;
     @Data(value="combo", data="selected")
     private final javax.swing.JComboBox jComboBox1 = AppEngine.checkout(JComboBox.class, "combo");
+    @Data("select")
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         MVP app = AppEngine.prepare(ComboBoxPanel.class);
         app.display(JFrame.class);
     }

@@ -29,6 +29,10 @@ public class ComboBoxPresenter extends Presenter {
 //        System.out.println(touch(JComboBox.class, "jComboBox1").getSelectedItem());
     }
     
+    public void selectNow() {
+        ((ComboBoxModel)getModel()).setSelected(((ComboBoxModel)getModel()).getSelect());
+    }
+    
     @Override
     public void run(@Retrieve({}) ConcurrentHashMap<String, Invoker> methods) {
 

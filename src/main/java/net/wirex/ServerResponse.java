@@ -22,7 +22,6 @@ public final class ServerResponse<T> {
         return status;
     }
 
-
     public T getMessage() {
         return message;
     }
