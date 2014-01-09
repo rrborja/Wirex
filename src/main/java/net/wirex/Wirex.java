@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;

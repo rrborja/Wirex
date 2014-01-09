@@ -146,7 +146,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.13-BETA";
+    public static final String version = "1.0.14.15-BETA";
 
     static {
         try {
@@ -738,10 +738,15 @@ final class WirexCore implements Wirex {
                     Path path = (Path) listField.getAnnotation(Path.class);
                     if (path != null) {
                         String url = path.value();
-                        ServerRequest request = new ServerRequest("GET", url, Media.JSON, null, new ComponentModel(), null);
+                        if (url.startsWith("/")) {
+                            url = path.value().substring(1);
+                        } else {
+                            url = path.value();
+                        }
+                        ServerRequest request = new ServerRequest("GET", hostname + url, Media.JSON, null, new ComponentModel(), null);
                         ServerResponse response = cacheResource.get(request);
                         if (response != null) {
-                            ComponentModel componentModel = (ComponentModel)response.getMessage();
+                            ComponentModel componentModel = (ComponentModel) response.getMessage();
                             listField.setAccessible(true);
                             listField.set(model, componentModel.getComponent());
                             listField.setAccessible(false);
