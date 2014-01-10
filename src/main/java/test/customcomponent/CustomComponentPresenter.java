@@ -31,7 +31,7 @@ public class CustomComponentPresenter extends Presenter {
     public void play() {
         CustomComponentModel model = (CustomComponentModel)getModel();
         
-        model.setIpAddress("5.0.0.0");
+        model.setIpAddress(model.getText33());
     }
 
     @Override

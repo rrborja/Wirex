@@ -134,7 +134,6 @@ import net.wirex.structures.XComponent;
 import net.wirex.structures.XList;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
-import net.wirex.structures.XValueListener;
 import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
@@ -148,7 +147,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.15-BETA";
+    public static final String version = "1.0.14.16-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -493,21 +492,21 @@ final class WirexCore implements Wirex {
                 }
                 if (event != null) {
                     try {
-                        field.setAccessible(true);
+                        Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
                         String presenterMethodName = LegalIdentifierChecker.check(event.value());
-                        Method presenterMethod = presenterClass.getDeclaredMethod(presenterMethodName);
+                        if (!presenterMethods.containsKey(presenterMethodName)) {
+                            LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+                            continue;
+                        }
+                        Map<String, Method> listeners = new HashMap<>();
+                        Method injectListenerMethod = ListenerFactory.class.getMethod("ActionListener", Object.class, Map.class);
+                        listeners.put("actionPerformed", presenterMethods.get(presenterMethodName));
+                        ActionListener listener = (ActionListener)injectListenerMethod.invoke(null, presenter, listeners);
+                        field.setAccessible(true);
                         Object component = field.get(menuBar);
                         Class clazz = field.getType();
                         Method injectListener = clazz.getMethod("addActionListener", ActionListener.class);
-                        injectListener.invoke(component, (ActionListener) new ActionListener() {
-                            public void actionPerformed(ActionEvent e) {
-                                try {
-                                    presenterMethod.invoke(presenter);
-                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                                    LOG.error("Framework bug or your menubar presenter methods has one or more args! Fix the bug asap");
-                                }
-                            }
-                        });
+                        injectListener.invoke(component, listener);
                         field.set(menuBar, component);
                     } catch (InvalidKeywordFromBindingNameException ex) {
                         LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
