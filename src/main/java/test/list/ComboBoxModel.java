@@ -15,7 +15,7 @@ import net.wirex.structures.XList;
  */
 public class ComboBoxModel extends Model {
 
-    @Path("http://10.0.1.69/g7/component/statefield/get")
+    @Path("customer/save/0")
     private XList combo;
     private String selected;
     private String select;

@@ -8,9 +8,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.logging.Level;
 import javax.swing.JDialog;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -54,7 +53,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     @Override
     public ServerResponse extractData(ClientHttpResponse response) throws IOException {
         ServerResponse result;
-
+        
         HttpStatus status = response.getStatusCode();
         InputStream in = response.getBody();
 
@@ -109,7 +108,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                     return processBody(reader, status, feature, type);
             }
         }
-        LOG.info("[{}] Successful server transaction from feature {}", status, feature);
+        LOG.info("Successful server transaction from feature {}", status, feature);
         return new ServerResponse(HttpStatus.OK, new Model() {
         });
     }

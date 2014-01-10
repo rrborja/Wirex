@@ -130,9 +130,11 @@ import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.interfaces.Resource;
 import net.wirex.interfaces.Validator;
+import net.wirex.structures.XComponent;
 import net.wirex.structures.XList;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
+import net.wirex.structures.XValueListener;
 import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
@@ -149,6 +151,8 @@ final class WirexCore implements Wirex {
     public static final String version = "1.0.14.15-BETA";
 
     static {
+        System.setProperty("org.apache.commons.logging.Log",
+                "org.apache.commons.logging.impl.NoOpLog");
         try {
             DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
             Date dateObject = new Date();
@@ -233,7 +237,7 @@ final class WirexCore implements Wirex {
     private BufferedImage screenshot;
 
     public WirexCore() {
-        this("http://10.0.1.69:8080/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
+        this("http://10.0.1.69:8080/g7/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
     }
 
     public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
@@ -491,10 +495,10 @@ final class WirexCore implements Wirex {
                     try {
                         field.setAccessible(true);
                         String presenterMethodName = LegalIdentifierChecker.check(event.value());
-                        Method presenterMethod = presenterClass.getMethod(presenterMethodName);
+                        Method presenterMethod = presenterClass.getDeclaredMethod(presenterMethodName);
                         Object component = field.get(menuBar);
                         Class clazz = field.getType();
-                        Method injectListener = clazz.getMethod("addActionListener", ActionEvent.class);
+                        Method injectListener = clazz.getMethod("addActionListener", ActionListener.class);
                         injectListener.invoke(component, (ActionListener) new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
                                 try {
@@ -1305,6 +1309,36 @@ final class WirexCore implements Wirex {
 
         } else if (JPasswordField.class == component || JPasswordField.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createPasswordField(componentModel);
+        } else if (XComponent.class.isAssignableFrom(component)) {
+            XComponent xcomponent = (XComponent) newComponent;
+            adapter.getModel(property).addPropertyChangeListener((PropertyChangeEvent evt) -> {
+                EventQueue.invokeLater(new Runnable() {
+                    public void run() {
+                        Object value = evt.getNewValue();
+                        xcomponent.setValue(value);
+                    }
+                });
+            });
+            xcomponent.addValueListener((Object value) -> {
+                EventQueue.invokeLater(new Runnable() {
+                    public void run() {
+                        try {
+                            Field field = bean.getClass().getDeclaredField(property);
+                            field.setAccessible(true);
+                            field.set(bean, value);
+                            field.setAccessible(false);
+                        } catch (NoSuchFieldException ex) {
+                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (SecurityException ex) {
+                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalArgumentException ex) {
+                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalAccessException ex) {
+                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                });
+            });
         } else {
             try {
                 throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
@@ -1327,7 +1361,8 @@ final class WirexCore implements Wirex {
      * @param presenter The presenter where its binded View to be disposed
      */
     @Override
-    public void dispose(Presenter presenter) {
+    public void dispose(Presenter presenter
+    ) {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
         window.dispose();
