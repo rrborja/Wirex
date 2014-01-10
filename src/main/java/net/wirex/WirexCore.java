@@ -1327,14 +1327,8 @@ final class WirexCore implements Wirex {
                             field.setAccessible(true);
                             field.set(bean, value);
                             field.setAccessible(false);
-                        } catch (NoSuchFieldException ex) {
-                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (SecurityException ex) {
-                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (IllegalArgumentException ex) {
-                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (IllegalAccessException ex) {
-                            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                            LOG.error("Framework bug when accessing your Custom Component binded property {} in {}", property, bean.getClass());
                         }
                     }
                 });
