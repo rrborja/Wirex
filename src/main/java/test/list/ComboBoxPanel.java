@@ -5,8 +5,10 @@
  */
 package test.list;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
 import net.wirex.MVP;
@@ -40,10 +42,16 @@ public class ComboBoxPanel extends javax.swing.JPanel {
         jButton1 = new javax.swing.JButton();
         jTextField1 = AppEngine.checkout(JTextField.class, "select");
         jButton2 = new javax.swing.JButton();
+        jRadioButton1 = AppEngine.checkout(JRadioButton.class, "radio");
+        jCheckBox1 = AppEngine.checkout(JCheckBox.class, "check");
 
         jButton1.setText("jButton1");
 
         jButton2.setText("jButton2");
+
+        jRadioButton1.setText("jRadioButton1");
+
+        jCheckBox1.setText("jCheckBox1");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -52,21 +60,36 @@ public class ComboBoxPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(70, 70, 70)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton1)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2)))
-                .addContainerGap(84, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jCheckBox1)
+                                    .addComponent(jButton2))))
+                        .addContainerGap(78, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jRadioButton1)
+                        .addGap(32, 32, 32))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(68, 68, 68)
                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(64, 64, 64)
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(64, 64, 64)
+                        .addComponent(jButton1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(jCheckBox1)
+                        .addGap(10, 10, 10)
+                        .addComponent(jRadioButton1)))
                 .addGap(50, 50, 50)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -81,8 +104,12 @@ public class ComboBoxPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButton1;
     @Event("selectNow")
     private javax.swing.JButton jButton2;
+    @Data("check")
+    private javax.swing.JCheckBox jCheckBox1;
     @Data(value="combo", data="selected")
     private final javax.swing.JComboBox jComboBox1 = AppEngine.checkout(JComboBox.class, "combo");
+    @Data("radio")
+    private javax.swing.JRadioButton jRadioButton1;
     @Data("select")
     private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables

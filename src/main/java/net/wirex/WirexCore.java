@@ -147,7 +147,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.16-BETA";
+    public static final String version = "1.0.14.17-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1267,8 +1267,10 @@ final class WirexCore implements Wirex {
 
                 Field[] fields = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
+                String[] propertyTexts;
                 if (Model.class.isAssignableFrom(listTypeClass)) {
                     propertyNames = new String[fields.length];
+                    propertyTexts = new String[fields.length];
                     for (int i = 0; i < propertyNames.length; i++) {
                         Column column = (Column) fields[i].getAnnotation(Column.class);
                         String columnName;
@@ -1277,11 +1279,13 @@ final class WirexCore implements Wirex {
                         } else {
                             columnName = fields[i].getName();
                         }
-                        propertyNames[i] = columnName;
+                        propertyNames[i] = fields[i].getName();
+                        propertyTexts[i] = columnName;
                     }
                 } else {
                     EventList list = (XList) componentModel.getValue();
                     propertyNames = new String[]{"value"};
+                    propertyTexts = new String[]{"Value"};
                     for (int i = 0; i < list.size(); i++) {
                         list.set(i, new XObject(list.get(i)));
                     }
@@ -1291,7 +1295,7 @@ final class WirexCore implements Wirex {
                 }
 
                 EventList rows = (XList) adapter.getModel(property).getValue();
-                TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyNames);
+                TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyTexts);
 
                 if (JTable.class == component) {
                     JTable table = new JTable(new EventTableModel(rows, tf));

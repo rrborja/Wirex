@@ -1,6 +1,8 @@
 package net.wirex.interfaces;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +17,7 @@ import net.wirex.ServerRequest;
 import net.wirex.ServerResponse;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.EventInterruptionException;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -22,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author Ritchie Borja
  */
 public abstract class Presenter {
-    
+
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Presenter.class.getSimpleName());
 
     private Model model;
@@ -37,7 +40,7 @@ public abstract class Presenter {
     public Presenter(JMenuBar menu) {
         this.menu = menu;
     }
-    
+
     public Presenter(Model model, JPanel panel) {
         this.model = model;
         this.view = panel;
@@ -62,9 +65,38 @@ public abstract class Presenter {
     public JPanel getPanel() {
         return view;
     }
-    
+
+    public void clear() {
+        Class modelClass = model.getClass();
+        Field[] fields = modelClass.getDeclaredFields();
+        for (Field field : fields) {
+            int modifiers = field.getModifiers();
+            String property = field.getName();
+            if (!Modifier.isTransient(modifiers)) {
+                try {
+                    if (field.getType() == String.class) {
+                        PropertyUtils.setProperty(model, property, "");
+                    } else if (field.getType() == Boolean.class || field.getType().toString().equals("boolean")) {
+                        PropertyUtils.setProperty(model, property, false);
+                    } else if (field.getType() == Integer.class || field.getType().toString().equals("int")) {
+                        PropertyUtils.setProperty(model, property, 0);
+                    } else if (field.getType() == Double.class || field.getType().toString().equals("double")) {
+                        PropertyUtils.setProperty(model, property, 0.0);
+                    } else if (field.getType() == Float.class || field.getType().toString().equals("float")) {
+                        PropertyUtils.setProperty(model, property, 0.0);
+                    } else if (field.getType() == Character.class || field.getType().toString().equals("char")) {
+                        PropertyUtils.setProperty(model, property, null);
+                    }
+                    
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                    Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
     /**
-     * 
+     *
      * @param <T>
      * @param componentClass
      * @param componentName

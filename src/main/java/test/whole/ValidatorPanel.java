@@ -9,7 +9,6 @@ package test.whole;
 import com.visp.validex.EmailConstraintValidator;
 import com.visp.validex.PasswordConstraintValidator;
 import com.visp.validex.PhoneNumberConstraintValidator;
-import com.visp.validex.UsernameValidator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -179,11 +178,9 @@ public class ValidatorPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel5;
     @Data("username")
     @Balloon(text="Enter a valid username")
-    @Rule(UsernameValidator.class)
     @Permit("username")
     private javax.swing.JTextField jTextField1;
     @Data("password")
-    @Rule(PasswordConstraintValidator.class)
     @Permit("password")
     private javax.swing.JTextField jTextField2;
     @Data("retype")

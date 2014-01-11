@@ -26,6 +26,7 @@ public class ComboBoxPresenter extends Presenter {
 
     public void go() {
         System.out.println(((ComboBoxModel)getModel()).getSelected());
+        clear();
 //        System.out.println(touch(JComboBox.class, "jComboBox1").getSelectedItem());
     }
     
