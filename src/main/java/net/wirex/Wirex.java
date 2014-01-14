@@ -70,6 +70,8 @@ interface Wirex {
     
     <T> T settle(Class<T> menuBarClass);
     
+    String hash(Model model);
+    
     /**
      * Connects a Java EE web server that supports REST transactions
      *

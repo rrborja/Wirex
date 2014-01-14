@@ -3,13 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package net.wirex.structures;
 
 /**
  *
  * @author ritchie
  */
-public interface XValueListener {
-
-    void updateValue(Object value);
+public interface XModelListener {
+    
+    void modelChanged();
+    
+    void modelUnchanged();
 }

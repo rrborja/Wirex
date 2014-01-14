@@ -45,6 +45,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -471,6 +473,33 @@ final class WirexCore implements Wirex {
             LOG.warn("Presenter ({}) does not or still not yet existed", presenterClass);
             return null;
         }
+    }
+
+    @Override
+    public String hash(Model model) {
+        String plaintext = "";
+        String digest = "";
+        Class modelClass = model.getClass();
+        Field[] fields = modelClass.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Object object;
+            try {
+                object = field.get(model);
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                LOG.warn("Unable to hash value in {}", model.getClass());
+                return "";
+            }
+            plaintext += object.toString();
+        }
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            return new String(md.digest(plaintext.getBytes()));
+        } catch (NoSuchAlgorithmException ex) {
+            LOG.warn("Hashing failed in Wirex using SHA-1.");
+            return "";
+        }
+
     }
 
     @Override

@@ -214,6 +214,10 @@ public final class AppEngine {
         instance.dispose(presenter);
     }
     
+    public static String hash(Model model) {
+        return instance.hash(model);
+    }
+    
     protected static Wirex getInstance() {
         return instance;
     }
