@@ -147,7 +147,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.17-BETA";
+    public static final String version = "1.0.14.19-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -501,7 +501,7 @@ final class WirexCore implements Wirex {
                         Map<String, Method> listeners = new HashMap<>();
                         Method injectListenerMethod = ListenerFactory.class.getMethod("ActionListener", Object.class, Map.class);
                         listeners.put("actionPerformed", presenterMethods.get(presenterMethodName));
-                        ActionListener listener = (ActionListener)injectListenerMethod.invoke(null, presenter, listeners);
+                        ActionListener listener = (ActionListener) injectListenerMethod.invoke(null, presenter, listeners);
                         field.setAccessible(true);
                         Object component = field.get(menuBar);
                         Class clazz = field.getType();
@@ -676,6 +676,9 @@ final class WirexCore implements Wirex {
     private void checkUncheckedOut(Class viewClass, int numberOfPush) {
         boolean flagDisplayedFirstLineWarning = true;
         for (int i = 0; i < numberOfPush; i++) {
+            if (preStackUncheckedOutComponentCounts.isEmpty()) {
+                return;
+            }
             String identifier = preStackUncheckedOutComponentCounts.pop();
             if (components.containsKey(identifier)) {
                 JComponent component = components.remove(identifier);
@@ -846,21 +849,23 @@ final class WirexCore implements Wirex {
     }
 
     private void scanFieldWithDraw(final Draw draw, Field field, final Object viewPanel) {
-        if (draw != null) {
-            Class componentClass = null;
-            try {
-                field.setAccessible(true);
-                Object component = field.get(viewPanel);
-                ImageIcon icon = iconResource.get(draw.value());
-                componentClass = component.getClass();
-                Method setIconMethod = componentClass.getMethod("setIcon", Icon.class);
-                setIconMethod.invoke(component, icon);
-            } catch (IllegalArgumentException | IllegalAccessException | ExecutionException | SecurityException ex) {
-                LOG.error("Cannot set icon in " + componentClass, ex);
-            } catch (NoSuchMethodException | InvocationTargetException ex) {
-                LOG.error("The field {} annotated with resource icon is not a component with image binding.", field.getName());
+        new Thread(() -> {
+            if (draw != null) {
+                Class componentClass = null;
+                try {
+                    field.setAccessible(true);
+                    Object component = field.get(viewPanel);
+                    ImageIcon icon = iconResource.get(draw.value());
+                    componentClass = component.getClass();
+                    Method setIconMethod = componentClass.getMethod("setIcon", Icon.class);
+                    setIconMethod.invoke(component, icon);
+                } catch (IllegalArgumentException | IllegalAccessException | ExecutionException | SecurityException ex) {
+                    LOG.error("Cannot set icon in " + componentClass, ex);
+                } catch (NoSuchMethodException | InvocationTargetException ex) {
+                    LOG.error("The field {} annotated with resource icon is not a component with image binding.", field.getName());
+                }
             }
-        }
+        }, "draw").start();
     }
 
     private <T> void scanFieldWithEvent(final Event[] events, Field field, final Object viewPanel, final Class presenterClass, final Object presenter, final EventContainer[] eventContainers) throws IllegalArgumentException, SecurityException {
