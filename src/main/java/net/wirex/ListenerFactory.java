@@ -86,7 +86,7 @@ public final class ListenerFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(ListenerFactory.class.getName());
 
-    private static void invoke(Method listener, Object presenter, Object e) {
+    protected static void invoke(Method listener, Object presenter, Object e) {
         if (listener == null) {
             LOG.warn("No binding for this triggered presenter method");
             return;

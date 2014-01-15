@@ -87,6 +87,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -149,7 +150,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.19-BETA";
+    public static final String version = "1.0.14.20-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -490,7 +491,7 @@ final class WirexCore implements Wirex {
                 LOG.warn("Unable to hash value in {}", model.getClass());
                 return "";
             }
-            plaintext += object.toString();
+            plaintext += String.valueOf(object);
         }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -931,8 +932,18 @@ final class WirexCore implements Wirex {
                 for (EventContainer eventContainer : eventContainers) {
                     Class listenerType = eventContainer.listens();
                     Map<String, Method> listeners = new HashMap<>();
-                    Method addListenerToComponentMethod = component.getMethod("add" + listenerType.getSimpleName(), listenerType);
-                    Method injectListenerMethod = ListenerFactory.class.getMethod(listenerType.getSimpleName(), Object.class, Map.class);
+                    String listenerTypeName = listenerType.getSimpleName();
+                    if (listenerTypeName.contains("Adapter")) {
+                        listenerType = Class.forName("java.awt.event." + listenerTypeName.replace("Adapter", "Listener"));
+                    }
+                    String listenerDerivativeName = listenerTypeName.replace("Adapter", "Listener");
+                    Method addListenerToComponentMethod = component.getMethod("add" + listenerDerivativeName, listenerType);
+                    Method injectListenerMethod;
+                    if (listenerTypeName.contains("istener")) {
+                        injectListenerMethod = ListenerFactory.class.getMethod(listenerTypeName, Object.class, Map.class);
+                    } else {
+                        injectListenerMethod = AdapterFactory.class.getMethod(listenerTypeName, Object.class, Map.class);
+                    }
                     for (Event event : eventContainer.events()) {
                         EventMethod method = event.at();
                         String listenerMethod = method.getMethod();
@@ -950,7 +961,7 @@ final class WirexCore implements Wirex {
 
         } catch (NoSuchMethodException ex) {
             LOG.warn("You're event {} may not work on your type {}.", presenterMethodName, field.getType().getSimpleName());
-        } catch (IllegalAccessException | InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException ex) {
             LOG.warn("Framework bug! Check event annotation scanning subroutine.");
         } catch (InvalidKeywordFromBindingNameException ex) {
             LOG.warn("Is the method {} in {} a valid Java keyword?", presenterMethodName, presenterClass);
@@ -1338,6 +1349,15 @@ final class WirexCore implements Wirex {
                     JXTable table = new JXTable(new EventTableModel(rows, tf));
                     newComponent = table;
                 }
+                
+                if (property2 != null) {
+                    final JTable tableComponent = (JTable) newComponent;
+                    tableComponent.getSelectionModel().addListSelectionListener((ListSelectionEvent event) -> {
+                        XList list = (XList) adapter.getModel(property).getValue();
+                        Object selectedRow = list.get(tableComponent.getSelectedRow());
+                        adapter.getModel(property2).setValue(selectedRow);
+                    });
+                }
 
             } catch (NoSuchFieldException | SecurityException ex) {
                 LOG.error("Unable to bind component " + component + " with " + property, ex);
@@ -1392,8 +1412,7 @@ final class WirexCore implements Wirex {
      * @param presenter The presenter where its binded View to be disposed
      */
     @Override
-    public void dispose(Presenter presenter
-    ) {
+    public void dispose(Presenter presenter) {
         JPanel panel = presenter.getPanel();
         Window window = SwingUtilities.getWindowAncestor(panel);
         window.dispose();
