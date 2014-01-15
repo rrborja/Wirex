@@ -150,7 +150,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.20-BETA";
+    public static final String version = "1.0.14.21-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -826,9 +826,11 @@ final class WirexCore implements Wirex {
                 JLabel label = new JLabel();
                 Object component = components.get(modelProperty);
                 if (component instanceof JTextField) {
+                    PresentationModel adapter = new PresentationModel(model);
+                    ValueModel componentModel = adapter.getModel(modelProperty);
                     JTextField textField = (JTextField) component;
                     textField.getDocument()
-                            .addDocumentListener(new MediatorFieldListener(field, model, validator, label, modelProperty));
+                            .addDocumentListener(new MediatorFieldListener(field, componentModel, validator, label, modelProperty));
                 }
                 mediators.put(modelProperty, label);
             }
@@ -1349,7 +1351,7 @@ final class WirexCore implements Wirex {
                     JXTable table = new JXTable(new EventTableModel(rows, tf));
                     newComponent = table;
                 }
-                
+
                 if (property2 != null) {
                     final JTable tableComponent = (JTable) newComponent;
                     tableComponent.getSelectionModel().addListSelectionListener((ListSelectionEvent event) -> {
@@ -1546,12 +1548,12 @@ final class WirexCore implements Wirex {
     private class MediatorFieldListener implements DocumentListener {
 
         private final Field field;
-        private final Model model;
+        private final ValueModel model;
         private final ConstraintValidator validator;
         private final JLabel label;
         private final String modelProperty;
 
-        public MediatorFieldListener(Field field, Model model, ConstraintValidator validator, JLabel label, String modelProperty) {
+        public MediatorFieldListener(Field field, ValueModel model, ConstraintValidator validator, JLabel label, String modelProperty) {
             this.field = field;
             this.model = model;
             this.validator = validator;
@@ -1560,13 +1562,8 @@ final class WirexCore implements Wirex {
         }
 
         public void validate() {
-            Class modelClass = model.getClass();
-            Model model = models.get(modelClass);
             Optional optional = field.getAnnotation(Optional.class);
-
-            PresentationModel adapter = new PresentationModel(model);
-            ValueModel componentModel = adapter.getModel(modelProperty);
-            Object value = componentModel.getValue();
+            Object value = model.getValue();
             String inputText = value != null ? value.toString() : "";
 
             if (optional != null) {
