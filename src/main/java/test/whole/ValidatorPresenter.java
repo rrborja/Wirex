@@ -33,7 +33,8 @@ public class ValidatorPresenter extends Presenter {
     }
 
     public void submit2() {
-        int x = 1 / 0;
+//        int x = 1 / 0;
+        getModel().store();
     }
 
     @Path("user/login")

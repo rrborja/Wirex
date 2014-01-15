@@ -14,13 +14,11 @@ import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JTextField;
 import net.wirex.AppEngine;
-import net.wirex.EventMethod;
 import net.wirex.MVP;
 import net.wirex.annotations.Balloon;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
-import net.wirex.annotations.EventContainer;
 import net.wirex.annotations.Permit;
 import net.wirex.annotations.Property;
 import net.wirex.annotations.Rule;
@@ -163,7 +161,7 @@ public class ValidatorPanel extends javax.swing.JPanel {
     @Event("reset")
     @Permit("reset")
     private javax.swing.JButton jButton1;
-    @Event("submit")
+    @Event("submit2")
     @Balloon(NewLoginPanel.class)
     private javax.swing.JButton jButton2;
     @Text("username")
@@ -179,21 +177,23 @@ public class ValidatorPanel extends javax.swing.JPanel {
     @Data("username")
     @Balloon(text="Enter a valid username")
     @Permit("username")
+    @Rule(FirstNameConstraintValidator.class)
     private javax.swing.JTextField jTextField1;
     @Data("password")
     @Permit("password")
+    @Rule(FirstNameConstraintValidator.class)
     private javax.swing.JTextField jTextField2;
     @Data("retype")
-    @Rule(PasswordConstraintValidator.class)
     @Permit("retype")
+    @Rule(FirstNameConstraintValidator.class)
     private javax.swing.JTextField jTextField3;
     @Data("email")
-    @Rule(EmailConstraintValidator.class)
     @Permit("email")
+    @Rule(FirstNameConstraintValidator.class)
     private javax.swing.JTextField jTextField4;
     @Data("phoneNumber")
-    @Rule(PhoneNumberConstraintValidator.class)
     @Permit("phoneNumber")
+    @Rule(FirstNameConstraintValidator.class)
     private javax.swing.JTextField jTextField5;
     // End of variables declaration//GEN-END:variables
 }

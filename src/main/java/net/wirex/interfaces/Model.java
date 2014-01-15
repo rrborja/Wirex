@@ -2,6 +2,9 @@ package net.wirex.interfaces;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import net.wirex.AppEngine;
 import net.wirex.structures.XModelListener;
 
@@ -13,7 +16,9 @@ public abstract class Model {
 
     protected transient PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
-    private transient String hashValue = "";
+    private transient String hashValue = AppEngine.hash(this);
+
+    private transient Map undoObject = synchronize();
 
     private transient XModelListener listener = new XModelListener() {
         @Override
@@ -25,6 +30,27 @@ public abstract class Model {
         }
     };
 
+    private Map synchronize() {
+        Map<String, Object> map = new HashMap<>();
+        Class clazz = this.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            String fieldName = field.getName();
+            try {
+                map.put(fieldName, field.get(this));
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                map.put(fieldName, null);
+            }
+            field.setAccessible(false);
+        }
+        return map;
+    }
+    
+    public Map getUndoObject() {
+        return undoObject;
+    }
+
     public void addPropertyChangeListener(PropertyChangeListener x) {
         changeSupport.addPropertyChangeListener(x);
     }
@@ -35,15 +61,20 @@ public abstract class Model {
 
     public void fireChanges(String fieldName, Object oldValue, Object newValue) {
         changeSupport.firePropertyChange(fieldName, oldValue, newValue);
-        if (hashValue.equals(AppEngine.hash(this))) {
+        if (isChanged()) {
             listener.modelUnchanged();
         } else {
             listener.modelChanged();
         }
     }
 
+    public boolean isChanged() {
+        return hashValue.equals(AppEngine.hash(this));
+    }
+
     public void store() {
         hashValue = AppEngine.hash(this);
+        undoObject = synchronize();
     }
 
     public void addModelListener(XModelListener listener) {

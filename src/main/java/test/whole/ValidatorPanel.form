@@ -96,7 +96,7 @@
     <Component class="javax.swing.JTextField" name="jTextField1">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;username&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;username&quot;)&#xa;@Balloon(text=&quot;Enter a valid username&quot;)&#xa;@Permit(&quot;username&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;username&quot;)&#xa;@Balloon(text=&quot;Enter a valid username&quot;)&#xa;@Permit(&quot;username&quot;)&#xa;@Rule(FirstNameConstraintValidator.class)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
@@ -120,7 +120,7 @@
     <Component class="javax.swing.JTextField" name="jTextField2">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;password&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;password&quot;)&#xa;@Permit(&quot;password&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;password&quot;)&#xa;@Permit(&quot;password&quot;)&#xa;@Rule(FirstNameConstraintValidator.class)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
@@ -135,7 +135,7 @@
     <Component class="javax.swing.JTextField" name="jTextField3">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;retype&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;retype&quot;)&#xa;@Rule(PasswordConstraintValidator.class)&#xa;@Permit(&quot;retype&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;retype&quot;)&#xa;@Permit(&quot;retype&quot;)&#xa;@Rule(FirstNameConstraintValidator.class)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
@@ -150,7 +150,7 @@
     <Component class="javax.swing.JTextField" name="jTextField4">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;email&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;email&quot;)&#xa;@Rule(EmailConstraintValidator.class)&#xa;@Permit(&quot;email&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;email&quot;)&#xa;@Permit(&quot;email&quot;)&#xa;@Rule(FirstNameConstraintValidator.class)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel5">
@@ -165,7 +165,7 @@
     <Component class="javax.swing.JTextField" name="jTextField5">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTextField.class, &quot;phoneNumber&quot;)"/>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;phoneNumber&quot;)&#xa;@Rule(PhoneNumberConstraintValidator.class)&#xa;@Permit(&quot;phoneNumber&quot;)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(&quot;phoneNumber&quot;)&#xa;@Permit(&quot;phoneNumber&quot;)&#xa;@Rule(FirstNameConstraintValidator.class)"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="jButton1">
@@ -181,7 +181,7 @@
         <Property name="text" type="java.lang.String" value="Submit"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;submit&quot;)&#xa;@Balloon(NewLoginPanel.class)"/>
+        <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Event(&quot;submit2&quot;)&#xa;@Balloon(NewLoginPanel.class)"/>
       </AuxValues>
     </Component>
   </SubComponents>

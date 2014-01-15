@@ -554,6 +554,34 @@ final class WirexCore implements Wirex {
         }
     }
 
+    private Model createModel(Class<? extends Model> modelClass) {
+        try {
+            Model model = modelClass.newInstance();
+            Field[] fields = modelClass.getDeclaredFields();
+            for (Field field : fields) {
+                Class clazz = field.getType();
+                field.setAccessible(true);
+                if (clazz == Integer.class) {
+                    field.set(model, 0);
+                } else if (clazz == Double.class || clazz == Float.class) {
+                    field.set(model, 0.0);
+                } else if (clazz == String.class) {
+                    field.set(model, "");
+                } else if (clazz == Boolean.class) {
+                    field.set(model, false);
+                } else {
+                    field.set(model, clazz.newInstance());
+                }
+                field.setAccessible(false);
+            }
+            model.store();
+            return model;
+        } catch (InstantiationException | IllegalAccessException ex) {
+            LOG.error("Unable to load model", ex);
+            return null;
+        }
+    }
+
     /**
      * Prepares a binded view class together with its Presenter and Model
      * classes and binds them together to form an MVP object that contains
@@ -593,15 +621,16 @@ final class WirexCore implements Wirex {
         Field[] fields = viewClass.getDeclaredFields();
 
         Model model = null;
-        try {
-            if (models.containsKey(modelClass)) {
+
+        if (models.containsKey(modelClass)) {
+            try {
                 model = modelCache.get(modelClass);
-            } else {
-                model = (Model) modelClass.newInstance();
-                models.put(modelClass, model);
+            } catch (ExecutionException ex) {
+                LOG.error("Unable to load model", ex);
             }
-        } catch (InstantiationException | IllegalAccessException | ExecutionException ex) {
-            LOG.error("Unable to load model", ex);
+        } else {
+            model = createModel(modelClass);
+            models.put(modelClass, model);
         }
 
         for (Field field : fields) {
@@ -826,11 +855,9 @@ final class WirexCore implements Wirex {
                 JLabel label = new JLabel();
                 Object component = components.get(modelProperty);
                 if (component instanceof JTextField) {
-                    PresentationModel adapter = new PresentationModel(model);
-                    ValueModel componentModel = adapter.getModel(modelProperty);
                     JTextField textField = (JTextField) component;
                     textField.getDocument()
-                            .addDocumentListener(new MediatorFieldListener(field, componentModel, validator, label, modelProperty));
+                            .addDocumentListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
                 }
                 mediators.put(modelProperty, label);
             }
@@ -1548,33 +1575,40 @@ final class WirexCore implements Wirex {
     private class MediatorFieldListener implements DocumentListener {
 
         private final Field field;
-        private final ValueModel model;
+        private final ValueModel valueModel;
         private final ConstraintValidator validator;
         private final JLabel label;
+        private final Model model;
         private final String modelProperty;
 
-        public MediatorFieldListener(Field field, ValueModel model, ConstraintValidator validator, JLabel label, String modelProperty) {
+        public MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model) {
             this.field = field;
-            this.model = model;
             this.validator = validator;
             this.label = label;
+            this.model = model;
             this.modelProperty = modelProperty;
+            PresentationModel adapter = new PresentationModel(model);
+            this.valueModel = adapter.getModel(modelProperty);
         }
 
         public void validate() {
             Optional optional = field.getAnnotation(Optional.class);
-            Object value = model.getValue();
+            Object value = valueModel.getValue();
             String inputText = value != null ? value.toString() : "";
 
+            System.out.println(model.getUndoObject().get(modelProperty) + " : " + inputText);
+            
             if (optional != null) {
                 return;
             }
             if (validator.isValid(inputText, null)) {
                 label.setForeground(Color.BLUE);
+                if (model.getUndoObject().get(modelProperty).equals(inputText)) {
+                    label.setForeground(Color.BLACK);
+                }
             } else {
                 label.setForeground(Color.RED);
             }
-
         }
 
         public void checkChanges() {
