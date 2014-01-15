@@ -13,9 +13,9 @@ public abstract class Model {
 
     protected transient PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
-    private String hashValue = "";
+    private transient String hashValue = "";
 
-    private XModelListener listener = new XModelListener() {
+    private transient XModelListener listener = new XModelListener() {
         @Override
         public void modelChanged() {
         }
