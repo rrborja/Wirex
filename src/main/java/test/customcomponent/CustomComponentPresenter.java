@@ -25,7 +25,7 @@ public class CustomComponentPresenter extends Presenter {
     public void go() {
         CustomComponentModel model = (CustomComponentModel)getModel();
 //        model.setText33("asdasd");
-        System.out.println(model.getIpAddress());
+        System.out.println(model.getMac());
     }
     
     public void play() {

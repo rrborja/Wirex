@@ -127,7 +127,7 @@ public abstract class Presenter {
     }
 
     public ServerResponse call() {
-        return request(path, new HashMap());
+        return request(path, new HashMap(0));
     }
 
     public ServerResponse call(Map<String, String> args) {
@@ -139,7 +139,7 @@ public abstract class Presenter {
     }
 
     public ServerResponse submit(Map form) {
-        return submit(form, new HashMap());
+        return submit(form, new HashMap(0));
     }
 
     public ServerResponse submit(Map form, Map<String, String> args) {

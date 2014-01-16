@@ -172,13 +172,13 @@ final class WirexCore implements Wirex {
             .expireAfterAccess(1, TimeUnit.SECONDS)
             .build(new ServerResponseCacheLoader());
 
-    private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap();
+    private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap(10);
 
-    private final ConcurrentMap<String, JComponent> components = new ConcurrentHashMap();
+    private final ConcurrentMap<String, JComponent> components = new ConcurrentHashMap(10);
 
-    private final ConcurrentMap<Class<? extends Validator>, List> validators = new ConcurrentHashMap();
+    private final ConcurrentMap<Class<? extends Validator>, List> validators = new ConcurrentHashMap(10);
 
-    private final ConcurrentMap<String, JLabel> mediators = new ConcurrentHashMap();
+    private final ConcurrentMap<String, JLabel> mediators = new ConcurrentHashMap(10);
 
     private final LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
@@ -190,9 +190,9 @@ final class WirexCore implements Wirex {
                 }
             });
 
-    private final ConcurrentMap<Class<? extends Presenter>, Presenter> presenters = new ConcurrentHashMap();
+    private final ConcurrentMap<Class<? extends Presenter>, Presenter> presenters = new ConcurrentHashMap(10);
 
-    private final ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap();
+    private final ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap(10);
 
     private final LoadingCache<String, ImageIcon> iconResource = CacheBuilder.newBuilder()
             .maximumSize(10)
@@ -528,7 +528,7 @@ final class WirexCore implements Wirex {
                             LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
                             continue;
                         }
-                        Map<String, Method> listeners = new HashMap<>();
+                        Map<String, Method> listeners = new HashMap<>(0);
                         Method injectListenerMethod = ListenerFactory.class.getMethod("ActionListener", Object.class, Map.class);
                         listeners.put("actionPerformed", presenterMethods.get(presenterMethodName));
                         ActionListener listener = (ActionListener) injectListenerMethod.invoke(null, presenter, listeners);
@@ -561,13 +561,13 @@ final class WirexCore implements Wirex {
             for (Field field : fields) {
                 Class clazz = field.getType();
                 field.setAccessible(true);
-                if (clazz == Integer.class) {
+                if (clazz == Integer.class || clazz.getName().equals("int")) {
                     field.set(model, 0);
-                } else if (clazz == Double.class || clazz == Float.class) {
+                } else if (clazz == Double.class || clazz == Float.class || clazz.getName().equals("double") || clazz.getName().equals("float")) {
                     field.set(model, 0.0);
                 } else if (clazz == String.class) {
                     field.set(model, "");
-                } else if (clazz == Boolean.class) {
+                } else if (clazz == Boolean.class || clazz.getName().equals("boolean")) {
                     field.set(model, false);
                 } else {
                     field.set(model, clazz.newInstance());
@@ -701,7 +701,7 @@ final class WirexCore implements Wirex {
 
         final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
         Retrieve retrieve;
-        final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>();
+        final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>(0);
         if (retrieveAnnotations[0].length > 0) {
             retrieve = (Retrieve) retrieveAnnotations[0][0];
             for (String methodName : retrieve.value()) {
@@ -818,7 +818,7 @@ final class WirexCore implements Wirex {
                         }
                     }
                     modelProperty = LegalIdentifierChecker.check(data.value());
-                    if (data.data().equals("")) {
+                    if (data.data().isEmpty()) {
                         bindComponent(clazz, model, modelProperty);
                     } else {
                         String selectedItemProperty = LegalIdentifierChecker.check(data.data());
@@ -935,7 +935,7 @@ final class WirexCore implements Wirex {
                 Class component = field.getType();
                 Object componentObject = field.get(viewPanel);
                 Class<?> listenerType = ActionListener.class;
-                Map<String, Method> listeners = new HashMap<>();
+                Map<String, Method> listeners = new HashMap<>(0);
                 for (Event event : events) {
                     presenterMethodName = LegalIdentifierChecker.check(event.value());
                     String listenerMethod = event.at().getMethod();
@@ -960,7 +960,7 @@ final class WirexCore implements Wirex {
                 Object componentObject = field.get(viewPanel);
                 for (EventContainer eventContainer : eventContainers) {
                     Class listenerType = eventContainer.listens();
-                    Map<String, Method> listeners = new HashMap<>();
+                    Map<String, Method> listeners = new HashMap<>(0);
                     String listenerTypeName = listenerType.getSimpleName();
                     if (listenerTypeName.contains("Adapter")) {
                         listenerType = Class.forName("java.awt.event." + listenerTypeName.replace("Adapter", "Listener"));
@@ -1034,7 +1034,7 @@ final class WirexCore implements Wirex {
     }
 
     private static Map getMethods(Method[] methods) {
-        Map<String, Method> map = new HashMap<>();
+        Map<String, Method> map = new HashMap<>(0);
         for (Method method : methods) {
             String name = method.getName();
             map.put(name, method);
@@ -1234,40 +1234,32 @@ final class WirexCore implements Wirex {
         } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
             Bindings.bind((JCheckBox) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
-            XList list = (XList) componentModel.getValue();
-            if (list != null && property2 != null) {
-                DefaultEventComboBoxModel model = GlazedListsSwing.eventComboBoxModelWithThreadProxyList(list);
-                newComponent = new JComboBox(model);
-
-                final JComboBox comboboxComponent = (JComboBox) newComponent;
-                comboboxComponent.addItemListener((ItemEvent event) -> {
-                    if (event.getStateChange() == ItemEvent.SELECTED) {
-                        Object item = event.getItem();
-                        adapter.getModel(property2).setValue(item);
-                    }
-                });
-                adapter.getModel(property2).addPropertyChangeListener((PropertyChangeEvent evt) -> {
-                    Object value = evt.getNewValue();
-                    if (list.contains(value)) {
-                        comboboxComponent.setSelectedItem(value);
-                    } else {
-                        comboboxComponent.setSelectedItem(null);
-                    }
-                });
-
+            Object propertyObject = componentModel.getValue();
+            if (!(propertyObject instanceof XList)) {
+                LOG.warn("Property {} failed to bind. Your component may not work. "
+                        + "Make sure your combo box binding should have exactly"
+                        + "2 arguments for selected value and the list of values.");
             } else {
-                if (list == null && property2 == null) {
-                    LOG.warn("This is embarrassing. Do you have the Selected "
-                            + "Value and List Value properties for your combo "
-                            + "box binding in your Model {}?", bean.getClass());
-                } else if (list != null && property2 == null) {
-                    LOG.warn("This is embarrassing. Do you have the Selected "
-                            + "Value property for your combo box binding "
-                            + "in your Model {}?", bean.getClass());
-                } else if (list == null && property2 != null) {
-                    LOG.warn("This is embarrassing. Do you have the Selected "
-                            + "List Value properties for your combo "
-                            + "box binding in your Model {}?", bean.getClass());
+                XList list = (XList) propertyObject;
+                if (list != null && property2 != null) {
+                    DefaultEventComboBoxModel model = GlazedListsSwing.eventComboBoxModelWithThreadProxyList(list);
+                    newComponent = new JComboBox(model);
+
+                    final JComboBox comboboxComponent = (JComboBox) newComponent;
+                    comboboxComponent.addItemListener((ItemEvent event) -> {
+                        if (event.getStateChange() == ItemEvent.SELECTED) {
+                            Object item = event.getItem();
+                            adapter.getModel(property2).setValue(item);
+                        }
+                    });
+                    adapter.getModel(property2).addPropertyChangeListener((PropertyChangeEvent evt) -> {
+                        Object value = evt.getNewValue();
+                        if (list.contains(value)) {
+                            comboboxComponent.setSelectedItem(value);
+                        } else {
+                            comboboxComponent.setSelectedItem(null);
+                        }
+                    });
                 }
             }
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
@@ -1597,13 +1589,15 @@ final class WirexCore implements Wirex {
             String inputText = value != null ? value.toString() : "";
 
             System.out.println(model.getUndoObject().get(modelProperty) + " : " + inputText);
-            
+
             if (optional != null) {
                 return;
             }
             if (validator.isValid(inputText, null)) {
                 label.setForeground(Color.BLUE);
-                if (model.getUndoObject().get(modelProperty).equals(inputText)) {
+                Object state = model.getUndoObject().get(modelProperty);
+                state = state != null ? state : "";
+                if (state.equals(inputText)) {
                     label.setForeground(Color.BLACK);
                 }
             } else {

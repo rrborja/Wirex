@@ -14,11 +14,9 @@ import net.wirex.interfaces.Presenter;
 
 public class MainMenuBarPresenter extends Presenter {
 
-    MainMenuBar mainMenuBar;
 
     public MainMenuBarPresenter(JMenuBar menu) {
 	super(menu);
-	this.mainMenuBar = (MainMenuBar) menu;
     }
 
     public void showReportCenter() {

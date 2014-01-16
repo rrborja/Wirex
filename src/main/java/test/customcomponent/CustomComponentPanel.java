@@ -40,6 +40,7 @@ public class CustomComponentPanel extends javax.swing.JPanel {
         jButton1 = new javax.swing.JButton();
         jTextField1 = AppEngine.checkout(JTextField.class, "text33");
         jButton2 = new javax.swing.JButton();
+        mACAddressField1 = AppEngine.checkout(MACAddressField.class, "mac");
 
         jButton1.setText("jButton1");
 
@@ -52,6 +53,7 @@ public class CustomComponentPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(136, 136, 136)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(mACAddressField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                         .addComponent(iPAddressField1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jTextField1))
@@ -66,7 +68,9 @@ public class CustomComponentPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(78, 78, 78)
                 .addComponent(iPAddressField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(54, 54, 54)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(mACAddressField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(23, 23, 23)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(jButton2))
@@ -86,6 +90,8 @@ public class CustomComponentPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButton2;
     @Data("text33")
     private javax.swing.JTextField jTextField1;
+    @Data("mac")
+    private test.customcomponent.MACAddressField mACAddressField1;
     // End of variables declaration//GEN-END:variables
 
     public static void main(String[] args) {

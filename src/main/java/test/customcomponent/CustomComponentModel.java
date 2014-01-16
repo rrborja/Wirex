@@ -15,6 +15,7 @@ import net.wirex.interfaces.Model;
 public class CustomComponentModel extends Model {
     private String ipAddress;
     private String text33;
+    private String mac;
 
     public String getIpAddress() {
         return ipAddress;
@@ -34,6 +35,16 @@ public class CustomComponentModel extends Model {
         String oldValue = text33;
         this.text33 = newValue;
         fireChanges("text", oldValue, newValue);
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String newValue) {
+        String oldValue = mac;
+        this.mac = newValue;
+        fireChanges("mac", oldValue, newValue);
     }
     
 }
