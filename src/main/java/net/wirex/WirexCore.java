@@ -135,6 +135,7 @@ import net.wirex.interfaces.Resource;
 import net.wirex.interfaces.Validator;
 import net.wirex.structures.XComponent;
 import net.wirex.structures.XList;
+import net.wirex.structures.XLive;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
 import org.jdesktop.swingx.JXHyperlink;
@@ -150,7 +151,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.21-BETA";
+    public static final String version = "1.0.14.23-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -237,6 +238,10 @@ final class WirexCore implements Wirex {
     private String error;
 
     private BufferedImage screenshot;
+    
+    private Map<String, XLive> liveContainer;
+    
+    private SocketEngine socket;
 
     public WirexCore() {
         this("http://10.0.1.69:8080/g7/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
@@ -250,6 +255,8 @@ final class WirexCore implements Wirex {
         this.hostname = hostname;
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
+        this.liveContainer = new HashMap<>(3);
+        this.socket = new SocketEngine();
 //        new ConsoleProcess("console").start();
     }
 
@@ -631,6 +638,10 @@ final class WirexCore implements Wirex {
         } else {
             model = createModel(modelClass);
             models.put(modelClass, model);
+        }
+        
+        if (model instanceof XLive) {
+            liveContainer.put(model.getClass().getName(), (XLive)model);
         }
 
         for (Field field : fields) {
@@ -1519,6 +1530,11 @@ final class WirexCore implements Wirex {
         Graphics2D g = bi.createGraphics();
         panel.paint(g);
         return bi;
+    }
+
+    @Override
+    public XLive releaseXLive(String name) {
+        return liveContainer.get(name);
     }
 
     public class MyActionListener implements ActionListener {

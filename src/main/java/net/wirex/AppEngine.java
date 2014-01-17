@@ -10,6 +10,7 @@ import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import net.wirex.structures.XLive;
 
 /**
  *
@@ -96,6 +97,10 @@ public final class AppEngine {
 
     public static <T> T checkout(Class<T> component, String name, String url) {
         return instance.checkout(component, name, url);
+    }
+    
+    static XLive releaseXLive(String name) {
+        return instance.releaseXLive(name);
     }
     
     /**

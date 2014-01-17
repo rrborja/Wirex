@@ -4,7 +4,7 @@
 
     <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.14.22-BETA</version>
+    <version>1.0.14.23-BETA</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
@@ -37,7 +37,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+<!--            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <executions>
@@ -48,7 +48,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
         </plugins>
         <extensions>
             <extension>
@@ -177,6 +177,12 @@
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
             <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.3.0</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
 </project>

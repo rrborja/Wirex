@@ -11,6 +11,7 @@ import net.wirex.exceptions.WrongComponentException;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.interfaces.Validator;
+import net.wirex.structures.XLive;
 
 /**
  *
@@ -27,7 +28,7 @@ interface Wirex {
      * @deprecated Use checkout(Class component, String name) instead
      */
     <T> T checkout(String name);
-    
+
     /**
      * Checkouts a prepared component binded from @Data
      *
@@ -37,41 +38,41 @@ interface Wirex {
      * @return Returns a model-binded component
      */
     <T> T checkout(Class<T> component, String name);
-    
+
     String getError();
-    
+
     BufferedImage getScreenshot();
-    
+
     void setPermissionModel(Class<? extends Model> modelClass);
-    
+
     List checkout(Class<? extends Validator> validator);
-    
+
     JLabel mediator(String name);
-    
+
     void showError(Presenter presenter, Exception ex);
-    
+
     Icon icon(String filename);
-    
+
     Map form(Presenter presenter);
-    
+
     <T> T access(Class<T> presenter);
-    
+
     Model checkoutModel(Class<? extends Model> modelClass);
-    
+
     List listModels();
-    
+
     List listViews();
-    
+
     List listPresenters();
-    
+
     void setTrayIcon(String iconName);
-    
+
     <T> T checkout(Class<T> component, String name, String url);
-    
+
     <T> T settle(Class<T> menuBarClass);
-    
+
     String hash(Model model);
-    
+
     /**
      * Connects a Java EE web server that supports REST transactions
      *
@@ -79,14 +80,14 @@ interface Wirex {
      * transactions
      */
     void connect(String url);
-    
+
     /**
      * Locates a suite of icons from a web server for the ResourceBundle feature
      *
      * @param url The URL to retrieve the icons
      */
     void locateResource(String url);
-    
+
     /**
      * Connects to a server based on the request headers in the ServerRequest
      * object. It should contain all the required properties such as REST
@@ -97,7 +98,7 @@ interface Wirex {
      * @return A response from the server
      */
     ServerResponse push(ServerRequest request);
-    
+
     /**
      * Prepares a binded view class together with its Presenter and Model
      * classes and binds them together to form an MVP object that contains
@@ -111,7 +112,7 @@ interface Wirex {
      * declaration is not of type JComponent
      */
     MVP prepare(Class viewClass) throws ViewClassNotBindedException, WrongComponentException;
-    
+
     /**
      * Deserialization tool to transfer a data from a model to the model origin.
      *
@@ -121,7 +122,7 @@ interface Wirex {
      * @param fromJson The model to be transfered
      */
     void deserialize(Model model, Model fromJson);
-    
+
     /**
      * Snips a field data in the Model. To snip, fields must have @Snip
      * annotation
@@ -135,7 +136,7 @@ interface Wirex {
      * @throws IllegalAccessException
      */
     String snip(Model model) throws IllegalArgumentException, IllegalAccessException;
-    
+
     /**
      * Injects the Wirex REST specification listener to the event components.
      *
@@ -144,7 +145,7 @@ interface Wirex {
      * @param method The method to inject with
      */
     void injectRestSpec(Object presenter, Method method);
-    
+
     /**
      * Transitional state method to change windows and disposing a window. This
      * method should not be used unless you know what you're doing
@@ -158,13 +159,15 @@ interface Wirex {
      * field declaration is not of type JComponent
      */
     void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException;
-    
+
     /**
      * Disposes a presenter's binded View
      *
      * @param presenter The presenter where its binded View to be disposed
      */
     void dispose(Presenter presenter);
+
+    XLive releaseXLive(String name);
 
     String encodeToUrl(Model body);
 }
