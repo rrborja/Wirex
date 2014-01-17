@@ -151,7 +151,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.23-BETA";
+    public static final String version = "1.0.14.24-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -238,9 +238,9 @@ final class WirexCore implements Wirex {
     private String error;
 
     private BufferedImage screenshot;
-    
+
     private Map<String, XLive> liveContainer;
-    
+
     private SocketEngine socket;
 
     public WirexCore() {
@@ -356,7 +356,12 @@ final class WirexCore implements Wirex {
 
     @Override
     public JLabel mediator(String name) {
-        return mediators.remove(name);
+        if (mediators.containsKey(name)) {
+            return mediators.remove(name);
+        } else {
+            LOG.info("This mediator {} doesn't exist in the Wirex container.", name);
+            return new JLabel();
+        }
     }
 
     @Override
@@ -639,9 +644,9 @@ final class WirexCore implements Wirex {
             model = createModel(modelClass);
             models.put(modelClass, model);
         }
-        
+
         if (model instanceof XLive) {
-            liveContainer.put(model.getClass().getName(), (XLive)model);
+            liveContainer.put(model.getClass().getName(), (XLive) model);
         }
 
         for (Field field : fields) {
