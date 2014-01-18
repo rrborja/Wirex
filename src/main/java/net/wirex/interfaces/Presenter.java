@@ -2,8 +2,10 @@ package net.wirex.interfaces;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -36,6 +38,7 @@ public abstract class Presenter {
     private Model form;
     private Model domain;
     private String rest;
+    private final Map<String, Object> undoManager = new HashMap<>(5);
 
     public Presenter(JMenuBar menu) {
         this.menu = menu;
@@ -66,6 +69,44 @@ public abstract class Presenter {
         return view;
     }
 
+    public void store() {
+        Map<String, Object> map = new HashMap<>(5);
+        Class modelClass = model.getClass();
+        Field[] fields = modelClass.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            String property = field.getName();
+            try {
+                map.put(property, field.get(model));
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                LOG.warn("Can't process field {}.{}", model.getClass().toString(), property);
+                map.put(property, null);
+            }
+            field.setAccessible(false);
+        }
+        this.undoManager.clear();
+        this.undoManager.putAll(map);
+    }
+    
+    private String retrieveSetterProperty(String methodName) {
+        String result = methodName.replace("set", "");
+        result = Character.toLowerCase(result.charAt(0)) + result.substring(1);
+        return result;
+    }
+
+    public void undo() {
+        Class modelClass = model.getClass();
+        Method[] methods = modelClass.getDeclaredMethods();
+        for (Method method : methods) {
+            String methodName = retrieveSetterProperty(method.getName());
+            try {
+                method.invoke(model, undoManager.get(methodName));
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                LOG.warn("Can't process field {}.{}", model.getClass().toString(), methodName);
+            }
+        }
+    }
+
     public void clear() {
         Class modelClass = model.getClass();
         Field[] fields = modelClass.getDeclaredFields();
@@ -87,7 +128,7 @@ public abstract class Presenter {
                     } else if (field.getType() == Character.class || field.getType().toString().equals("char")) {
                         PropertyUtils.setProperty(model, property, null);
                     }
-                    
+
                 } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
                     Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
                 }

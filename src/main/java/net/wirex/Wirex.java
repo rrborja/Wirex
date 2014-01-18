@@ -170,4 +170,6 @@ interface Wirex {
     XLive releaseXLive(String name);
 
     String encodeToUrl(Model body);
+
+    void toggleEncryption(boolean toggle);
 }

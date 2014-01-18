@@ -151,7 +151,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.24-BETA";
+    public static final String version = "1.0.14.27-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -242,6 +242,8 @@ final class WirexCore implements Wirex {
     private Map<String, XLive> liveContainer;
 
     private SocketEngine socket;
+    
+    private boolean encrypt;
 
     public WirexCore() {
         this("http://10.0.1.69:8080/g7/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
@@ -257,6 +259,7 @@ final class WirexCore implements Wirex {
         this.privilegeModelClass = privilegeModelClass;
         this.liveContainer = new HashMap<>(3);
         this.socket = new SocketEngine();
+        this.encrypt = false;
 //        new ConsoleProcess("console").start();
     }
 
@@ -1540,6 +1543,11 @@ final class WirexCore implements Wirex {
     @Override
     public XLive releaseXLive(String name) {
         return liveContainer.get(name);
+    }
+
+    @Override
+    public void toggleEncryption(boolean toggle) {
+        this.encrypt = toggle;
     }
 
     public class MyActionListener implements ActionListener {

@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import java.util.Map;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -97,6 +96,10 @@ public final class AppEngine {
 
     public static <T> T checkout(Class<T> component, String name, String url) {
         return instance.checkout(component, name, url);
+    }
+    
+    public static void toggleEncryption(boolean toggle) {
+        instance.toggleEncryption(toggle);
     }
     
     static XLive releaseXLive(String name) {
