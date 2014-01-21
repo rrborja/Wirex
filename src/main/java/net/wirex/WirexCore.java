@@ -151,7 +151,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.28-BETA";
+    public static final String version = "1.0.14.29-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1356,10 +1356,18 @@ final class WirexCore implements Wirex {
                 Field[] fields = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
                 String[] propertyTexts;
+                int numOfTransient = 0;
+                for (Field field : fields) {
+                    int modifiers = field.getModifiers();
+                    if (Modifier.isTransient(modifiers)) {
+                        numOfTransient++;
+                    }
+                }
+                
                 if (Model.class.isAssignableFrom(listTypeClass)) {
-                    propertyNames = new String[fields.length];
-                    propertyTexts = new String[fields.length];
-                    for (int i = 0; i < propertyNames.length; i++) {
+                    propertyNames = new String[fields.length - numOfTransient];
+                    propertyTexts = new String[fields.length - numOfTransient];
+                    for (int i = 0; i < propertyNames.length && Modifier.isTransient(fields[i].getModifiers()); i++) {
                         Column column = (Column) fields[i].getAnnotation(Column.class);
                         String columnName;
                         if (column != null) {

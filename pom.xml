@@ -4,7 +4,7 @@
 
     <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.14.28-BETA</version>
+    <version>1.0.14.29-BETA</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
