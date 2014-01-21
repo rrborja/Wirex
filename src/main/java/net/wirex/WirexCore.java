@@ -1230,9 +1230,7 @@ final class WirexCore implements Wirex {
             Window parent = SwingUtilities.getWindowAncestor(((Presenter) presenter).getPanel());
             MVP mvp = prepare(panelClass, parent);
             mvp.setTitle(fire.title());
-            if (appIcon != null) {
-                mvp.setIconImage(appIcon);
-            }
+            mvp.setIconImage(appIcon);
             mvp.display(fire.type(), true);
             mvp.setResizable(fire.dynamic());
         }
@@ -1765,7 +1763,7 @@ final class WirexCore implements Wirex {
         @Override
         public void setIconImage(Image icon) {
             Window window = SwingUtilities.getWindowAncestor(viewPanel);
-            if (window != null) {
+            if (window != null && icon != null) {
                 if (window.getClass() == JFrame.class) {
                     ((JFrame) window).setIconImage(icon);
                 } else {
