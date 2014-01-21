@@ -151,7 +151,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.29-BETA";
+    public static final String version = "1.0.14.30-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1354,28 +1354,31 @@ final class WirexCore implements Wirex {
                 }
 
                 Field[] fields = listTypeClass.getDeclaredFields();
+                Field[] columns = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
                 String[] propertyTexts;
                 int numOfTransient = 0;
-                for (Field field : fields) {
-                    int modifiers = field.getModifiers();
+                for (int i=0; i<fields.length; i++) {
+                    int modifiers = fields[i].getModifiers();
                     if (Modifier.isTransient(modifiers)) {
                         numOfTransient++;
+                    } else {
+                        columns[i-numOfTransient] = fields[i];
                     }
                 }
                 
                 if (Model.class.isAssignableFrom(listTypeClass)) {
                     propertyNames = new String[fields.length - numOfTransient];
                     propertyTexts = new String[fields.length - numOfTransient];
-                    for (int i = 0; i < propertyNames.length && Modifier.isTransient(fields[i].getModifiers()); i++) {
-                        Column column = (Column) fields[i].getAnnotation(Column.class);
+                    for (int i = 0; i < propertyNames.length; i++) {
+                        Column column = (Column) columns[i].getAnnotation(Column.class);
                         String columnName;
                         if (column != null) {
                             columnName = column.value();
                         } else {
-                            columnName = fields[i].getName();
+                            columnName = columns[i].getName();
                         }
-                        propertyNames[i] = fields[i].getName();
+                        propertyNames[i] = columns[i].getName();
                         propertyTexts[i] = columnName;
                     }
                 } else {
