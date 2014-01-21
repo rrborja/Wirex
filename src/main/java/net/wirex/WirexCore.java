@@ -151,7 +151,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.27-BETA";
+    public static final String version = "1.0.14.28-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -242,8 +242,10 @@ final class WirexCore implements Wirex {
     private Map<String, XLive> liveContainer;
 
     private SocketEngine socket;
-    
+
     private boolean encrypt;
+
+    private Image appIcon;
 
     public WirexCore() {
         this("http://10.0.1.69:8080/g7/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
@@ -1228,6 +1230,9 @@ final class WirexCore implements Wirex {
             Window parent = SwingUtilities.getWindowAncestor(((Presenter) presenter).getPanel());
             MVP mvp = prepare(panelClass, parent);
             mvp.setTitle(fire.title());
+            if (appIcon != null) {
+                mvp.setIconImage(appIcon);
+            }
             mvp.display(fire.type(), true);
             mvp.setResizable(fire.dynamic());
         }
@@ -1531,6 +1536,11 @@ final class WirexCore implements Wirex {
         }
     }
 
+    @Override
+    public void setAppIcon(Icon appIcon) {
+        this.appIcon = ((ImageIcon) appIcon).getImage();
+    }
+
     private BufferedImage createImage(JPanel panel) {
         int w = panel.getWidth();
         int h = panel.getHeight();
@@ -1705,11 +1715,17 @@ final class WirexCore implements Wirex {
                     ((JFrame) dialog).setTitle(title);
                     ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                     ((JFrame) dialog).setContentPane(viewPanel);
+                    if (appIcon != null) {
+                        ((JFrame) dialog).setIconImage(appIcon);
+                    }
                 } else {
                     dialog = new JDialog(parent);
                     ((JDialog) dialog).setTitle(title);
                     ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                     ((JDialog) dialog).setContentPane(viewPanel);
+                    if (appIcon != null) {
+                        ((JDialog) dialog).setIconImage(appIcon);
+                    }
                 }
                 dialog.pack();
                 dialog.setMinimumSize(dialog.getPreferredSize());
@@ -1743,6 +1759,18 @@ final class WirexCore implements Wirex {
                 frame.setResizable(resizable);
             } else {
                 LOG.warn("Current window type {} doesn't support yet in this framework", window.getType());
+            }
+        }
+
+        @Override
+        public void setIconImage(Image icon) {
+            Window window = SwingUtilities.getWindowAncestor(viewPanel);
+            if (window != null) {
+                if (window.getClass() == JFrame.class) {
+                    ((JFrame) window).setIconImage(icon);
+                } else {
+                    ((JDialog) window).setIconImage(icon);
+                }
             }
         }
 

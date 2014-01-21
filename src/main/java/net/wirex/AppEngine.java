@@ -226,6 +226,10 @@ public final class AppEngine {
         return instance.hash(model);
     }
     
+    public static void setAppIcon(String icon) {
+        instance.setAppIcon(icon(icon));
+    }
+    
     protected static Wirex getInstance() {
         return instance;
     }

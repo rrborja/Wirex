@@ -172,4 +172,6 @@ interface Wirex {
     String encodeToUrl(Model body);
 
     void toggleEncryption(boolean toggle);
+
+    void setAppIcon(Icon icon);
 }

@@ -1,5 +1,6 @@
 package net.wirex;
 
+import java.awt.Image;
 import java.awt.Window;
 import javax.swing.JPanel;
 
@@ -45,5 +46,13 @@ public interface MVP {
      * @param resizable value to allow user resizing the window
      */
     void setResizable(boolean resizable);
+    
+    /**
+     * Sets the window's icon
+     * 
+     * @param icon the icon to set the window
+     */
+    void setIconImage(Image icon);
 
 }
+
