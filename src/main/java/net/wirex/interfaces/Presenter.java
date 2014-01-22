@@ -94,6 +94,11 @@ public abstract class Presenter {
         return result;
     }
 
+    /**
+     * 
+     * @deprecated Use in the model class undo()
+     */
+    @Deprecated
     public void undo() {
         Class modelClass = model.getClass();
         Method[] methods = modelClass.getDeclaredMethods();
