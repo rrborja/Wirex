@@ -7,6 +7,7 @@ package test;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
 import net.wirex.annotations.Form;

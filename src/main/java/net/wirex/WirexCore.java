@@ -156,7 +156,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.32-BETA";
+    public static final String version = "1.0.14.33-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",

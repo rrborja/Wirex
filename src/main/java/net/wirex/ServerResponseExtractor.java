@@ -37,6 +37,8 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     public static final int MESSAGE = 3;
 
     public static final int BUG = 4;
+    
+    public static final int COMMAND = 5;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseExtractor.class.getName());
 
@@ -163,6 +165,11 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 DetailModel errorModel = (DetailModel) AppEngine.checkoutModel(DetailModel.class);
                 errorModel.setReport("Caused by: " + errorResponse.getException() + ": " + errorResponse.getMessage() + "\n" + errorResponse.getLogs());
                 mvp.display(JDialog.class);
+                break;
+            case COMMAND:
+                Integer command = gson.fromJson(reader, Integer.class);
+                LOG.info("[{}] Server returned a command response {} from feature {}", status, command, feature);
+                return new ServerResponse<>(HttpStatus.OK, command);
         }
         return new ServerResponse(HttpStatus.OK, new Model() {
         });
@@ -184,6 +191,12 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
         public static final int WARN = 2;
         public static final int QUESTION = 3;
 
+    }
+    
+    private static class LegacyCommands {
+        
+        public static final int LOGIN = 0;
+        
     }
 
     private class ErrorResponseStructure {

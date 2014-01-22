@@ -87,7 +87,7 @@ public abstract class Presenter {
         this.model.getUndoObject().clear();
         this.model.getUndoObject().putAll(map);
     }
-    
+
     private String retrieveSetterProperty(String methodName) {
         String result = methodName.replace("set", "");
         result = Character.toLowerCase(result.charAt(0)) + result.substring(1);
@@ -95,7 +95,7 @@ public abstract class Presenter {
     }
 
     /**
-     * 
+     *
      * @deprecated Use in the model class undo()
      */
     @Deprecated
@@ -233,6 +233,10 @@ public abstract class Presenter {
             AppEngine.deserialize(model, (Model) response.getMessage());
         }
         return response;
+    }
+
+    public void onBackground() {
+        throw new UnsupportedOperationException("onBackground is not implemented in your presenter " + this.getClass().getName());
     }
 
     public abstract void run(ConcurrentHashMap<String, Invoker> methods);
