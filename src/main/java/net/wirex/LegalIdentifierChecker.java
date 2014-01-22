@@ -40,4 +40,7 @@ public final class LegalIdentifierChecker {
         return token;
     }
 
+    private LegalIdentifierChecker() {
+    }
+
 }

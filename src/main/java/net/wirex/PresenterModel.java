@@ -10,10 +10,10 @@ import net.wirex.interfaces.Model;
  */
 public class PresenterModel extends Model {
 
-    private Map<String, Model> form;
+    private final Map<String, Model> form;
 
     public PresenterModel() {
-        form = new HashMap<>();
+        form = new HashMap<>(5);
     }
 
     public PresenterModel(Map form) {

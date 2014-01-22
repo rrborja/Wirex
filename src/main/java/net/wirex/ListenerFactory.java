@@ -724,4 +724,7 @@ public final class ListenerFactory {
         };
     }
 
+    private ListenerFactory() {
+    }
+
 }

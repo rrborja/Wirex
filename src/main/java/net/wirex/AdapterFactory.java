@@ -84,4 +84,7 @@ public final class AdapterFactory {
             }
         };
     }
+
+    private AdapterFactory() {
+    }
 }

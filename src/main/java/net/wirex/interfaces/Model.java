@@ -31,7 +31,7 @@ public abstract class Model {
     };
 
     private Map synchronize() {
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(5);
         Class clazz = this.getClass();
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {

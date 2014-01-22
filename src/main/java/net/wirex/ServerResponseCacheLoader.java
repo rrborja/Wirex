@@ -24,10 +24,10 @@ import org.springframework.web.util.UriTemplate;
  */
 final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerResponse> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ServerResponseCacheLoader.class.getName());
+
     ApplicationContext applicationContext;
     RestTemplate rt;
-
-    private static final Logger LOG = LoggerFactory.getLogger(ServerResponseCacheLoader.class.getName());
 
     void init() {
         if (applicationContext == null) {

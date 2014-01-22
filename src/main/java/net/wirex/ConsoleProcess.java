@@ -68,7 +68,7 @@ class ConsoleProcess extends Thread {
         Scanner sc = new Scanner(System.in);
         while (sc.hasNextLine()) {
             String command = sc.nextLine();
-            if (!systemUser.equals("") || command.equals("login") || command.equals("quit")) {
+            if (!systemUser.isEmpty() || command.equals("login") || command.equals("quit")) {
                 String commands[] = command.split(" ");
                 String params[] = new String[commands.length - 1];
                 for (int i = 1; i < commands.length; i++) {
@@ -136,7 +136,7 @@ class ConsoleProcess extends Thread {
                 }
                 byte b[] = new byte[available];
                 in.read(b);
-                input = input + new String(b, 0, b.length);
+                input += new String(b, 0, b.length);
             } while (!input.endsWith("\n") && !input.endsWith("\r\n") && !quit);
             return input;
         }

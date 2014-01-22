@@ -21,9 +21,12 @@ import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -63,6 +66,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -82,6 +86,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
@@ -151,7 +156,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.30-BETA";
+    public static final String version = "1.0.14.31-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -162,9 +167,17 @@ final class WirexCore implements Wirex {
             String date = dateFormat.format(dateObject);
             LOG.info("Wirex Framework v{} {}", version, date);
         } catch (Throwable t) {
-//            LOG.info("UI Development inside IDE");
-            System.out.println(t);
+            LOG.info("UI Development inside IDE");
         }
+    }
+
+    private static Map getMethods(Method[] methods) {
+        Map<String, Method> map = new HashMap<>(0);
+        for (Method method : methods) {
+            String name = method.getName();
+            map.put(name, method);
+        }
+        return map;
     }
 
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
@@ -247,11 +260,11 @@ final class WirexCore implements Wirex {
 
     private Image appIcon;
 
-    public WirexCore() {
+    WirexCore() {
         this("http://10.0.1.69:8080/g7/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
     }
 
-    public WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
+    WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
         this.totalPreparedViews = 0;
         this.stackCount = 0;
         this.preStackUncheckedOutComponentCounts = new Stack();
@@ -525,7 +538,7 @@ final class WirexCore implements Wirex {
         if (!JMenuBar.class.isAssignableFrom(menuClass)) {
 
         }
-        Bind bind = (Bind) menuClass.getAnnotation(Bind.class);
+        Bind bind = menuClass.getAnnotation(Bind.class);
         Class<? extends Presenter> presenterClass = bind.presenter();
         try {
             JMenuBar menuBar = (JMenuBar) menuClass.newInstance();
@@ -566,7 +579,7 @@ final class WirexCore implements Wirex {
             }
             return (T) menuBar;
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
-            ex.printStackTrace();
+            LOG.error("Framework bug!", ex);
             return null;
         }
     }
@@ -616,7 +629,7 @@ final class WirexCore implements Wirex {
         return prepare(viewClass, null);
     }
 
-    protected MVP prepare(Class viewClass, Window parent) {
+    MVP prepare(Class viewClass, Window parent) {
 
         if (!JPanel.class.isAssignableFrom(viewClass)) {
             LOG.error("Attempted to prepare a non-JPanel {}", viewClass);
@@ -666,7 +679,7 @@ final class WirexCore implements Wirex {
         Resource resource;
         try {
             if (property != null) {
-                resource = (Resource) property.value().newInstance();
+                resource = property.value().newInstance();
             } else {
                 resource = null;
             }
@@ -742,7 +755,8 @@ final class WirexCore implements Wirex {
             }, "init-" + presenter.getClass().getSimpleName()).start();
         }
 
-        LOG.info("{}{} loaded. Total prepared MVPs: {}", stackTab(), viewClass.getName(), ++totalPreparedViews);
+        ++totalPreparedViews;
+        LOG.info("{}{} loaded. Total prepared MVPs: {}", stackTab(), viewClass.getName(), totalPreparedViews);
 
         stackCount--;
 
@@ -821,7 +835,7 @@ final class WirexCore implements Wirex {
             if (JComponent.class.isAssignableFrom(clazz)) {
                 try {
                     Field listField = model.getClass().getDeclaredField(data.value());
-                    Path path = (Path) listField.getAnnotation(Path.class);
+                    Path path = listField.getAnnotation(Path.class);
                     if (path != null) {
                         String url = path.value();
                         if (url.startsWith("/")) {
@@ -864,7 +878,7 @@ final class WirexCore implements Wirex {
             } else {
                 throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
             }
-            Rule rule = (Rule) field.getAnnotation(Rule.class);
+            Rule rule = field.getAnnotation(Rule.class);
             if (rule != null) {
                 Class<? extends ConstraintValidator> validatorClass = rule.value();
                 ConstraintValidator validator;
@@ -1033,7 +1047,7 @@ final class WirexCore implements Wirex {
                         field.set(presenter, checkedOutModel);
                         presenterModel.put(field.getName(), checkedOutModel);
                     } else {
-                        Model newModel = (Model) accessModelClass.newInstance();
+                        Model newModel = accessModelClass.newInstance();
                         models.put(accessModelClass, newModel);
                         field.set(presenter, newModel);
                         presenterModel.put(field.getName(), newModel);
@@ -1052,15 +1066,6 @@ final class WirexCore implements Wirex {
         for (T listener : listeners) {
             invoke.invoke(component, listener);
         }
-    }
-
-    private static Map getMethods(Method[] methods) {
-        Map<String, Method> map = new HashMap<>(0);
-        for (Method method : methods) {
-            String name = method.getName();
-            map.put(name, method);
-        }
-        return map;
     }
 
     @Override
@@ -1239,9 +1244,9 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
-        bindComponent(component, bean, property, null);
-    }
+        private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+            bindComponent(component, bean, property, null);
+        }
 
     private void bindComponent(Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
@@ -1254,7 +1259,7 @@ final class WirexCore implements Wirex {
         } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
             Bindings.bind((JLabel) newComponent, componentModel);
         } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
-            Bindings.bind((JCheckBox) newComponent, componentModel);
+            Bindings.bind((AbstractButton) newComponent, componentModel);
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             Object propertyObject = componentModel.getValue();
             if (!(propertyObject instanceof XList)) {
@@ -1285,7 +1290,7 @@ final class WirexCore implements Wirex {
                 }
             }
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
-            Bindings.bind((JRadioButton) newComponent, componentModel);
+            Bindings.bind((AbstractButton) newComponent, componentModel);
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
             BeanAdapter beanAdapter = new BeanAdapter(bean, true);
             Bindings.bind(newComponent, "value", beanAdapter.getValueModel(property));
@@ -1300,7 +1305,7 @@ final class WirexCore implements Wirex {
                 Field listField = bean.getClass().getDeclaredField(property);
                 Class modelClass = listField.getType();
                 Object model = componentModel.getValue();
-                EventList eventList = (XList) model;
+                EventList eventList = (EventList) model;
                 SortedList sortedList = new SortedList(eventList, null);
                 TreeList list = new TreeList(sortedList, new XTreeFormat(model), TreeList.NODES_START_EXPANDED);
 //                JTree tree = new JTree(new EventTreeModel(list));
@@ -1338,9 +1343,9 @@ final class WirexCore implements Wirex {
         } else if (JTable.class == component || JTable.class.isAssignableFrom(component) || JXTable.class == component || JXTable.class.isAssignableFrom(component)) {
             try {
                 /*
-                 * Throw exception if List has no generic types
-                 */
-
+                * Throw exception if List has no generic types
+                */
+                
                 Field listField = bean.getClass().getDeclaredField(property);
                 java.lang.reflect.Type type = listField.getGenericType();
 
@@ -1371,7 +1376,7 @@ final class WirexCore implements Wirex {
                     propertyNames = new String[fields.length - numOfTransient];
                     propertyTexts = new String[fields.length - numOfTransient];
                     for (int i = 0; i < propertyNames.length; i++) {
-                        Column column = (Column) columns[i].getAnnotation(Column.class);
+                        Column column = columns[i].getAnnotation(Column.class);
                         String columnName;
                         if (column != null) {
                             columnName = column.value();
@@ -1382,7 +1387,7 @@ final class WirexCore implements Wirex {
                         propertyTexts[i] = columnName;
                     }
                 } else {
-                    EventList list = (XList) componentModel.getValue();
+                    EventList list = (EventList) componentModel.getValue();
                     propertyNames = new String[]{"value"};
                     propertyTexts = new String[]{"Value"};
                     for (int i = 0; i < list.size(); i++) {
@@ -1393,7 +1398,7 @@ final class WirexCore implements Wirex {
 //                    System.out.println(listTypeClass);
                 }
 
-                EventList rows = (XList) adapter.getModel(property).getValue();
+                EventList rows = (EventList) adapter.getModel(property).getValue();
                 TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyTexts);
 
                 if (JTable.class == component) {
@@ -1466,65 +1471,65 @@ final class WirexCore implements Wirex {
      * @param presenter The presenter where its binded View to be disposed
      */
     @Override
-    public void dispose(Presenter presenter) {
-        JPanel panel = presenter.getPanel();
-        Window window = SwingUtilities.getWindowAncestor(panel);
-        window.dispose();
-        presenters.remove(presenter.getClass());
-        Class clazz = panel.getClass();
-        Bind bind = (Bind) clazz.getAnnotation(Bind.class);
-        models.remove(bind.model());
-        totalPreparedViews--;
-    }
+public void dispose(Presenter presenter) {
+    JPanel panel = presenter.getPanel();
+    Window window = SwingUtilities.getWindowAncestor(panel);
+    window.dispose();
+    presenters.remove(presenter.getClass());
+    Class clazz = panel.getClass();
+    Bind bind = (Bind) clazz.getAnnotation(Bind.class);
+    models.remove(bind.model());
+    totalPreparedViews--;
+}
 
-    private void scanFieldWithBalloon(final Balloon balloon, final Field field, final Object viewPanel) throws ViewClassNotBindedException, WrongComponentException {
-        try {
-            if (balloon != null) {
-                JComponent fieldComponent = (JComponent) field.get(viewPanel);
-                String text = balloon.text();
-                Class<? extends JComponent> componentClass = balloon.value();
-                Integer seconds = balloon.seconds();
-                if (componentClass == JPanel.class) {
-                    JLabel label = new JLabel(text);
-                    label.setForeground(new Color(230, 230, 230));
-                    BalloonTip balloonTip = new BalloonTip(fieldComponent, label,
-                            new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                            BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                            0, 5, false);
-                    ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000);
-                } else {
-                    Object component = componentClass.newInstance();
-                    if (component instanceof JPanel) {
-                        JPanel view = (JPanel) component;
-                        Class viewClass = view.getClass();
-                        Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
-                        JComponent finalBalloonPanel;
-                        if (bind != null) {
-                            MVP mvp = prepare(viewClass);
-                            finalBalloonPanel = mvp.getView();
-                        } else {
-                            finalBalloonPanel = (JPanel) viewClass.newInstance();
-                        }
-                        BalloonTip balloonTip = new BalloonTip(fieldComponent, finalBalloonPanel,
+        private void scanFieldWithBalloon(final Balloon balloon, final Field field, final Object viewPanel) throws ViewClassNotBindedException, WrongComponentException {
+            try {
+                if (balloon != null) {
+                    JComponent fieldComponent = (JComponent) field.get(viewPanel);
+                    String text = balloon.text();
+                    Class<? extends JComponent> componentClass = balloon.value();
+                    Integer seconds = balloon.seconds();
+                    if (componentClass == JPanel.class) {
+                        JLabel label = new JLabel(text);
+                        label.setForeground(new Color(230, 230, 230));
+                        BalloonTip balloonTip = new BalloonTip(fieldComponent, label,
                                 new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
                                 BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
                                 0, 5, false);
-                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000);
                     } else {
-                        BalloonTip balloonTip = new BalloonTip(fieldComponent, (JComponent) component,
-                                new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                0, 5, false);
-                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                        Object component = componentClass.newInstance();
+                        if (component instanceof JPanel) {
+                            JPanel view = (JPanel) component;
+                            Class viewClass = view.getClass();
+                            Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+                            JComponent finalBalloonPanel;
+                            if (bind != null) {
+                                MVP mvp = prepare(viewClass);
+                                finalBalloonPanel = mvp.getView();
+                            } else {
+                                finalBalloonPanel = (JComponent) viewClass.newInstance();
+                            }
+                            BalloonTip balloonTip = new BalloonTip(fieldComponent, finalBalloonPanel,
+                                    new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                    BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                    0, 5, false);
+                            ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                        } else {
+                            BalloonTip balloonTip = new BalloonTip(fieldComponent, (JComponent) component,
+                                    new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                    BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                    0, 5, false);
+                            ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                        }
                     }
                 }
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (IllegalArgumentException | IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
 
     private void scanFieldWithPermit(final Permit permit, final Field field, final Object viewPanel) {
         if (permit != null) {
@@ -1550,16 +1555,16 @@ final class WirexCore implements Wirex {
         this.appIcon = ((ImageIcon) appIcon).getImage();
     }
 
-    private BufferedImage createImage(JPanel panel) {
-        int w = panel.getWidth();
-        int h = panel.getHeight();
-        BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = bi.createGraphics();
-        panel.paint(g);
-        return bi;
-    }
+        private BufferedImage createImage(JPanel panel) {
+            int w = panel.getWidth();
+            int h = panel.getHeight();
+            BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = bi.createGraphics();
+            panel.paint(g);
+            return bi;
+        }
 
-    @Override
+        @Override
     public XLive releaseXLive(String name) {
         return liveContainer.get(name);
     }
@@ -1569,7 +1574,7 @@ final class WirexCore implements Wirex {
         this.encrypt = toggle;
     }
 
-    public class MyActionListener implements ActionListener {
+    private class MyActionListener implements ActionListener {
 
         private final String methodName;
         private final Class presenterClass;
@@ -1621,7 +1626,7 @@ final class WirexCore implements Wirex {
         private final Model model;
         private final String modelProperty;
 
-        public MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model) {
+        MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model) {
             this.field = field;
             this.validator = validator;
             this.label = label;
@@ -1635,8 +1640,6 @@ final class WirexCore implements Wirex {
             Optional optional = field.getAnnotation(Optional.class);
             Object value = valueModel.getValue();
             String inputText = value != null ? value.toString() : "";
-
-            System.out.println(model.getUndoObject().get(modelProperty) + " : " + inputText);
 
             if (optional != null) {
                 return;
@@ -1679,23 +1682,23 @@ final class WirexCore implements Wirex {
         private final JPanel viewPanel;
         private final Window parent;
 
-        public MVPObject(Object viewPanel) {
-            this(viewPanel, null);
-        }
-
-        public MVPObject(Object viewPanel, Window parent) {
-            if (viewPanel instanceof JPanel) {
-                this.viewPanel = (JPanel) viewPanel;
-            } else {
-                JPanel panel = new JPanel();
-                panel.removeAll();
-                panel.add((JComponent) viewPanel);
-                this.viewPanel = panel;
-            }
-            this.parent = parent;
-        }
-
         private String title = "Untitled";
+
+                MVPObject(Object viewPanel) {
+                    this(viewPanel, null);
+                }
+
+                MVPObject(Object viewPanel, Window parent) {
+                    if (viewPanel instanceof JPanel) {
+                        this.viewPanel = (JPanel) viewPanel;
+                    } else {
+                        JPanel panel = new JPanel();
+                        panel.removeAll();
+                        panel.add((Component) viewPanel);
+                        this.viewPanel = panel;
+                    }
+                    this.parent = parent;
+                }
 
         @Override
         public JPanel getView() {
@@ -1708,9 +1711,9 @@ final class WirexCore implements Wirex {
             Window window = SwingUtilities.getWindowAncestor(viewPanel);
             if (window != null) {
                 if (window.getClass() == JFrame.class) {
-                    ((JFrame) window).setTitle(title);
+                    ((Frame) window).setTitle(title);
                 } else {
-                    ((JDialog) window).setTitle(title);
+                    ((Dialog) window).setTitle(title);
                 }
             }
         }
@@ -1721,19 +1724,19 @@ final class WirexCore implements Wirex {
                 Window dialog;
                 if (window == JFrame.class) {
                     dialog = new JFrame();
-                    ((JFrame) dialog).setTitle(title);
+                    ((Frame) dialog).setTitle(title);
                     ((JFrame) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                    ((JFrame) dialog).setContentPane(viewPanel);
+                    ((RootPaneContainer) dialog).setContentPane(viewPanel);
                     if (appIcon != null) {
-                        ((JFrame) dialog).setIconImage(appIcon);
+                        dialog.setIconImage(appIcon);
                     }
                 } else {
                     dialog = new JDialog(parent);
-                    ((JDialog) dialog).setTitle(title);
+                    ((Dialog) dialog).setTitle(title);
                     ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                    ((JDialog) dialog).setContentPane(viewPanel);
+                    ((RootPaneContainer) dialog).setContentPane(viewPanel);
                     if (appIcon != null) {
-                        ((JDialog) dialog).setIconImage(appIcon);
+                        dialog.setIconImage(appIcon);
                     }
                 }
                 dialog.pack();

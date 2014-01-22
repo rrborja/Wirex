@@ -35,7 +35,7 @@ public final class ServerRequest<T extends Model> {
         this.rest = rest != null ? REST.valueOf(rest) : null;
         this.path = path;
         this.media = media;
-        this.variables = variables != null ? variables : new HashMap<>();
+        this.variables = variables != null ? variables : new HashMap<>(5);
         this.model = body != null ? body.getClass() : Model.class;
         this.body = body != null ? body : new Model() {
         };

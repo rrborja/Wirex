@@ -20,12 +20,6 @@ public final class AppEngine {
     private static final Wirex instance = new WirexCore();
 
     /**
-     * Make AppEngine a singleton with no constructor
-     */
-    private AppEngine() {
-    }
-
-    /**
      * Checkouts a binded component.
      *
      * @param <T> The type must be a JComponent class or its subclass
@@ -46,11 +40,11 @@ public final class AppEngine {
      * @param name The name of the component binded from the annotated fields
      * @return Returns a model-binded component
      */
-    public static <T> T checkout(Class<T> component, String name) {
-        return instance.checkout(component, name);
-    }
-    
-    public static void setPermissionModel(Class<? extends Model> modelClass) {
+        public static <T> T checkout(Class<T> component, String name) {
+            return instance.checkout(component, name);
+        }
+
+    public static  void setPermissionModel(Class<? extends Model> modelClass) {
         instance.setPermissionModel(modelClass);
     }
     
@@ -81,7 +75,7 @@ public final class AppEngine {
     public static <T> T access(Class<T> presenter) {
         return instance.access(presenter);
     }
-    
+
     protected static Model checkoutModel(Class<? extends Model> modelClass) {
         return instance.checkoutModel(modelClass);
     }
@@ -97,8 +91,8 @@ public final class AppEngine {
     public static <T> T checkout(Class<T> component, String name, String url) {
         return instance.checkout(component, name, url);
     }
-    
-    public static void toggleEncryption(boolean toggle) {
+
+    public static  void toggleEncryption(boolean toggle) {
         instance.toggleEncryption(toggle);
     }
     
@@ -162,7 +156,7 @@ public final class AppEngine {
      * @param model The origin model
      * @param fromJson The model to be transfered
      */
-    public synchronized static void deserialize(Model model, Model fromJson) {
+    public static synchronized void deserialize(Model model, Model fromJson) {
         instance.deserialize(model, fromJson);
     }
 
@@ -209,7 +203,7 @@ public final class AppEngine {
      * @throws WrongComponentException Throws this exception when a annotated
      * field declaration is not of type JComponent
      */
-    protected synchronized static void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException {
+    protected static synchronized void proceed(Object presenter, Method method) throws ViewClassNotBindedException, WrongComponentException {
         instance.proceed(presenter, method);
     }
 
@@ -232,5 +226,11 @@ public final class AppEngine {
     
     protected static Wirex getInstance() {
         return instance;
+    }
+    
+    /**
+     * Make AppEngine a singleton with no constructor
+     */
+    private AppEngine() {
     }
 }

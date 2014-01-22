@@ -38,7 +38,7 @@ public abstract class Presenter {
     private Model form;
     private Model domain;
     private String rest;
-    private final Map<String, Object> undoManager = new HashMap<>(5);
+//    private final Map<String, Object> undoManager = new HashMap<>(5);
 
     public Presenter(JMenuBar menu) {
         this.menu = menu;
@@ -84,8 +84,8 @@ public abstract class Presenter {
             }
             field.setAccessible(false);
         }
-        this.undoManager.clear();
-        this.undoManager.putAll(map);
+        this.model.getUndoObject().clear();
+        this.model.getUndoObject().putAll(map);
     }
     
     private String retrieveSetterProperty(String methodName) {
@@ -100,7 +100,7 @@ public abstract class Presenter {
         for (Method method : methods) {
             String methodName = retrieveSetterProperty(method.getName());
             try {
-                method.invoke(model, undoManager.get(methodName));
+                method.invoke(model, model.getUndoObject().get(methodName));
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.warn("Can't process field {}.{}", model.getClass().toString(), methodName);
             }
