@@ -38,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -527,11 +528,10 @@ final class WirexCore implements Wirex {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] digest = md.digest(plaintext.getBytes("UTF-8"));
             return new BASE64Encoder().encode(digest);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
             LOG.warn("Hashing failed in Wirex using SHA-1.");
             return "";
         }
-
     }
 
     @Override
@@ -1247,9 +1247,9 @@ final class WirexCore implements Wirex {
         }
     }
 
-        private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
-            bindComponent(component, bean, property, null);
-        }
+    private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+        bindComponent(component, bean, property, null);
+    }
 
     private void bindComponent(Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
@@ -1346,9 +1346,9 @@ final class WirexCore implements Wirex {
         } else if (JTable.class == component || JTable.class.isAssignableFrom(component) || JXTable.class == component || JXTable.class.isAssignableFrom(component)) {
             try {
                 /*
-                * Throw exception if List has no generic types
-                */
-                
+                 * Throw exception if List has no generic types
+                 */
+
                 Field listField = bean.getClass().getDeclaredField(property);
                 java.lang.reflect.Type type = listField.getGenericType();
 
@@ -1366,15 +1366,15 @@ final class WirexCore implements Wirex {
                 String[] propertyNames;
                 String[] propertyTexts;
                 int numOfTransient = 0;
-                for (int i=0; i<fields.length; i++) {
+                for (int i = 0; i < fields.length; i++) {
                     int modifiers = fields[i].getModifiers();
                     if (Modifier.isTransient(modifiers)) {
                         numOfTransient++;
                     } else {
-                        columns[i-numOfTransient] = fields[i];
+                        columns[i - numOfTransient] = fields[i];
                     }
                 }
-                
+
                 if (Model.class.isAssignableFrom(listTypeClass)) {
                     propertyNames = new String[fields.length - numOfTransient];
                     propertyTexts = new String[fields.length - numOfTransient];
@@ -1474,65 +1474,65 @@ final class WirexCore implements Wirex {
      * @param presenter The presenter where its binded View to be disposed
      */
     @Override
-public void dispose(Presenter presenter) {
-    JPanel panel = presenter.getPanel();
-    Window window = SwingUtilities.getWindowAncestor(panel);
-    window.dispose();
-    presenters.remove(presenter.getClass());
-    Class clazz = panel.getClass();
-    Bind bind = (Bind) clazz.getAnnotation(Bind.class);
-    models.remove(bind.model());
-    totalPreparedViews--;
-}
+    public void dispose(Presenter presenter) {
+        JPanel panel = presenter.getPanel();
+        Window window = SwingUtilities.getWindowAncestor(panel);
+        window.dispose();
+        presenters.remove(presenter.getClass());
+        Class clazz = panel.getClass();
+        Bind bind = (Bind) clazz.getAnnotation(Bind.class);
+        models.remove(bind.model());
+        totalPreparedViews--;
+    }
 
-        private void scanFieldWithBalloon(final Balloon balloon, final Field field, final Object viewPanel) throws ViewClassNotBindedException, WrongComponentException {
-            try {
-                if (balloon != null) {
-                    JComponent fieldComponent = (JComponent) field.get(viewPanel);
-                    String text = balloon.text();
-                    Class<? extends JComponent> componentClass = balloon.value();
-                    Integer seconds = balloon.seconds();
-                    if (componentClass == JPanel.class) {
-                        JLabel label = new JLabel(text);
-                        label.setForeground(new Color(230, 230, 230));
-                        BalloonTip balloonTip = new BalloonTip(fieldComponent, label,
+    private void scanFieldWithBalloon(final Balloon balloon, final Field field, final Object viewPanel) throws ViewClassNotBindedException, WrongComponentException {
+        try {
+            if (balloon != null) {
+                JComponent fieldComponent = (JComponent) field.get(viewPanel);
+                String text = balloon.text();
+                Class<? extends JComponent> componentClass = balloon.value();
+                Integer seconds = balloon.seconds();
+                if (componentClass == JPanel.class) {
+                    JLabel label = new JLabel(text);
+                    label.setForeground(new Color(230, 230, 230));
+                    BalloonTip balloonTip = new BalloonTip(fieldComponent, label,
+                            new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                            BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                            0, 5, false);
+                    ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000);
+                } else {
+                    Object component = componentClass.newInstance();
+                    if (component instanceof JPanel) {
+                        JPanel view = (JPanel) component;
+                        Class viewClass = view.getClass();
+                        Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+                        JComponent finalBalloonPanel;
+                        if (bind != null) {
+                            MVP mvp = prepare(viewClass);
+                            finalBalloonPanel = mvp.getView();
+                        } else {
+                            finalBalloonPanel = (JComponent) viewClass.newInstance();
+                        }
+                        BalloonTip balloonTip = new BalloonTip(fieldComponent, finalBalloonPanel,
                                 new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
                                 BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
                                 0, 5, false);
-                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000);
+                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
                     } else {
-                        Object component = componentClass.newInstance();
-                        if (component instanceof JPanel) {
-                            JPanel view = (JPanel) component;
-                            Class viewClass = view.getClass();
-                            Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
-                            JComponent finalBalloonPanel;
-                            if (bind != null) {
-                                MVP mvp = prepare(viewClass);
-                                finalBalloonPanel = mvp.getView();
-                            } else {
-                                finalBalloonPanel = (JComponent) viewClass.newInstance();
-                            }
-                            BalloonTip balloonTip = new BalloonTip(fieldComponent, finalBalloonPanel,
-                                    new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                    BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                    0, 5, false);
-                            ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
-                        } else {
-                            BalloonTip balloonTip = new BalloonTip(fieldComponent, (JComponent) component,
-                                    new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                    BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                    0, 5, false);
-                            ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
-                        }
+                        BalloonTip balloonTip = new BalloonTip(fieldComponent, (JComponent) component,
+                                new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                0, 5, false);
+                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
                     }
                 }
-            } catch (IllegalArgumentException | IllegalAccessException ex) {
-                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InstantiationException ex) {
-                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
 
     private void scanFieldWithPermit(final Permit permit, final Field field, final Object viewPanel) {
         if (permit != null) {
@@ -1558,16 +1558,16 @@ public void dispose(Presenter presenter) {
         this.appIcon = ((ImageIcon) appIcon).getImage();
     }
 
-        private BufferedImage createImage(JPanel panel) {
-            int w = panel.getWidth();
-            int h = panel.getHeight();
-            BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = bi.createGraphics();
-            panel.paint(g);
-            return bi;
-        }
+    private BufferedImage createImage(JPanel panel) {
+        int w = panel.getWidth();
+        int h = panel.getHeight();
+        BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = bi.createGraphics();
+        panel.paint(g);
+        return bi;
+    }
 
-        @Override
+    @Override
     public XLive releaseXLive(String name) {
         return liveContainer.get(name);
     }
@@ -1687,21 +1687,21 @@ public void dispose(Presenter presenter) {
 
         private String title = "Untitled";
 
-                MVPObject(Object viewPanel) {
-                    this(viewPanel, null);
-                }
+        MVPObject(Object viewPanel) {
+            this(viewPanel, null);
+        }
 
-                MVPObject(Object viewPanel, Window parent) {
-                    if (viewPanel instanceof JPanel) {
-                        this.viewPanel = (JPanel) viewPanel;
-                    } else {
-                        JPanel panel = new JPanel();
-                        panel.removeAll();
-                        panel.add((Component) viewPanel);
-                        this.viewPanel = panel;
-                    }
-                    this.parent = parent;
-                }
+        MVPObject(Object viewPanel, Window parent) {
+            if (viewPanel instanceof JPanel) {
+                this.viewPanel = (JPanel) viewPanel;
+            } else {
+                JPanel panel = new JPanel();
+                panel.removeAll();
+                panel.add((Component) viewPanel);
+                this.viewPanel = panel;
+            }
+            this.parent = parent;
+        }
 
         @Override
         public JPanel getView() {
