@@ -37,7 +37,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     public static final int MESSAGE = 3;
 
     public static final int BUG = 4;
-    
+
     public static final int COMMAND = 5;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseExtractor.class.getName());
@@ -55,7 +55,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     @Override
     public ServerResponse extractData(ClientHttpResponse response) throws IOException {
         ServerResponse result;
-        
+
         HttpStatus status = response.getStatusCode();
         InputStream in = response.getBody();
 
@@ -89,13 +89,12 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
             LOG.error("Invalid Server Response class. Check your server implementation!");
             return null;
         } finally {
-            reader.endObject();
-            reader.close();
+
         }
     }
 
     private ServerResponse read(JsonReader reader, int status) throws IOException {
-        Integer type = 0;
+        Integer type = 1;
         String feature = "";
         while (reader.hasNext()) {
             String property = reader.nextName();
@@ -110,6 +109,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                     return processBody(reader, status, feature, type);
             }
         }
+
         LOG.info("Successful server transaction from feature {}", status, feature);
         return new ServerResponse(HttpStatus.OK, new Model() {
         });
@@ -130,6 +130,8 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                     list.add(object);
                 }
                 reader.endArray();
+                reader.endObject();
+                reader.close();
                 break;
             case MESSAGE:
                 MessageResponseStructure messageResponse = gson.fromJson(reader, MessageResponseStructure.class);
@@ -192,11 +194,11 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
         public static final int QUESTION = 3;
 
     }
-    
+
     private static class LegacyCommands {
-        
+
         public static final int LOGIN = 0;
-        
+
     }
 
     private class ErrorResponseStructure {

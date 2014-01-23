@@ -147,6 +147,7 @@ import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -156,7 +157,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.33-BETA";
+    public static final String version = "1.0.14.34-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -509,7 +510,6 @@ final class WirexCore implements Wirex {
     @Override
     public String hash(Model model) {
         String plaintext = "";
-        String digest = "";
         Class modelClass = model.getClass();
         Field[] fields = modelClass.getDeclaredFields();
         for (Field field : fields) {
@@ -525,7 +525,8 @@ final class WirexCore implements Wirex {
         }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
-            return new String(md.digest(plaintext.getBytes()));
+            byte[] digest = md.digest(plaintext.getBytes("UTF-8"));
+            return new BASE64Encoder().encode(digest);
         } catch (NoSuchAlgorithmException ex) {
             LOG.warn("Hashing failed in Wirex using SHA-1.");
             return "";
@@ -1092,6 +1093,8 @@ final class WirexCore implements Wirex {
                 Class listClass = field.getType();
                 if (listClass != XList.class) {
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
+                    System.out.println(fromJson);
+                    System.out.println(fromJson.getClass());
                     Object newValue = field.get(fromJson) != null ? field.get(fromJson) : "";
                     field.set(model, field.get(fromJson));
                     modelClass.getSuperclass().getDeclaredMethod("fireChanges", String.class, Object.class, Object.class)
@@ -1598,7 +1601,7 @@ public void dispose(Presenter presenter) {
         }
     }
 
-    private class ComponentModel extends Model {
+    public class ComponentModel extends Model {
 
         private XList component;
 

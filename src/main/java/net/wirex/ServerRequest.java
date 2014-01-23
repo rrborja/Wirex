@@ -1,8 +1,7 @@
 package net.wirex;
 
-import com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
 import java.awt.Window;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -72,9 +71,9 @@ public final class ServerRequest<T extends Model> {
             default:
                 if (model == PresenterModel.class) {
                     PresenterModel presenterBody = (PresenterModel)body;
-                    return new GsonBuilder().create().toJson(presenterBody.getForm());
+                    return new Gson().toJson(presenterBody.getForm());
                 } else {
-                    return new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create().toJson(body);
+                    return new Gson().toJson(body);
                 }
         }
     }

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * @author Ritchie Borja
  */
 public abstract class Model {
-    
+
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Model.class.getSimpleName());
 
     protected transient PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
@@ -114,4 +114,10 @@ public abstract class Model {
     public Class streamType() {
         throw new UnsupportedOperationException("You need to override this method in " + this.getClass().getSimpleName());
     }
+
+    @Override
+    public String toString() {
+        return "Model{" + "changeSupport=" + changeSupport + ", hashValue=" + hashValue + ", undoObject=" + undoObject + ", listener=" + listener + '}';
+    }
+
 }
