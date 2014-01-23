@@ -69,6 +69,7 @@ import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -158,7 +159,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.34-BETA";
+    public static final String version = "1.0.14.35-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1365,6 +1366,8 @@ final class WirexCore implements Wirex {
                 Field[] columns = listTypeClass.getDeclaredFields();
                 String[] propertyNames;
                 String[] propertyTexts;
+                boolean[] editable;
+                Map<String, ComponentModel> comboBoxList = new HashMap<>();
                 int numOfTransient = 0;
                 for (int i = 0; i < fields.length; i++) {
                     int modifiers = fields[i].getModifiers();
@@ -1378,8 +1381,24 @@ final class WirexCore implements Wirex {
                 if (Model.class.isAssignableFrom(listTypeClass)) {
                     propertyNames = new String[fields.length - numOfTransient];
                     propertyTexts = new String[fields.length - numOfTransient];
+                    editable = new boolean[fields.length - numOfTransient];
                     for (int i = 0; i < propertyNames.length; i++) {
                         Column column = columns[i].getAnnotation(Column.class);
+                        Path path = columns[i].getAnnotation(Path.class);
+                        if (path != null) {
+                            String url = path.value();
+                            if (url.startsWith("/")) {
+                                url = path.value().substring(1);
+                            } else {
+                                url = path.value();
+                            }
+                            ServerRequest request = new ServerRequest("GET", hostname + url, Media.JSON, null, new ComponentModel(), null);
+                            ServerResponse response = cacheResource.get(request);
+                            if (response != null) {
+                                ComponentModel comboBoxComponentModel = (ComponentModel) response.getMessage();
+                                comboBoxList.put(column.value(), comboBoxComponentModel);
+                            }
+                        }
                         String columnName;
                         if (column != null) {
                             columnName = column.value();
@@ -1388,11 +1407,13 @@ final class WirexCore implements Wirex {
                         }
                         propertyNames[i] = columns[i].getName();
                         propertyTexts[i] = columnName;
+                        editable[i] = false; // TODO: Table cell editable
                     }
                 } else {
                     EventList list = (EventList) componentModel.getValue();
                     propertyNames = new String[]{"value"};
                     propertyTexts = new String[]{"Value"};
+                    editable = new boolean[]{false};
                     for (int i = 0; i < list.size(); i++) {
                         list.set(i, new XObject(list.get(i)));
                     }
@@ -1402,14 +1423,20 @@ final class WirexCore implements Wirex {
                 }
 
                 EventList rows = (EventList) adapter.getModel(property).getValue();
-                TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyTexts);
+//                TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyTexts);
 
                 if (JTable.class == component) {
-                    JTable table = new JTable(new EventTableModel(rows, tf));
+                    JTable table = new JTable(new EventTableModel(rows, propertyNames, propertyTexts, editable));
                     newComponent = table;
                 } else {
-                    JXTable table = new JXTable(new EventTableModel(rows, tf));
+                    JXTable table = new JXTable(new EventTableModel(rows, propertyNames, propertyTexts, editable));
                     newComponent = table;
+                }
+                
+                for (Map.Entry<String, ComponentModel> entry : comboBoxList.entrySet()) {
+                    XList list = entry.getValue().getComponent();
+                    DefaultEventComboBoxModel model = GlazedListsSwing.eventComboBoxModelWithThreadProxyList(list);
+                    ((JTable)newComponent).getColumn(entry.getKey()).setCellEditor(new DefaultCellEditor(new JComboBox(model)));
                 }
 
                 if (property2 != null) {
@@ -1421,7 +1448,7 @@ final class WirexCore implements Wirex {
                     });
                 }
 
-            } catch (NoSuchFieldException | SecurityException ex) {
+            } catch (NoSuchFieldException | SecurityException | ExecutionException ex) {
                 LOG.error("Unable to bind component " + component + " with " + property, ex);
                 newComponent = new JTable();
             }
