@@ -5,11 +5,11 @@
  */
 package net.wirex;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.Map;
 import net.wirex.structures.XLive;
 import org.java_websocket.client.WebSocketClient;
@@ -45,10 +45,10 @@ public final class SocketEngine {
                         LOG.info("Real-time collaboration server is connected!");
                         return;
                     }
-                    ResponseStructure response = new Gson().fromJson(string, ResponseStructure.class);
+                    ResponseStructure response = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").registerTypeAdapter(Date.class, new DateJsonDeserializer()).create().fromJson(string, ResponseStructure.class);
                     String feature = response.getFeature();
                     XLive component = AppEngine.releaseXLive(feature);
-                    Map map = new Gson().fromJson(String.valueOf(response.getBody()), new TypeToken<Map<String, String>>() {
+                    Map map = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").registerTypeAdapter(Date.class, new DateJsonDeserializer()).create().fromJson(String.valueOf(response.getBody()), new TypeToken<Map<String, String>>() {
                     }.getType());
                     if (component == null) {
                         System.out.println(string);

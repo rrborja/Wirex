@@ -1,15 +1,16 @@
 package net.wirex;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.swing.JDialog;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
@@ -116,7 +117,10 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     }
 
     private ServerResponse processBody(JsonReader reader, int status, String feature, int type) throws IOException {
-        Gson gson = new Gson();
+        GsonBuilder builder = new GsonBuilder();
+        builder.setDateFormat("yyyy-MM-dd HH:mm:ss");
+        builder.registerTypeAdapter(Date.class, new DateJsonDeserializer());
+        Gson gson = builder.create();
         switch (type) {
             case OBJECT:
                 LOG.info("[{}] Successful server transaction from feature {}", status, feature);

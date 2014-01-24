@@ -1,7 +1,8 @@
 package net.wirex;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.awt.Window;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -71,9 +72,9 @@ public final class ServerRequest<T extends Model> {
             default:
                 if (model == PresenterModel.class) {
                     PresenterModel presenterBody = (PresenterModel)body;
-                    return new Gson().toJson(presenterBody.getForm());
+                    return new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").registerTypeAdapter(Date.class, new DateJsonDeserializer()).create().toJson(presenterBody.getForm());
                 } else {
-                    return new Gson().toJson(body);
+                    return new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").registerTypeAdapter(Date.class, new DateJsonDeserializer()).create().toJson(body);
                 }
         }
     }

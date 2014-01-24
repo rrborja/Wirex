@@ -146,6 +146,7 @@ import net.wirex.structures.XList;
 import net.wirex.structures.XLive;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XTreeFormat;
+import org.jdesktop.swingx.JXDatePicker;
 import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
@@ -159,7 +160,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.37-BETA";
+    public static final String version = "1.0.14.38-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -341,6 +342,7 @@ final class WirexCore implements Wirex {
             return (T) checkout(name);
         } else {
             try {
+                LOG.warn("No such component as {} of {}", component);
                 return component.newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
                 LOG.error("No instance for " + component, ex);
@@ -877,8 +879,11 @@ final class WirexCore implements Wirex {
                 } catch (PropertyNotFoundException ex) {
                     LOG.warn("Your binding property '{}' doesn't bind to any existing components", data.value());
                     return;
-                } catch (NoSuchFieldException | SecurityException | ExecutionException ex) {
-                    LOG.warn("Framework bug! Check combo box binding implementation");
+                } catch (NoSuchFieldException ex) {
+                    LOG.warn("Is your field {} exists in your model {}?", field.getName(), model.getClass());
+                    return;
+                } catch (SecurityException | ExecutionException ex) {
+                    LOG.error("Framework bug! Check combo box binding implementation", ex);
                     return;
                 }
             } else {
@@ -1147,7 +1152,10 @@ final class WirexCore implements Wirex {
      */
     @Override
     public String snip(Model model) throws IllegalArgumentException, IllegalAccessException {
-        Gson gson = new GsonBuilder().serializeNulls().create();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss")
+                .serializeNulls()
+                .registerTypeAdapter(Date.class, new DateJsonDeserializer())
+                .create();
         Class modelClass = model.getClass();
         String json;
         if (modelClass.isAssignableFrom(PresenterModel.class)) {
@@ -1306,6 +1314,20 @@ final class WirexCore implements Wirex {
         } else if (JXHyperlink.class == component || JXHyperlink.class.isAssignableFrom(component)) {
             BeanAdapter beanAdapter = new BeanAdapter(bean, true);
             Bindings.bind(newComponent, "text", beanAdapter.getValueModel(property));
+        } else if (JXDatePicker.class == component || JXDatePicker.class.isAssignableFrom(component)) {
+            Date date = (Date) componentModel.getValue();
+            final JXDatePicker datePickerComponent = (JXDatePicker) newComponent;
+            datePickerComponent.setDate(date);
+
+            datePickerComponent.addActionListener((ActionEvent e) -> {
+                Object item = datePickerComponent.getDate();
+                adapter.getModel(property).setValue(item);
+            });
+
+            adapter.getModel(property).addPropertyChangeListener((PropertyChangeEvent evt) -> {
+                Date value = (Date) evt.getNewValue();
+                datePickerComponent.setDate(value);
+            });
         } else if (JTree.class == component || JTree.class.isAssignableFrom(component)) {
             try {
                 Field listField = bean.getClass().getDeclaredField(property);
