@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import net.wirex.Invoker;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import net.wirex.structures.XList;
 
 /**
  *
@@ -29,7 +30,20 @@ public class TablePresenter extends Presenter {
     }
     
     public void submit2() {
-        System.out.println("hehe");
+        XList table = ((TableModel) getModel()).getTable();
+        table.getReadWriteLock().readLock().lock();
+        try {
+            MyField field11 = new MyField();
+            field11.setField1("hehehehehe");
+            field11.setField2("james");
+            MyField field22 = new MyField();
+            field22.setField1("wahahaha");
+            field22.setField2("jeff");
+            table.add(field11);
+            table.add(field22);
+        } finally {
+            table.getReadWriteLock().readLock().unlock();
+        }
     }
 
     @Override

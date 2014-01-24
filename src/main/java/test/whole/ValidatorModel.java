@@ -6,6 +6,7 @@
 
 package test.whole;
 
+import net.wirex.annotations.Path;
 import net.wirex.interfaces.Model;
 
 /**
@@ -17,6 +18,8 @@ public class ValidatorModel extends Model {
     private String password;
     private String retype;
     private String email;
+    
+    @Path("component/tax")
     private String phoneNumber;
 
     public ValidatorModel() {

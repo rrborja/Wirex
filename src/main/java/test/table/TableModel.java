@@ -22,14 +22,7 @@ public class TableModel extends Model {
     public TableModel() {
         table = new XList<>();
         table.add(new MyField());
-        MyField field11 = new MyField();
-        field11.setField1("hehehehehe");
-        field11.setField2("james");
-        MyField field22 = new MyField();
-        field22.setField1("wahahaha");
-        field22.setField2("jeff");
-        table.add(field11);
-        table.add(field22);
+        
     }
 
     public String getField1() {

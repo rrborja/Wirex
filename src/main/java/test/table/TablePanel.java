@@ -96,6 +96,7 @@ public class TablePanel extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public static void main(String[] args) {
+        AppEngine.connect("http://10.0.1.66:8080/g7/");
         AppEngine.prepare(TablePanel.class).display(JDialog.class);
     }
 }

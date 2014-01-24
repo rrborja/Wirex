@@ -24,7 +24,7 @@ public abstract class Model {
 
     private transient String hashValue = AppEngine.hash(this);
 
-    private transient Map undoObject = synchronize();
+    transient Map undoObject = synchronize();
 
     private transient XModelListener listener = new XModelListener() {
         @Override

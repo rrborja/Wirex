@@ -6,6 +6,7 @@
 package test.table;
 
 import net.wirex.annotations.Column;
+import net.wirex.annotations.Path;
 import net.wirex.interfaces.Model;
 
 /**
@@ -17,6 +18,7 @@ public class MyField extends Model {
     @Column("Field 1")
     private Object field1;
     @Column("Field 2")
+    @Path("component/billingcycle/list")
     private Object field2;
 
     public MyField() {

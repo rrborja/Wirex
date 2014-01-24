@@ -1,10 +1,8 @@
 package net.wirex;
 
 import ca.odell.glazedlists.EventList;
-import ca.odell.glazedlists.GlazedLists;
 import ca.odell.glazedlists.SortedList;
 import ca.odell.glazedlists.TreeList;
-import ca.odell.glazedlists.gui.TableFormat;
 import ca.odell.glazedlists.swing.DefaultEventComboBoxModel;
 import ca.odell.glazedlists.swing.EventTableModel;
 import ca.odell.glazedlists.swing.EventTreeModel;
@@ -112,6 +110,7 @@ import net.wirex.annotations.DELETE;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Dispose;
 import net.wirex.annotations.Draw;
+import net.wirex.annotations.Editable;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.EventContainer;
 import net.wirex.annotations.Fire;
@@ -159,7 +158,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.35-BETA";
+    public static final String version = "1.0.14.37-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1385,6 +1384,8 @@ final class WirexCore implements Wirex {
                     for (int i = 0; i < propertyNames.length; i++) {
                         Column column = columns[i].getAnnotation(Column.class);
                         Path path = columns[i].getAnnotation(Path.class);
+                        Editable edit = columns[i].getAnnotation(Editable.class);
+                        editable[i] = edit != null; // TODO: Table cell editable
                         if (path != null) {
                             String url = path.value();
                             if (url.startsWith("/")) {
@@ -1397,6 +1398,7 @@ final class WirexCore implements Wirex {
                             if (response != null) {
                                 ComponentModel comboBoxComponentModel = (ComponentModel) response.getMessage();
                                 comboBoxList.put(column.value(), comboBoxComponentModel);
+                                editable[i] = true;
                             }
                         }
                         String columnName;
@@ -1407,7 +1409,6 @@ final class WirexCore implements Wirex {
                         }
                         propertyNames[i] = columns[i].getName();
                         propertyTexts[i] = columnName;
-                        editable[i] = false; // TODO: Table cell editable
                     }
                 } else {
                     EventList list = (EventList) componentModel.getValue();

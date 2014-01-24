@@ -84,8 +84,8 @@ public abstract class Presenter {
             }
             field.setAccessible(false);
         }
-        this.model.getUndoObject().clear();
-        this.model.getUndoObject().putAll(map);
+        this.model.undoObject.clear();
+        this.model.undoObject.putAll(map);
     }
 
     private String retrieveSetterProperty(String methodName) {
