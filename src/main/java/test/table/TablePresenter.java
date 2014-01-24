@@ -7,6 +7,7 @@ package test.table;
 
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
+import net.wirex.AppEngine;
 import net.wirex.Invoker;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
@@ -27,6 +28,7 @@ public class TablePresenter extends Presenter {
         MyField field = model.getSelectedRow();
         model.setField1(String.valueOf(field.getField1()));
         model.setField2(String.valueOf(field.getField2()));
+        
     }
     
     public void submit2() {
@@ -44,6 +46,7 @@ public class TablePresenter extends Presenter {
         } finally {
             table.getReadWriteLock().readLock().unlock();
         }
+        System.out.println(AppEngine.hash(getModel()));
     }
 
     @Override

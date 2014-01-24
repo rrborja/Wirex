@@ -43,6 +43,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -52,6 +53,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -148,7 +150,6 @@ import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -526,8 +527,12 @@ final class WirexCore implements Wirex {
         }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] digest = md.digest(plaintext.getBytes("UTF-8"));
-            return new BASE64Encoder().encode(digest);
+            md.reset();
+            md.update(plaintext.getBytes("utf8"));
+            byte[] digest = md.digest();
+            BigInteger bi = new BigInteger(1, digest);
+            String hashedHex = String.format("%0" + (digest.length << 1) + "X", bi);
+            return new String(Base64.getEncoder().encode(hashedHex.getBytes("utf8")));
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
             LOG.warn("Hashing failed in Wirex using SHA-1.");
             return "";
@@ -1093,8 +1098,6 @@ final class WirexCore implements Wirex {
                 Class listClass = field.getType();
                 if (listClass != XList.class) {
                     Object oldValue = field.get(model) != null ? field.get(model) : "";
-                    System.out.println(fromJson);
-                    System.out.println(fromJson.getClass());
                     Object newValue = field.get(fromJson) != null ? field.get(fromJson) : "";
                     field.set(model, field.get(fromJson));
                     modelClass.getSuperclass().getDeclaredMethod("fireChanges", String.class, Object.class, Object.class)
@@ -1433,11 +1436,11 @@ final class WirexCore implements Wirex {
                     JXTable table = new JXTable(new EventTableModel(rows, propertyNames, propertyTexts, editable));
                     newComponent = table;
                 }
-                
+
                 for (Map.Entry<String, ComponentModel> entry : comboBoxList.entrySet()) {
                     XList list = entry.getValue().getComponent();
                     DefaultEventComboBoxModel model = GlazedListsSwing.eventComboBoxModelWithThreadProxyList(list);
-                    ((JTable)newComponent).getColumn(entry.getKey()).setCellEditor(new DefaultCellEditor(new JComboBox(model)));
+                    ((JTable) newComponent).getColumn(entry.getKey()).setCellEditor(new DefaultCellEditor(new JComboBox(model)));
                 }
 
                 if (property2 != null) {
