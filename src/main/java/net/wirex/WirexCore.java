@@ -187,6 +187,8 @@ final class WirexCore implements Wirex {
         return map;
     }
 
+    private WirexLock semaphore = WirexLock.getInstance();
+    
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
@@ -241,7 +243,6 @@ final class WirexCore implements Wirex {
                 }
             });
 
-    private WirexLock semaphore = WirexLock.getInstance();
 
     private int stackCount;
 
