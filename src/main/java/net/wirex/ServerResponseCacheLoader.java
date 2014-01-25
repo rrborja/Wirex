@@ -26,6 +26,8 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseCacheLoader.class.getName());
 
+    private final WirexLock semaphore;
+    
     ApplicationContext applicationContext;
     RestTemplate rt;
 
@@ -34,6 +36,10 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
             applicationContext = new ClassPathXmlApplicationContext("ServerContext.xml", AppEngine.class);
             rt = applicationContext.getBean("restTemplate", RestTemplate.class);
         }
+    }
+    
+    public ServerResponseCacheLoader(WirexLock semaphore) {
+        this.semaphore = semaphore;
     }
 
     public @Override
@@ -55,7 +61,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         HttpEntity entity = new HttpEntity(body, headers);
 
         RequestCallback requestCallback = new ServerRequestCallback(entity);
-        ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(parent, model, rt.getMessageConverters());
+        ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(parent, model, rt.getMessageConverters(), semaphore);
         
         LOG.info("Attempting {} {} {}", rest, new UriTemplate(uri).expand(variables), requestBody);
 

@@ -191,7 +191,7 @@ final class WirexCore implements Wirex {
             .maximumSize(1)
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.SECONDS)
-            .build(new ServerResponseCacheLoader());
+            .build(new ServerResponseCacheLoader(semaphore));
 
     private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap(10);
 
@@ -240,7 +240,7 @@ final class WirexCore implements Wirex {
                     return new ImageIcon(resource);
                 }
             });
-    
+
     private WirexLock semaphore = WirexLock.getInstance();
 
     private int stackCount;
@@ -471,11 +471,21 @@ final class WirexCore implements Wirex {
      */
     @Override
     public ServerResponse push(ServerRequest request) {
+        String string = request.getBody();
+        int bytes;
+        if (string != null) {
+            bytes = string.length();
+        } else {
+            bytes = 0;
+        }
+        semaphore.lockSending(bytes);
         try {
             return cacheResource.get(request);
         } catch (ExecutionException ex) {
             LOG.error(request.getBody(), ex);
             return null;
+        } finally {
+            semaphore.lockReceiving(bytes);
         }
     }
 
@@ -1348,7 +1358,7 @@ final class WirexCore implements Wirex {
                 } else {
                     newComponent = (JComponent) component.getConstructor(TreeModel.class).newInstance(new EventTreeModel(list));
                 }
-                tree.addTreeSelectionListener((TreeSelectionEvent e) ->  {
+                tree.addTreeSelectionListener((TreeSelectionEvent e) -> {
                     System.out.println(tree.getLastSelectedPathComponent());
                 });
 //                tree.setCellRenderer(new TreeCellRenderer() {

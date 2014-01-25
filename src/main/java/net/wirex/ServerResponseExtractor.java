@@ -46,11 +46,13 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     private final Class<? extends Model> responseModel;
 
     private final Window parent;
+    private WirexLock semaphore;
 
-    public ServerResponseExtractor(Window parent, Class<? extends Model> responseModel, List<HttpMessageConverter<?>> messageConverters) {
+    public ServerResponseExtractor(Window parent, Class<? extends Model> responseModel, List<HttpMessageConverter<?>> messageConverters, WirexLock semaphore) {
         super(ServerResponse.class, messageConverters);
         this.parent = parent;
         this.responseModel = responseModel;
+        this.semaphore = semaphore;
     }
 
     @Override
