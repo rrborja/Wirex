@@ -64,6 +64,7 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
@@ -95,6 +96,8 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -237,6 +240,8 @@ final class WirexCore implements Wirex {
                     return new ImageIcon(resource);
                 }
             });
+    
+    private WirexLock semaphore = WirexLock.getInstance();
 
     private int stackCount;
 
@@ -1337,12 +1342,15 @@ final class WirexCore implements Wirex {
                 SortedList sortedList = new SortedList(eventList, null);
                 TreeList list = new TreeList(sortedList, new XTreeFormat(model), TreeList.NODES_START_EXPANDED);
 //                JTree tree = new JTree(new EventTreeModel(list));
+                JTree tree = new JTree(new EventTreeModel(list));
                 if (JTree.class == component) {
-                    JTree tree = new JTree(new EventTreeModel(list));
                     newComponent = tree;
                 } else {
                     newComponent = (JComponent) component.getConstructor(TreeModel.class).newInstance(new EventTreeModel(list));
                 }
+                tree.addTreeSelectionListener((TreeSelectionEvent e) ->  {
+                    System.out.println(tree.getLastSelectedPathComponent());
+                });
 //                tree.setCellRenderer(new TreeCellRenderer() {
 //                    @Override
 //                    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
