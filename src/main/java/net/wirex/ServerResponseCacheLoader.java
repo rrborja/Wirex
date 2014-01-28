@@ -27,7 +27,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseCacheLoader.class.getName());
 
     private final WirexLock semaphore;
-    
+
     ApplicationContext applicationContext;
     RestTemplate rt;
 
@@ -37,7 +37,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
             rt = applicationContext.getBean("restTemplate", RestTemplate.class);
         }
     }
-    
+
     public ServerResponseCacheLoader(WirexLock semaphore) {
         this.semaphore = semaphore;
     }
@@ -45,7 +45,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
     public @Override
     ServerResponse load(ServerRequest request) throws Exception {
         init();
-        
+
         HttpMethod rest = request.getRest();
         String uri = request.getPath();
         MediaType type = request.getMedia();
@@ -62,11 +62,17 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
 
         RequestCallback requestCallback = new ServerRequestCallback(entity);
         ResponseExtractor<ServerResponse> responseExtractor = new ServerResponseExtractor(parent, model, rt.getMessageConverters(), semaphore);
-        
+
         LOG.info("Attempting {} {} {}", rest, new UriTemplate(uri).expand(variables), requestBody);
 
-        ServerResponse resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
-        
+        ServerResponse resultModel;
+        semaphore.lockSending();
+        try {
+            resultModel = rt.execute(uri, rest, requestCallback, responseExtractor, variables);
+        } finally {
+            semaphore.unlockSending();
+        }
+
         if (resultModel.getStatus().equals(HttpStatus.FOUND)) {
             ServerRequest newRequest = new ServerRequest("GET", resultModel.getMessage().toString(), Media.URLENCODED, null, null, null);
             return load(newRequest);

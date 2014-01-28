@@ -163,7 +163,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.38-BETA";
+    public static final String version = "1.0.14.40-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -472,21 +472,14 @@ final class WirexCore implements Wirex {
      */
     @Override
     public ServerResponse push(ServerRequest request) {
-        String string = request.getBody();
-        int bytes;
-        if (string != null) {
-            bytes = string.length();
-        } else {
-            bytes = 0;
-        }
-        semaphore.lockSending(bytes);
+        semaphore.lockReceiving();
         try {
             return cacheResource.get(request);
         } catch (ExecutionException ex) {
             LOG.error(request.getBody(), ex);
             return null;
         } finally {
-            semaphore.lockReceiving(bytes);
+            semaphore.lockReceiving();
         }
     }
 

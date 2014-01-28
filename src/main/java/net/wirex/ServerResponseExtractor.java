@@ -46,6 +46,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     private final Class<? extends Model> responseModel;
 
     private final Window parent;
+
     private WirexLock semaphore;
 
     public ServerResponseExtractor(Window parent, Class<? extends Model> responseModel, List<HttpMessageConverter<?>> messageConverters, WirexLock semaphore) {
@@ -61,28 +62,31 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
 
         HttpStatus status = response.getStatusCode();
         InputStream in = response.getBody();
-
+        
+        semaphore.lockReceiving();
         JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
 
         reader.beginObject();
-
-        switch (status) {
-            case OK:
-                return ok(reader, status.value());
-            case ACCEPTED:
-                result = new ServerResponse<>(HttpStatus.ACCEPTED, response.getHeaders().get("SessionID").get(0));
-                LOG.info("[{}] Successful authorization", status.value());
-                return result;
-            case FOUND:
-                String location = response.getHeaders().get("Location").get(0);
-                result = new ServerResponse<>(HttpStatus.FOUND, location);
-                LOG.info("[{}] Redirected to {}", status.value(), location);
-                return result;
-            default:
-                LOG.info("[{}] Server has encountered error", status.value());
-                return new ServerResponse<>(HttpStatus.valueOf(status.value()), "");
+        try {
+            switch (status) {
+                case OK:
+                    return ok(reader, status.value());
+                case ACCEPTED:
+                    result = new ServerResponse<>(HttpStatus.ACCEPTED, response.getHeaders().get("SessionID").get(0));
+                    LOG.info("[{}] Successful authorization", status.value());
+                    return result;
+                case FOUND:
+                    String location = response.getHeaders().get("Location").get(0);
+                    result = new ServerResponse<>(HttpStatus.FOUND, location);
+                    LOG.info("[{}] Redirected to {}", status.value(), location);
+                    return result;
+                default:
+                    LOG.info("[{}] Server has encountered error", status.value());
+                    return new ServerResponse<>(HttpStatus.valueOf(status.value()), "");
+            }
+        } finally {
+            semaphore.unlockReceiving();
         }
-
     }
 
     private ServerResponse ok(JsonReader reader, int status) throws IOException {

@@ -14,8 +14,7 @@ public class WirexLock {
     private static final Logger LOG = LoggerFactory.getLogger(WirexLock.class.getSimpleName());
 
     private WirexLock() {
-        this.sendingThroughput = 0;
-        this.receivingThroughput = 0;
+
     }
 
     private static class SingletonHolder {
@@ -30,56 +29,28 @@ public class WirexLock {
     private final Semaphore receivingLock = new Semaphore(10);
 
     private final Semaphore sendingLock = new Semaphore(2);
-
-    private int sendingThroughput;
-
-    private int receivingThroughput;
-
-    private final int DOWNTHROUGHPUT = 2097152;
-
-    private final int UPTHROUGHPUT = 524288;
-
-    public void lockReceiving(int bytes) {
-        receivingThroughput += bytes;
+    
+    public void lockReceiving() {
         try {
             receivingLock.acquire();
-            synchronized (this) {
-                while (receivingThroughput >= DOWNTHROUGHPUT) {
-                    wait();
-                }
-            }
         } catch (InterruptedException ex) {
             LOG.error("Incoming connection Lock failed.", ex);
         }
     }
 
-    public void unlockReceiving(int bytes) {
-        receivingThroughput -= bytes;
+    public void unlockReceiving() {
         receivingLock.release();
-        synchronized (this) {
-            notifyAll();
-        }
     }
 
-    public void lockSending(int bytes) {
-        sendingThroughput += bytes;
+    public void lockSending() {
         try {
             sendingLock.acquire();
-            synchronized (this) {
-                while (sendingThroughput >= UPTHROUGHPUT) {
-                    wait();
-                }
-            }
         } catch (InterruptedException ex) {
             LOG.error("Uploading connection Lock failed.", ex);
         }
     }
 
-    public void unlockSending(int bytes) {
-        sendingThroughput -= bytes;
+    public void unlockSending() {
         sendingLock.release();
-        synchronized (this) {
-            notifyAll();
-        }
     }
 }
