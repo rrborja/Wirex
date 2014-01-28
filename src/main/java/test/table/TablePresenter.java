@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
+import net.wirex.annotations.Path;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
 import net.wirex.structures.XList;
@@ -23,6 +24,12 @@ public class TablePresenter extends Presenter {
         super(model, panel);
     }
     
+    @Path("thequick/brown")
+    public void hello() {
+        
+    }
+    
+    @Path("fox/jumps")
     public void read() {
         TableModel model = (TableModel)getModel();
         MyField field = model.getSelectedRow();

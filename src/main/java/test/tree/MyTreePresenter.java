@@ -7,10 +7,13 @@ package test.tree;
 
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
+import net.wirex.AppEngine;
 import net.wirex.Invoker;
 import net.wirex.interfaces.Model;
 import net.wirex.interfaces.Presenter;
+import net.wirex.structures.XList;
 import net.wirex.structures.XNode;
+import test.table.TablePresenter;
 
 /**
  *
@@ -23,8 +26,16 @@ public class MyTreePresenter extends Presenter {
     }
 
     public void add() {
+        TablePresenter presenter = AppEngine.access(TablePresenter.class);
+        presenter.hello();
+        
         MyTreeModel model = (MyTreeModel) super.getModel();
         model.getTree().add(new XNode(new String[] {"haha"}, "boo"));
+        XList tree = model.getTree();
+        tree.add(new XNode(new String[]{"betacleversoft.net", "billing", "set"}, "hi"));
+        tree.add(new XNode(new String[]{"betacleversoft.net", "billing", "get"}, "hello"));
+        tree.add(new XNode(new String[]{"betacleversoft.net", "mail", "yes"}, "how r u?"));
+        tree.add(new XNode(new String[]{"betacleversoft.net", "mail", "yes"}, "good"));
     }
     
     @Override

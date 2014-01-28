@@ -64,7 +64,6 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
@@ -96,12 +95,11 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.validation.ConstraintValidator;
 import net.java.balloontip.BalloonTip;
@@ -127,6 +125,7 @@ import net.wirex.annotations.Path;
 import net.wirex.annotations.Property;
 import net.wirex.annotations.Optional;
 import net.wirex.annotations.Permit;
+import net.wirex.annotations.RenderAs;
 import net.wirex.annotations.Retrieve;
 import net.wirex.annotations.Rule;
 import net.wirex.annotations.Snip;
@@ -148,6 +147,7 @@ import net.wirex.structures.XComponent;
 import net.wirex.structures.XList;
 import net.wirex.structures.XLive;
 import net.wirex.structures.XObject;
+import net.wirex.structures.XRenderer;
 import net.wirex.structures.XTreeFormat;
 import org.jdesktop.swingx.JXDatePicker;
 import org.jdesktop.swingx.JXHyperlink;
@@ -851,6 +851,27 @@ final class WirexCore implements Wirex {
             preStackUncheckedOutComponentCounts.add(panelId);
         }
     }
+    
+    private void scanFieldWithRenderAs(final RenderAs renderAs, final JComponent component) {
+        if (renderAs != null) {
+            Class<? extends XRenderer> renderer = renderAs.value();
+            try {
+                XRenderer xrenderer = renderer.newInstance();
+                Class clazz = xrenderer.type();
+                if (clazz == TreeCellRenderer.class && component instanceof JTree) {
+                    TreeCellRenderer render = (TreeCellRenderer) clazz.newInstance();
+                    JTree tree = (JTree) component;
+                    tree.setCellRenderer(render);
+                }
+            } catch (InstantiationException ex) {
+                LOG.warn("Check your renderer's implementation: {}", renderer.getName());
+                return;
+            } catch (IllegalAccessException ex) {
+                LOG.error("Framework bug! Report for scanning renderas annotation.");
+                return;
+            }
+        }
+    }
 
     private void scanFieldWithData(final Data data, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
@@ -877,12 +898,15 @@ final class WirexCore implements Wirex {
                         }
                     }
                     modelProperty = LegalIdentifierChecker.check(data.value());
+                    JComponent component;
                     if (data.data().isEmpty()) {
-                        bindComponent(clazz, model, modelProperty);
+                        component = bindComponent(clazz, model, modelProperty);
                     } else {
                         String selectedItemProperty = LegalIdentifierChecker.check(data.data());
-                        bindComponent(clazz, model, modelProperty, selectedItemProperty);
+                        component = bindComponent(clazz, model, modelProperty, selectedItemProperty);
                     }
+                    RenderAs renderAs = field.getAnnotation(RenderAs.class);
+                    scanFieldWithRenderAs(renderAs, component);
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Unable to bind component " + clazz, ex);
                     return;
@@ -1274,11 +1298,11 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
-        bindComponent(component, bean, property, null);
+    private JComponent bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+        return bindComponent(component, bean, property, null);
     }
 
-    private void bindComponent(Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+    private JComponent bindComponent(Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
         JComponent newComponent = (JComponent) component.newInstance();
@@ -1359,16 +1383,15 @@ final class WirexCore implements Wirex {
                 } else {
                     newComponent = (JComponent) component.getConstructor(TreeModel.class).newInstance(new EventTreeModel(list));
                 }
-                tree.addTreeSelectionListener((TreeSelectionEvent e) -> {
-                    System.out.println(tree.getLastSelectedPathComponent());
-                });
+//                tree.addTreeSelectionListener((TreeSelectionEvent e) -> {
+//                    System.out.println(tree.getLastSelectedPathComponent());
+//                });
 //                tree.setCellRenderer(new TreeCellRenderer() {
 //                    @Override
 //                    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 //                        JLabel label = new JLabel();
 //                        try {
 //                            TreeList.Node list = (TreeList.Node) value;
-//
 //                            label.setText(list.getElement().toString());
 //                            return label;
 //                        } catch (ClassCastException ex) {
@@ -1538,6 +1561,7 @@ final class WirexCore implements Wirex {
         }
         components.put(property, newComponent);
         preStackUncheckedOutComponentCounts.add(property);
+        return newComponent;
     }
 
     /**

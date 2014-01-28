@@ -10,6 +10,8 @@ import net.wirex.AppEngine;
 import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
+import net.wirex.annotations.View;
+import test.table.TablePanel;
 
 /**
  *
@@ -37,6 +39,7 @@ public class MyTreeView extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = AppEngine.checkout(JTree.class, "tree");
         jButton1 = AppEngine.checkout(JButton.class, "add");
+        tablePanel1 = AppEngine.checkout(TablePanel.class, "table");
 
         jScrollPane1.setViewportView(jTree1);
 
@@ -56,6 +59,10 @@ public class MyTreeView extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1)
                         .addContainerGap())))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(tablePanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -63,7 +70,9 @@ public class MyTreeView extends javax.swing.JPanel {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton1)
-                .addGap(0, 35, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tablePanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -72,5 +81,7 @@ public class MyTreeView extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane1;
     @Data("tree")
     private javax.swing.JTree jTree1;
+    @View("table")
+    private test.table.TablePanel tablePanel1;
     // End of variables declaration//GEN-END:variables
 }

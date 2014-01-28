@@ -18,7 +18,7 @@ public class MyField extends Model {
     @Column("Field 1")
     private Object field1;
     @Column("Field 2")
-    @Path("component/billingcycle/list")
+//    @Path("component/billingcycle/list")
     private Object field2;
 
     public MyField() {

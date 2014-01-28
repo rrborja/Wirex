@@ -1,5 +1,10 @@
 package net.wirex.structures;
 
+import com.google.common.collect.Lists;
+import java.util.List;
+import javax.swing.Icon;
+import net.wirex.AppEngine;
+
 /**
  *
  * @author Ritchie Borja
@@ -14,8 +19,8 @@ public final class XNode<T> {
         this.leaf = leaf;
     }
 
-    public T[] getPath() {
-        return path;
+    public List getPath() {
+        return Lists.newArrayList(path);
     }
 
     public T getLeaf() {
@@ -24,7 +29,7 @@ public final class XNode<T> {
 
     @Override
     public String toString() {
-        return leaf.toString();
+        return String.valueOf(leaf);
     }
     
     

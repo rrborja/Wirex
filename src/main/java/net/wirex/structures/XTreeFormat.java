@@ -22,7 +22,7 @@ public final class XTreeFormat implements TreeList.Format {
     @Override
     public void getPath(List path, Object element) {
         XNode node = (XNode) element;
-        path.addAll(Lists.newArrayList(node.getPath()));
+        path.addAll(node.getPath());
         path.add(node);
     }
 
