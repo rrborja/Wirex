@@ -88,6 +88,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.ListCellRenderer;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -164,7 +165,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.43-BETA";
+    public static final String version = "1.0.14.45-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -189,7 +190,7 @@ final class WirexCore implements Wirex {
     }
 
     private WirexLock semaphore = WirexLock.getInstance();
-    
+
     private final LoadingCache<ServerRequest, ServerResponse> cacheResource = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
@@ -243,7 +244,6 @@ final class WirexCore implements Wirex {
                     return new ImageIcon(resource);
                 }
             });
-
 
     private int stackCount;
 
@@ -845,7 +845,7 @@ final class WirexCore implements Wirex {
             preStackUncheckedOutComponentCounts.add(panelId);
         }
     }
-    
+
     private void scanFieldWithRenderAs(final RenderAs renderAs, final JComponent component) {
         if (renderAs != null) {
             Class<? extends XRenderer> renderer = renderAs.value();
@@ -853,13 +853,17 @@ final class WirexCore implements Wirex {
                 XRenderer xrenderer = renderer.newInstance();
                 Class clazz = xrenderer.type();
                 if (clazz == TreeCellRenderer.class && component instanceof JTree) {
-                    TreeCellRenderer render = (TreeCellRenderer) clazz.newInstance();
+                    TreeCellRenderer render = (TreeCellRenderer) xrenderer;
                     JTree tree = (JTree) component;
                     tree.setCellRenderer(render);
                 } else if (clazz == TableCellRenderer.class && component instanceof JTable) {
                     TableCellRenderer render = (TableCellRenderer) xrenderer;
                     JTable table = (JTable) component;
                     table.setDefaultRenderer(Object.class, render);
+                } else if (clazz == ListCellRenderer.class && component instanceof JComboBox) {
+                    ListCellRenderer render = (ListCellRenderer) xrenderer;
+                    JComboBox combobox = (JComboBox) component;
+                    combobox.setRenderer(render);
                 }
             } catch (InstantiationException ex) {
                 LOG.warn("Check your renderer's implementation: {}", renderer.getName());
