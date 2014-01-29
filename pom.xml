@@ -4,7 +4,7 @@
 
     <groupId>net.wirex</groupId>
     <artifactId>wirex-core</artifactId>
-    <version>1.0.14.42-BETA</version>
+    <version>1.0.14.43-BETA</version>
     <packaging>jar</packaging>
 
     <name>Wirex</name>
@@ -28,6 +28,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>

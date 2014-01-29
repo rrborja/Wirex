@@ -164,7 +164,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.42-BETA";
+    public static final String version = "1.0.14.43-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -480,7 +480,7 @@ final class WirexCore implements Wirex {
             LOG.error(request.getBody(), ex);
             return null;
         } finally {
-            semaphore.lockReceiving();
+            semaphore.unlockReceiving();
         }
     }
 
