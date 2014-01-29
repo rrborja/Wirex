@@ -25,16 +25,16 @@ import test.another.LoginPanelPresenter;
  * @author Ritchie Borja
  */
 public class PhonePresenter extends Presenter {
-
+    
 //    public @Access PhoneModel phoneModel;
     public PhonePresenter(Model model, JPanel view) {
         super(model, view);
     }
 
-    @Path("phonelabel/get/{id}")
+    @Path("phonelabel/get")
     @Type(Media.JSON)
     @Form(PhoneModel.class)
-    @GET
+    @POST
     public void retrieve() {
 //        PhoneModel phoneModel = (PhoneModel)super.getModel();
 //        PhoneView view = (PhoneView)super.getPanel();
@@ -43,17 +43,19 @@ public class PhonePresenter extends Presenter {
 //        args.put("id", phoneModel.getId());
 //        phoneModel.getPhoneNumbers().clear();
 //        super.call(args);
-        LoginPanelPresenter presenter = AppEngine.access(LoginPanelPresenter.class);
-        presenter.cancel();
-        touch(JButton.class, "hi").addActionListener(null);
+//        LoginPanelPresenter presenter = AppEngine.access(LoginPanelPresenter.class);
+//        presenter.cancel();
+//        touch(JButton.class, "hi").addActionListener(null);
+        call();
+//        submit(AppEngine.form(this));
     }
 
     @Path("phonelabel/add")
     @Type(Media.JSON)
-    @Form(PhoneModel.class)
+//    @Form(PhoneModel.class)
     @POST
     public void submit2() {
-        super.call();
+        call();
     }
 
     public void test() {

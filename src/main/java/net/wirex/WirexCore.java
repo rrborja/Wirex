@@ -164,7 +164,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.41-BETA";
+    public static final String version = "1.0.14.42-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1245,7 +1245,7 @@ final class WirexCore implements Wirex {
                     Class presenterClass = presenter.getClass();
                     initMethod = presenterClass.getSuperclass().getDeclaredMethod("init", String.class, Media.class, String.class, Model.class);
                     initMethod.setAccessible(true);
-                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "POST", form != null ? form.value() : null);
+                    initMethod.invoke(presenter, hostname + urlPath, type.value(), "POST", form != null ? checkoutModel(form.value()) : null);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     LOG.error("Framework bug! Cannot invoke method " + initMethod, ex);
                 }
