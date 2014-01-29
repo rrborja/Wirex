@@ -15,6 +15,7 @@ import net.wirex.annotations.Bind;
 import net.wirex.annotations.Data;
 import net.wirex.annotations.Event;
 import net.wirex.annotations.EventContainer;
+import net.wirex.annotations.RenderAs;
 
 /**
  *
@@ -82,6 +83,7 @@ public class TablePanel extends javax.swing.JPanel {
     @Event("submit2")
     private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane1;
+    @RenderAs(TableRenderer.class)
     @Data(value="table", data="selectedRow")
     @EventContainer(listens = MouseAdapter.class,
         events = {

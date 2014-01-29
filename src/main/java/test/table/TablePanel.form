@@ -56,7 +56,7 @@
         <Component class="javax.swing.JTable" name="jTable1">
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="AppEngine.checkout(JTable.class, &quot;table&quot;)"/>
-            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@Data(value=&quot;table&quot;, data=&quot;selectedRow&quot;)&#xa;@EventContainer(listens = MouseAdapter.class,&#xa;        events = {&#xa;            @Event(value=&quot;read&quot;, at=MOUSE_CLICKED)&#xa;        }&#xa;)"/>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="@RenderAs(TableRenderer.class)&#xa;@Data(value=&quot;table&quot;, data=&quot;selectedRow&quot;)&#xa;@EventContainer(listens = MouseAdapter.class,&#xa;        events = {&#xa;            @Event(value=&quot;read&quot;, at=MOUSE_CLICKED)&#xa;        }&#xa;)"/>
           </AuxValues>
         </Component>
       </SubComponents>

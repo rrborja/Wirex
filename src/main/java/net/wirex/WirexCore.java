@@ -97,6 +97,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreeCellRenderer;
@@ -163,7 +164,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.40-BETA";
+    public static final String version = "1.0.14.41-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -855,9 +856,14 @@ final class WirexCore implements Wirex {
                     TreeCellRenderer render = (TreeCellRenderer) clazz.newInstance();
                     JTree tree = (JTree) component;
                     tree.setCellRenderer(render);
+                } else if (clazz == TableCellRenderer.class && component instanceof JTable) {
+                    TableCellRenderer render = (TableCellRenderer) xrenderer;
+                    JTable table = (JTable) component;
+                    table.setDefaultRenderer(Object.class, render);
                 }
             } catch (InstantiationException ex) {
                 LOG.warn("Check your renderer's implementation: {}", renderer.getName());
+                ex.printStackTrace();
                 return;
             } catch (IllegalAccessException ex) {
                 LOG.error("Framework bug! Report for scanning renderas annotation.");
