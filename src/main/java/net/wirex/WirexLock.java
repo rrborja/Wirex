@@ -1,7 +1,8 @@
 package net.wirex;
 
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,11 @@ public class WirexLock {
     private final Semaphore receivingLock = new Semaphore(10);
 
     private final Semaphore sendingLock = new Semaphore(2);
+
+    private final Lock presenterLock = new ReentrantLock();
     
+    private final Lock clearLock = new ReentrantLock();
+
     public void lockReceiving() {
         try {
             receivingLock.acquire();
@@ -52,5 +57,21 @@ public class WirexLock {
 
     public void unlockSending() {
         sendingLock.release();
+    }
+
+    public void lockPresenter() {
+        presenterLock.lock();
+    }
+
+    public void unlockPresenter() {
+        presenterLock.unlock();
+    }
+
+    public void lockClear() {
+        clearLock.lock();
+    }
+
+    public void unlockClear() {
+        clearLock.unlock();
     }
 }

@@ -32,6 +32,8 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
@@ -151,6 +153,7 @@ import net.wirex.structures.XLive;
 import net.wirex.structures.XObject;
 import net.wirex.structures.XRenderer;
 import net.wirex.structures.XTreeFormat;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.jdesktop.swingx.JXDatePicker;
 import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
@@ -165,7 +168,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.45-BETA";
+    public static final String version = "1.0.14.48-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -644,7 +647,12 @@ final class WirexCore implements Wirex {
      */
     @Override
     public MVP prepare(Class viewClass) {
-        return prepare(viewClass, null);
+        semaphore.lockPresenter();
+        try {
+            return prepare(viewClass, null);
+        } finally {
+            semaphore.unlockPresenter();
+        }
     }
 
     MVP prepare(Class viewClass, Window parent) {
@@ -765,10 +773,13 @@ final class WirexCore implements Wirex {
 
         if (retrieveAnnotations[0].length > 0) {
             new Thread(() -> {
+                semaphore.lockPresenter();
                 try {
                     run.invoke(presenter, runMethodParameters);
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    semaphore.unlockPresenter();
                 }
             }, "init-" + presenter.getClass().getSimpleName()).start();
         }
@@ -1841,6 +1852,102 @@ final class WirexCore implements Wirex {
                         dialog.setIconImage(appIcon);
                     }
                 }
+
+                dialog.addWindowListener(new WindowListener() {
+                    
+                    public ArrayList<Class<? extends Model>> getPanelClasses(Class<? extends JPanel> clazz) {
+                        ArrayList<Class<? extends Model>> list = new ArrayList<>(1);
+                        Bind bind = clazz.getAnnotation(Bind.class);
+                        if (bind == null) {
+                            return list;
+                        }
+                        list.add(bind.model());
+                        Field[] fields = clazz.getDeclaredFields();
+                        for (Field field : fields) {
+                            View view = field.getAnnotation(View.class);
+                            if (view != null) {
+                                Class viewClass = field.getType();
+                                list.addAll(getPanelClasses(viewClass));
+                            }
+                        }
+                        return list;
+                    }
+
+                    @Override
+                    public void windowOpened(WindowEvent e) {
+                    }
+
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+
+                        ArrayList<Class<? extends Model>> modelListToRemove = getPanelClasses(viewPanel.getClass());
+                        for (Class<? extends Model> model : modelListToRemove) {
+                            Model modelObject = models.get(model);
+                            Field[] fields = model.getDeclaredFields();
+                            for (Field field : fields) {
+                                int modifiers = field.getModifiers();
+                                String property = field.getName();
+                                if (!Modifier.isTransient(modifiers)) {
+                                    semaphore.lockClear();
+                                    try {
+                                        if (field.getType() == String.class) {
+                                            PropertyUtils.setProperty(modelObject, property, "");
+                                        } else if (field.getType() == Boolean.class || field.getType().toString().equals("boolean")) {
+                                            PropertyUtils.setProperty(modelObject, property, false);
+                                        } else if (field.getType() == Integer.class || field.getType().toString().equals("int")) {
+                                            PropertyUtils.setProperty(modelObject, property, 0);
+                                        } else if (field.getType() == Double.class || field.getType().toString().equals("double")) {
+                                            PropertyUtils.setProperty(modelObject, property, 0.0);
+                                        } else if (field.getType() == Float.class || field.getType().toString().equals("float")) {
+                                            PropertyUtils.setProperty(modelObject, property, 0.0);
+                                        } else if (field.getType() == Character.class || field.getType().toString().equals("char")) {
+                                            PropertyUtils.setProperty(modelObject, property, null);
+                                        } else if (field.getType() == String.class) {
+                                            PropertyUtils.setProperty(modelObject, property, "");
+                                        } else if (field.getType() == XList.class) {
+                                            XList list = (XList) PropertyUtils.getProperty(modelObject, property);
+                                            list.getReadWriteLock().writeLock().lock();
+                                            try {
+                                                list.clear();
+                                            } catch (IndexOutOfBoundsException ex) {
+                                            } finally {
+                                                list.getReadWriteLock().writeLock().unlock();
+                                            }
+                                        }
+
+                                    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                                        LOG.error("Framework Bug!", ex);
+                                    } finally {
+                                        semaphore.unlockClear();
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                    }
+
+                    @Override
+                    public void windowIconified(WindowEvent e) {
+                    }
+
+                    @Override
+                    public void windowDeiconified(WindowEvent e) {
+                    }
+
+                    @Override
+                    public void windowActivated(WindowEvent e) {
+                    }
+
+                    @Override
+                    public void windowDeactivated(WindowEvent e) {
+                    }
+
+                });
+
                 dialog.pack();
                 dialog.setMinimumSize(dialog.getPreferredSize());
                 Container parent = dialog.getParent();
