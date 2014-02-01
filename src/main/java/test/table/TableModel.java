@@ -5,8 +5,11 @@
  */
 package test.table;
 
+import net.wirex.annotations.Balloon;
+import net.wirex.annotations.Column;
 import net.wirex.interfaces.Model;
 import net.wirex.structures.XList;
+import test.another.NewLoginPanel;
 
 /**
  *

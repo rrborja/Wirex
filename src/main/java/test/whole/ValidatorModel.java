@@ -19,7 +19,7 @@ public class ValidatorModel extends Model {
     private String retype;
     private String email;
     
-    @Path("component/tax")
+//    @Path("component/tax")
     private String phoneNumber;
 
     public ValidatorModel() {

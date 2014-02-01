@@ -32,6 +32,8 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
@@ -107,6 +109,7 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.validation.ConstraintValidator;
 import net.java.balloontip.BalloonTip;
+import net.java.balloontip.TableCellBalloonTip;
 import net.java.balloontip.styles.MinimalBalloonStyle;
 import net.java.balloontip.utils.ToolTipUtils;
 import net.wirex.annotations.Access;
@@ -168,7 +171,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.49-BETA";
+    public static final String version = "1.0.14.51-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -237,14 +240,15 @@ final class WirexCore implements Wirex {
                         con.setReadTimeout(3000);
                         InputStream in = con.getInputStream();
                         resource = ImageIO.read(in);
+                        if (resource == null) {
+                            LOG.warn("Missing icon at {}", name);
+                            return new ImageIcon();
+                        }
+                        return new ImageIcon(resource);
                     } catch (IOException ex) {
                         LOG.warn("Icon at {} not found", name);
-                    }
-                    if (resource == null) {
-                        LOG.warn("Missing icon at {}", name);
                         return new ImageIcon();
                     }
-                    return new ImageIcon(resource);
                 }
             });
 
@@ -1434,7 +1438,7 @@ final class WirexCore implements Wirex {
                 java.lang.reflect.Type type = listField.getGenericType();
 
                 ParameterizedType listType;
-                Class<?> listTypeClass;
+                final Class<?> listTypeClass;
                 if (type instanceof Class) {
                     listTypeClass = (Class<?>) type;
                 } else {
@@ -1500,7 +1504,7 @@ final class WirexCore implements Wirex {
                         list.set(i, new XObject(list.get(i)));
                     }
                     adapter.setValue(property, list);
-                    listTypeClass = XObject.class;
+//                    listTypeClass = XObject.class;
 //                    System.out.println(listTypeClass);
                 }
 
@@ -1514,6 +1518,92 @@ final class WirexCore implements Wirex {
                     JXTable table = new JXTable(new EventTableModel(rows, propertyNames, propertyTexts, editable));
                     newComponent = table;
                 }
+
+                JTable table = (JTable) newComponent;
+                table.addMouseListener(new MouseListener() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                    }
+
+                    @Override
+                    public void mouseReleased(MouseEvent e) {
+                    }
+
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        int row = table.rowAtPoint(e.getPoint());
+                        int col = table.columnAtPoint(e.getPoint());
+                        String columnName = table.getColumnModel().getColumn(col).getHeaderValue().toString();
+                        Field[] fields = listTypeClass.getDeclaredFields();
+                        for (Field field : fields) {
+                            Column column = field.getAnnotation(Column.class);
+                            String fieldColumnName = column.value();
+                            if (column == null) {
+                                fieldColumnName = field.getName();
+                            }
+                            if (fieldColumnName.equals(columnName)) {
+                                Balloon balloon = field.getAnnotation(Balloon.class);
+                                if (balloon == null) {
+                                    break;
+                                }
+                                String text = balloon.text();
+                                Class<? extends JComponent> componentClass = balloon.value();
+                                Integer seconds = balloon.seconds();
+                                if (componentClass == JPanel.class) {
+                                    JLabel label = new JLabel(text);
+                                    label.setForeground(new Color(230, 230, 230));
+                                    TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, label, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                            BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                            0, 5, false);
+                                } else {
+                                    Object component;
+                                    try {
+                                        component = componentClass.newInstance();
+                                    } catch (InstantiationException | IllegalAccessException ex) {
+                                        return;
+                                    }
+                                    JComponent finalBalloonPanel;
+                                    JPanel view = (JPanel) component;
+                                    Class viewClass = view.getClass();
+                                    Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+                                    if (bind != null) {
+                                        MVP mvp = prepare(viewClass);
+                                        finalBalloonPanel = mvp.getView();
+                                    } else {
+                                        try {
+                                            finalBalloonPanel = (JComponent) viewClass.newInstance();
+                                        } catch (InstantiationException | IllegalAccessException ex) {
+                                            return;
+                                        }
+                                    }
+                                    if (component instanceof JPanel) {
+                                        TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                0, 5, false);
+                                        balloonTip.setVisible(false);
+                                        balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                                        balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                                    } else {
+                                        TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                0, 5, false);
+                                        ToolTipUtils.toolTipToBalloon(balloonTip);
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                    }
+
+                });
 
                 for (Map.Entry<String, ComponentModel> entry : comboBoxList.entrySet()) {
                     XList list = entry.getValue().getComponent();
@@ -1627,13 +1717,15 @@ final class WirexCore implements Wirex {
                                 new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
                                 BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
                                 0, 5, false);
-                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                        balloonTip.setVisible(false);
+                        balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                        balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
                     } else {
                         BalloonTip balloonTip = new BalloonTip(fieldComponent, (JComponent) component,
                                 new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
                                 BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
                                 0, 5, false);
-                        ToolTipUtils.balloonToToolTip(balloonTip, seconds * 100, 3000000);
+                        ToolTipUtils.toolTipToBalloon(balloonTip);
                     }
                 }
             }
@@ -1854,7 +1946,7 @@ final class WirexCore implements Wirex {
                 }
 
                 dialog.addWindowListener(new WindowListener() {
-                    
+
                     public ArrayList<Class<? extends Model>> getPanelClasses(Class<? extends JPanel> clazz) {
                         ArrayList<Class<? extends Model>> list = new ArrayList<>(1);
                         Bind bind = clazz.getAnnotation(Bind.class);

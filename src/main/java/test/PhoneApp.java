@@ -48,7 +48,7 @@ public class PhoneApp {
             AppEngine.connect("http://10.0.1.66:8080/g7");
             AppEngine.locateResource("jar:http://10.0.1.66:8080/g7/icon!/");
             AppEngine.setTrayIcon("VispIcon_small");
-            MVP app = AppEngine.prepare(PhoneView.class);
+            MVP app = AppEngine.prepare(NewLoginPanel.class);
             app.display(JFrame.class, true);
             Toolkit.getDefaultToolkit().beep();
         } catch (ViewClassNotBindedException | WrongComponentException ex) {

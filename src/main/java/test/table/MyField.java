@@ -5,9 +5,11 @@
  */
 package test.table;
 
+import net.wirex.annotations.Balloon;
 import net.wirex.annotations.Column;
 import net.wirex.annotations.Path;
 import net.wirex.interfaces.Model;
+import test.another.NewLoginPanel;
 
 /**
  *
@@ -17,6 +19,7 @@ public class MyField extends Model {
 
     @Column("Field 1")
     private Object field1;
+    @Balloon(NewLoginPanel.class)
     @Column("Field 2")
 //    @Path("component/billingcycle/list")
     private Object field2;
