@@ -57,6 +57,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -93,6 +94,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -171,7 +173,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.15-GA";
+    public static final String version = "1.0.14.53-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -923,6 +925,10 @@ final class WirexCore implements Wirex {
                         String selectedItemProperty = LegalIdentifierChecker.check(data.data());
                         component = bindComponent(clazz, model, modelProperty, selectedItemProperty);
                     }
+                    Field componentsField = model.getClass().getSuperclass().getDeclaredField("components");
+                    componentsField.setAccessible(true);
+                    ArrayList<JComponent> list = (ArrayList) componentsField.get(model);
+                    list.add(component);
                     RenderAs renderAs = field.getAnnotation(RenderAs.class);
                     scanFieldWithRenderAs(renderAs, component);
                 } catch (InstantiationException | IllegalAccessException ex) {
@@ -1068,6 +1074,10 @@ final class WirexCore implements Wirex {
                     String listenerTypeName = listenerType.getSimpleName();
                     if (listenerTypeName.contains("Adapter")) {
                         listenerType = Class.forName("java.awt.event." + listenerTypeName.replace("Adapter", "Listener"));
+                    }
+                    if (componentObject instanceof JTable && listenerTypeName.equals("ListSelectionListener")) {
+                        component = ListSelectionModel.class;
+                        componentObject = ((JTable) componentObject).getSelectionModel();
                     }
                     String listenerDerivativeName = listenerTypeName.replace("Adapter", "Listener");
                     Method addListenerToComponentMethod = component.getMethod("add" + listenerDerivativeName, listenerType);

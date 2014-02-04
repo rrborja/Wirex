@@ -5,9 +5,12 @@ import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.swing.JComponent;
 import net.wirex.AppEngine;
 import net.wirex.structures.XModelListener;
 import org.slf4j.LoggerFactory;
@@ -24,9 +27,11 @@ public abstract class Model {
 
     private transient String hashValue = AppEngine.hash(this);
 
+    private final transient ArrayList<JComponent> components = new ArrayList<>(5);
+    
     transient Map undoObject = synchronize();
 
-    private transient XModelListener listener = new XModelListener() {
+    private transient XModelListener _listener = new XModelListener() {
         @Override
         public void modelChanged() {
         }
@@ -88,9 +93,9 @@ public abstract class Model {
     public void fireChanges(String fieldName, Object oldValue, Object newValue) {
         changeSupport.firePropertyChange(fieldName, oldValue, newValue);
         if (isChanged()) {
-            listener.modelUnchanged();
+            _listener.modelUnchanged();
         } else {
-            listener.modelChanged();
+            _listener.modelChanged();
         }
     }
 
@@ -104,7 +109,7 @@ public abstract class Model {
     }
 
     public void addModelListener(XModelListener listener) {
-        this.listener = listener;
+        this._listener = listener;
     }
 
     public Object streamData() {
@@ -114,10 +119,14 @@ public abstract class Model {
     public Class streamType() {
         throw new UnsupportedOperationException("You need to override this method in " + this.getClass().getSimpleName());
     }
+    
+    public List<JComponent> getComponents() {
+        return Collections.unmodifiableList(components);
+    }
 
     @Override
     public String toString() {
-        return "Model{" + "changeSupport=" + changeSupport + ", hashValue=" + hashValue + ", undoObject=" + undoObject + ", listener=" + listener + '}';
+        return "Model{" + "changeSupport=" + changeSupport + ", hashValue=" + hashValue + ", undoObject=" + undoObject + ", listener=" + _listener + '}';
     }
 
 }

@@ -1,16 +1,23 @@
 package net.wirex.interfaces;
 
+import java.awt.Cursor;
+import java.awt.Window;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import net.wirex.AppEngine;
 import net.wirex.Invoker;
 import net.wirex.PresenterModel;
@@ -188,10 +195,15 @@ public abstract class Presenter {
     }
 
     public ServerResponse submit(Map form, Map<String, String> args) {
-        PresenterModel presenterModel = new PresenterModel(form);
-        ServerRequest request = new ServerRequest(rest, path, media, args, presenterModel, view);
-        ServerResponse response = AppEngine.push(request);
-        return response;
+        ArrayList<Boolean> editable = busy();
+        try {
+            PresenterModel presenterModel = new PresenterModel(form);
+            ServerRequest request = new ServerRequest(rest, path, media, args, presenterModel, view);
+            ServerResponse response = AppEngine.push(request);
+            return response;
+        } finally {
+            idle(editable);
+        }
     }
 
     private void init(String path, Media media, String rest) {
@@ -226,12 +238,46 @@ public abstract class Presenter {
     }
 
     private ServerResponse request(String path, Map variables) {
-        ServerRequest request = new ServerRequest(rest, path, media, variables, model, view);
-        ServerResponse response = AppEngine.push(request);
-        if (response.isSerializable()) {
-            AppEngine.deserialize(model, (Model) response.getMessage());
+        ArrayList<Boolean> editable = busy();
+        try {
+            ServerRequest request = new ServerRequest(rest, path, media, variables, model, view);
+            ServerResponse response = AppEngine.push(request);
+            if (response.isSerializable()) {
+                AppEngine.deserialize(model, (Model) response.getMessage());
+            }
+            return response;
+        } finally {
+            idle(editable);
         }
-        return response;
+    }
+
+    private void setBusyCursor(boolean enable) {
+        Window window = SwingUtilities.getWindowAncestor(view);
+        if (enable) {
+            window.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        } else {
+            window.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        }
+    }
+
+    protected synchronized ArrayList<Boolean> busy() {
+        setBusyCursor(true);
+        ArrayList<Boolean> editable = new ArrayList<>();
+        List<JComponent> components = (List) model.getComponents();
+        for (JComponent component : components) {
+            editable.add(component.isEnabled());
+            component.setEnabled(false);
+        }
+        return editable;
+    }
+
+    protected synchronized void idle(ArrayList<Boolean> editable) {
+        List<JComponent> components = (List) model.getComponents();
+        Iterator<Boolean> iter = editable.iterator();
+        for (JComponent component : components) {
+            component.setEnabled(iter.next());
+        }
+        setBusyCursor(false);
     }
 
     public void onBackground() {
