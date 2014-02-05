@@ -251,12 +251,18 @@ public abstract class Presenter {
         }
     }
 
+    private static final transient Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
+    private static final transient Cursor DEFAULT_CURSOR = new Cursor(Cursor.DEFAULT_CURSOR);
+
     private void setBusyCursor(boolean enable) {
         Window window = SwingUtilities.getWindowAncestor(view);
+        if (window == null) {
+            return;
+        }
         if (enable) {
-            window.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+            window.setCursor(WAIT_CURSOR);
         } else {
-            window.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            window.setCursor(DEFAULT_CURSOR);
         }
     }
 

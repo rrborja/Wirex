@@ -29,6 +29,8 @@ public abstract class Model {
 
     private final transient ArrayList<JComponent> components = new ArrayList<>(5);
     
+    private final transient ArrayList<JComponent> sensitives = new ArrayList<>(5);
+    
     transient Map undoObject = synchronize();
 
     private transient XModelListener _listener = new XModelListener() {

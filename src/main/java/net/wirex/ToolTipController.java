@@ -39,38 +39,40 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
         });
         showTimer.setRepeats(false);
 
-        Component[] components = this.balloonTip.getContents().getComponents();
-        for (Component component : components) {
-            component.addMouseListener(new MouseListener() {
-
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                }
-
-                @Override
-                public void mousePressed(MouseEvent e) {
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    balloonTip.setVisible(true);
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                }
-                
-            });
-        }
+//        Component[] components = this.balloonTip.getContents().getComponents();
+//        for (Component component : components) {
+//            component.addMouseListener(new MouseListener() {
+//
+//                @Override
+//                public void mouseClicked(MouseEvent e) {
+//                    balloonTip.setVisible(true);
+//                }
+//
+//                @Override
+//                public void mousePressed(MouseEvent e) {
+//                }
+//
+//                @Override
+//                public void mouseReleased(MouseEvent e) {
+//                }
+//
+//                @Override
+//                public void mouseEntered(MouseEvent e) {
+//                    balloonTip.setVisible(true);
+//                }
+//
+//                @Override
+//                public void mouseExited(MouseEvent e) {
+//                }
+//                
+//            });
+//        }
         
         this.balloonTip.getContents().addMouseListener(new MouseListener() {
 
             @Override
             public void mouseClicked(MouseEvent e) {
+                    balloonTip.setVisible(true);
             }
 
             @Override
@@ -83,7 +85,7 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                balloonTip.setVisible(true);
+                //balloonTip.setVisible(true);
             }
 
             @Override
@@ -95,40 +97,40 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
                 int currentX = e.getX();
                 int currentY = e.getY();
                 if (x < currentX && currentX < x + height) {
-                    balloonTip.setVisible(true);
+                    //balloonTip.setVisible(true);
                 } else if (y < currentY && currentY < y + width) {
-                    balloonTip.setVisible(true);
+                    //balloonTip.setVisible(true);
                 } else {
                     balloonTip.setVisible(false);
                 }
             }
 
         });
-        this.balloonTip.addMouseListener(new MouseListener() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                balloonTip.setVisible(true);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                balloonTip.setVisible(false);
-            }
-
-        });
+//        this.balloonTip.addMouseListener(new MouseListener() {
+//
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//            }
+//
+//            @Override
+//            public void mousePressed(MouseEvent e) {
+//            }
+//
+//            @Override
+//            public void mouseReleased(MouseEvent e) {
+//            }
+//
+//            @Override
+//            public void mouseEntered(MouseEvent e) {
+//                balloonTip.setVisible(true);
+//            }
+//
+//            @Override
+//            public void mouseExited(MouseEvent e) {
+//                balloonTip.setVisible(false);
+//            }
+//
+//        });
     }
 
     public void mouseEntered(MouseEvent e) {

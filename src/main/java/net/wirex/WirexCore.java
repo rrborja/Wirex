@@ -7,17 +7,6 @@ import ca.odell.glazedlists.swing.DefaultEventComboBoxModel;
 import ca.odell.glazedlists.swing.EventTableModel;
 import ca.odell.glazedlists.swing.EventTreeModel;
 import ca.odell.glazedlists.swing.GlazedListsSwing;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.jgoodies.binding.PresentationModel;
-import com.jgoodies.binding.adapter.BasicComponentFactory;
-import com.jgoodies.binding.adapter.Bindings;
-import com.jgoodies.binding.beans.BeanAdapter;
-import com.jgoodies.binding.beans.PropertyNotFoundException;
-import com.jgoodies.binding.value.ValueModel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -57,7 +46,6 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -71,6 +59,55 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import net.java.balloontip.BalloonTip;
+import net.java.balloontip.TableCellBalloonTip;
+import net.java.balloontip.styles.MinimalBalloonStyle;
+import net.java.balloontip.utils.ToolTipUtils;
+import net.wirex.annotations.Access;
+import net.wirex.annotations.Balloon;
+import net.wirex.annotations.Bind;
+import net.wirex.annotations.Column;
+import net.wirex.annotations.DELETE;
+import net.wirex.annotations.Data;
+import net.wirex.annotations.Dispose;
+import net.wirex.annotations.Draw;
+import net.wirex.annotations.Editable;
+import net.wirex.annotations.Event;
+import net.wirex.annotations.EventContainer;
+import net.wirex.annotations.Fire;
+import net.wirex.annotations.Form;
+import net.wirex.annotations.GET;
+import net.wirex.annotations.Optional;
+import net.wirex.annotations.POST;
+import net.wirex.annotations.PUT;
+import net.wirex.annotations.Path;
+import net.wirex.annotations.Permit;
+import net.wirex.annotations.Property;
+import net.wirex.annotations.RenderAs;
+import net.wirex.annotations.Retrieve;
+import net.wirex.annotations.Rule;
+import net.wirex.annotations.Snip;
+import net.wirex.annotations.Text;
+import net.wirex.annotations.Type;
+import net.wirex.annotations.View;
+import net.wirex.enums.Media;
+import net.wirex.exceptions.InvalidKeywordFromBindingNameException;
+import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
+import net.wirex.exceptions.UnknownComponentException;
+import net.wirex.exceptions.ViewClassNotBindedException;
+import net.wirex.exceptions.WrongComponentException;
+import net.wirex.gui.ErrorReportPanel;
+import net.wirex.interfaces.Model;
+import net.wirex.interfaces.Presenter;
+import net.wirex.interfaces.Resource;
+import net.wirex.interfaces.Validator;
+import net.wirex.structures.XComponent;
+import net.wirex.structures.XList;
+import net.wirex.structures.XLive;
+import net.wirex.structures.XObject;
+import net.wirex.structures.XRenderer;
+import net.wirex.structures.XTreeFormat;
+
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -110,60 +147,26 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.validation.ConstraintValidator;
-import net.java.balloontip.BalloonTip;
-import net.java.balloontip.TableCellBalloonTip;
-import net.java.balloontip.styles.MinimalBalloonStyle;
-import net.java.balloontip.utils.ToolTipUtils;
-import net.wirex.annotations.Access;
-import net.wirex.annotations.Balloon;
-import net.wirex.annotations.Bind;
-import net.wirex.annotations.Column;
-import net.wirex.annotations.DELETE;
-import net.wirex.annotations.Data;
-import net.wirex.annotations.Dispose;
-import net.wirex.annotations.Draw;
-import net.wirex.annotations.Editable;
-import net.wirex.annotations.Event;
-import net.wirex.annotations.EventContainer;
-import net.wirex.annotations.Fire;
-import net.wirex.annotations.Form;
-import net.wirex.annotations.GET;
-import net.wirex.annotations.POST;
-import net.wirex.annotations.PUT;
-import net.wirex.annotations.Path;
-import net.wirex.annotations.Property;
-import net.wirex.annotations.Optional;
-import net.wirex.annotations.Permit;
-import net.wirex.annotations.RenderAs;
-import net.wirex.annotations.Retrieve;
-import net.wirex.annotations.Rule;
-import net.wirex.annotations.Snip;
-import net.wirex.annotations.Text;
-import net.wirex.annotations.Type;
-import net.wirex.annotations.View;
-import net.wirex.enums.Media;
-import net.wirex.exceptions.InvalidKeywordFromBindingNameException;
-import net.wirex.exceptions.ReservedKeywordFromBindingNameException;
-import net.wirex.exceptions.UnknownComponentException;
-import net.wirex.exceptions.ViewClassNotBindedException;
-import net.wirex.exceptions.WrongComponentException;
-import net.wirex.gui.ErrorReportPanel;
-import net.wirex.interfaces.Model;
-import net.wirex.interfaces.Presenter;
-import net.wirex.interfaces.Resource;
-import net.wirex.interfaces.Validator;
-import net.wirex.structures.XComponent;
-import net.wirex.structures.XList;
-import net.wirex.structures.XLive;
-import net.wirex.structures.XObject;
-import net.wirex.structures.XRenderer;
-import net.wirex.structures.XTreeFormat;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.jdesktop.swingx.JXDatePicker;
 import org.jdesktop.swingx.JXHyperlink;
 import org.jdesktop.swingx.JXTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.jgoodies.binding.PresentationModel;
+import com.jgoodies.binding.adapter.BasicComponentFactory;
+import com.jgoodies.binding.adapter.Bindings;
+import com.jgoodies.binding.beans.BeanAdapter;
+import com.jgoodies.binding.beans.PropertyNotFoundException;
+import com.jgoodies.binding.value.ValueModel;
+import javax.swing.Timer;
 
 /**
  *
@@ -173,7 +176,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.53-BETA";
+    public static final String version = "1.0.14.56-BETA";;
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1531,8 +1534,78 @@ final class WirexCore implements Wirex {
 
                 JTable table = (JTable) newComponent;
                 table.addMouseListener(new MouseListener() {
+                    Timer initialTimer;
+
                     @Override
                     public void mouseClicked(MouseEvent e) {
+                        initialTimer = new Timer(1000, new ActionListener() {
+                            public void actionPerformed(ActionEvent ae) {
+                                int row = table.rowAtPoint(e.getPoint());
+                                int col = table.columnAtPoint(e.getPoint());
+                                String columnName = table.getColumnModel().getColumn(col).getHeaderValue().toString();
+                                Field[] fields = listTypeClass.getDeclaredFields();
+                                for (Field field : fields) {
+                                    Column column = field.getAnnotation(Column.class);
+                                    String fieldColumnName = column.value();
+                                    if (column == null) {
+                                        fieldColumnName = field.getName();
+                                    }
+                                    if (fieldColumnName.equals(columnName)) {
+                                        Balloon balloon = field.getAnnotation(Balloon.class);
+                                        if (balloon == null) {
+                                            break;
+                                        }
+                                        String text = balloon.text();
+                                        Class<? extends JComponent> componentClass = balloon.value();
+                                        Integer seconds = balloon.seconds();
+                                        if (componentClass == JPanel.class) {
+                                            JLabel label = new JLabel(text);
+                                            label.setForeground(new Color(230, 230, 230));
+                                            TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, label, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                    BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                    0, 5, false);
+                                        } else {
+                                            Object component;
+                                            try {
+                                                component = componentClass.newInstance();
+                                            } catch (InstantiationException | IllegalAccessException ex) {
+                                                return;
+                                            }
+                                            JComponent finalBalloonPanel;
+                                            JPanel view = (JPanel) component;
+                                            Class viewClass = view.getClass();
+                                            Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+                                            if (bind != null) {
+                                                MVP mvp = prepare(viewClass);
+                                                finalBalloonPanel = mvp.getView();
+                                            } else {
+                                                try {
+                                                    finalBalloonPanel = (JComponent) viewClass.newInstance();
+                                                } catch (InstantiationException | IllegalAccessException ex) {
+                                                    return;
+                                                }
+                                            }
+                                            if (component instanceof JPanel) {
+                                                TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                        BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                        0, 5, false);
+                                                balloonTip.setVisible(false);
+                                                balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                                                balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                                            } else {
+                                                TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                        BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                        0, 5, false);
+                                                ToolTipUtils.toolTipToBalloon(balloonTip);
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                        initialTimer.setRepeats(false);
+                        initialTimer.start();
                     }
 
                     @Override
@@ -1541,76 +1614,18 @@ final class WirexCore implements Wirex {
 
                     @Override
                     public void mouseReleased(MouseEvent e) {
+
                     }
 
                     @Override
                     public void mouseEntered(MouseEvent e) {
-                        int row = table.rowAtPoint(e.getPoint());
-                        int col = table.columnAtPoint(e.getPoint());
-                        String columnName = table.getColumnModel().getColumn(col).getHeaderValue().toString();
-                        Field[] fields = listTypeClass.getDeclaredFields();
-                        for (Field field : fields) {
-                            Column column = field.getAnnotation(Column.class);
-                            String fieldColumnName = column.value();
-                            if (column == null) {
-                                fieldColumnName = field.getName();
-                            }
-                            if (fieldColumnName.equals(columnName)) {
-                                Balloon balloon = field.getAnnotation(Balloon.class);
-                                if (balloon == null) {
-                                    break;
-                                }
-                                String text = balloon.text();
-                                Class<? extends JComponent> componentClass = balloon.value();
-                                Integer seconds = balloon.seconds();
-                                if (componentClass == JPanel.class) {
-                                    JLabel label = new JLabel(text);
-                                    label.setForeground(new Color(230, 230, 230));
-                                    TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, label, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                            BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                            0, 5, false);
-                                } else {
-                                    Object component;
-                                    try {
-                                        component = componentClass.newInstance();
-                                    } catch (InstantiationException | IllegalAccessException ex) {
-                                        return;
-                                    }
-                                    JComponent finalBalloonPanel;
-                                    JPanel view = (JPanel) component;
-                                    Class viewClass = view.getClass();
-                                    Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
-                                    if (bind != null) {
-                                        MVP mvp = prepare(viewClass);
-                                        finalBalloonPanel = mvp.getView();
-                                    } else {
-                                        try {
-                                            finalBalloonPanel = (JComponent) viewClass.newInstance();
-                                        } catch (InstantiationException | IllegalAccessException ex) {
-                                            return;
-                                        }
-                                    }
-                                    if (component instanceof JPanel) {
-                                        TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                                0, 5, false);
-                                        balloonTip.setVisible(false);
-                                        balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
-                                        balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
-                                    } else {
-                                        TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                                0, 5, false);
-                                        ToolTipUtils.toolTipToBalloon(balloonTip);
-                                    }
-                                }
-                                break;
-                            }
-                        }
                     }
 
                     @Override
                     public void mouseExited(MouseEvent e) {
+                        if (initialTimer != null) {
+                            initialTimer.stop();
+                        }
                     }
 
                 });
