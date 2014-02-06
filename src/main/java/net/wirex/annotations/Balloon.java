@@ -1,6 +1,7 @@
 package net.wirex.annotations;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -16,6 +17,8 @@ import javax.swing.JPanel;
 public @interface Balloon {
 
     String text() default "";
+    
+    String contains() default "";
 
     Class<? extends JComponent> value() default JPanel.class;
 

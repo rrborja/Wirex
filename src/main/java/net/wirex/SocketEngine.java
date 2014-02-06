@@ -28,7 +28,13 @@ public final class SocketEngine {
 
     private WebSocketClient con;
 
-    public SocketEngine() {
+    private static class SingletonHolder {
+
+        public static SocketEngine INSTANCE = new SocketEngine();
+
+    }
+
+    private SocketEngine() {
         try {
             //URI uri = new URI(hostname.replace("http", "ws") + "wired/");
             URI uri = new URI("ws://localhost:8080/wired");
@@ -78,4 +84,7 @@ public final class SocketEngine {
         con.close();
     }
 
+    public static SocketEngine getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
 }

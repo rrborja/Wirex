@@ -39,34 +39,34 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
         });
         showTimer.setRepeats(false);
 
-//        Component[] components = this.balloonTip.getContents().getComponents();
-//        for (Component component : components) {
-//            component.addMouseListener(new MouseListener() {
-//
-//                @Override
-//                public void mouseClicked(MouseEvent e) {
-//                    balloonTip.setVisible(true);
-//                }
-//
-//                @Override
-//                public void mousePressed(MouseEvent e) {
-//                }
-//
-//                @Override
-//                public void mouseReleased(MouseEvent e) {
-//                }
-//
-//                @Override
-//                public void mouseEntered(MouseEvent e) {
-//                    balloonTip.setVisible(true);
-//                }
-//
-//                @Override
-//                public void mouseExited(MouseEvent e) {
-//                }
-//                
-//            });
-//        }
+        Component[] components = this.balloonTip.getContents().getComponents();
+        for (Component component : components) {
+            component.addMouseListener(new MouseListener() {
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    balloonTip.setVisible(true);
+                }
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    balloonTip.setVisible(true);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                }
+                
+            });
+        }
         
         this.balloonTip.getContents().addMouseListener(new MouseListener() {
 
@@ -106,31 +106,31 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
             }
 
         });
-//        this.balloonTip.addMouseListener(new MouseListener() {
-//
-//            @Override
-//            public void mouseClicked(MouseEvent e) {
-//            }
-//
-//            @Override
-//            public void mousePressed(MouseEvent e) {
-//            }
-//
-//            @Override
-//            public void mouseReleased(MouseEvent e) {
-//            }
-//
-//            @Override
-//            public void mouseEntered(MouseEvent e) {
-//                balloonTip.setVisible(true);
-//            }
-//
-//            @Override
-//            public void mouseExited(MouseEvent e) {
-//                balloonTip.setVisible(false);
-//            }
-//
-//        });
+        this.balloonTip.addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                balloonTip.setVisible(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                balloonTip.setVisible(false);
+            }
+
+        });
     }
 
     public void mouseEntered(MouseEvent e) {

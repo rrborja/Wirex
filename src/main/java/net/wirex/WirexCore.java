@@ -167,6 +167,7 @@ import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
 import javax.swing.Timer;
+import net.wirex.annotations.BalloonContainer;
 
 /**
  *
@@ -176,7 +177,9 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.56-BETA";;
+    public static final String version = "1.0.14.59-BETA";
+
+    ;
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -296,7 +299,7 @@ final class WirexCore implements Wirex {
         this.resourceHostname = resourceHostname;
         this.privilegeModelClass = privilegeModelClass;
         this.liveContainer = new HashMap<>(3);
-        this.socket = new SocketEngine();
+        this.socket = SocketEngine.getInstance();
         this.encrypt = false;
 //        new ConsoleProcess("console").start();
     }
@@ -1552,56 +1555,76 @@ final class WirexCore implements Wirex {
                                     }
                                     if (fieldColumnName.equals(columnName)) {
                                         Balloon balloon = field.getAnnotation(Balloon.class);
-                                        if (balloon == null) {
+                                        BalloonContainer balloonContainer = field.getAnnotation(BalloonContainer.class);
+                                        if (balloon == null && balloonContainer == null) {
                                             break;
                                         }
-                                        String text = balloon.text();
-                                        Class<? extends JComponent> componentClass = balloon.value();
-                                        Integer seconds = balloon.seconds();
-                                        if (componentClass == JPanel.class) {
-                                            JLabel label = new JLabel(text);
-                                            label.setForeground(new Color(230, 230, 230));
-                                            TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, label, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                                    BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                                    0, 5, false);
-                                        } else {
-                                            Object component;
-                                            try {
-                                                component = componentClass.newInstance();
-                                            } catch (InstantiationException | IllegalAccessException ex) {
-                                                return;
-                                            }
-                                            JComponent finalBalloonPanel;
-                                            JPanel view = (JPanel) component;
-                                            Class viewClass = view.getClass();
-                                            Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
-                                            if (bind != null) {
-                                                MVP mvp = prepare(viewClass);
-                                                finalBalloonPanel = mvp.getView();
-                                            } else {
-                                                try {
-                                                    finalBalloonPanel = (JComponent) viewClass.newInstance();
-                                                } catch (InstantiationException | IllegalAccessException ex) {
-                                                    return;
+                                        if (balloon != null) {
+                                            String text = balloon.text();
+                                            Class<? extends JComponent> componentClass = balloon.value();
+                                            Integer seconds = balloon.seconds();
+                                            generateBalloon(componentClass, text, row, col, seconds);
+                                        } else if (balloonContainer != null) {
+                                            Balloon[] balloons = balloonContainer.value();
+                                            for (Balloon balloon1 : balloons) {
+                                                String text = balloon.text();
+                                                Class<? extends JComponent> componentClass = balloon.value();
+                                                Integer seconds = balloon.seconds();
+                                                String cellValue = String.valueOf(table.getValueAt(row, col));
+                                                String desiredValue = balloon.contains();
+                                                if (cellValue.equals(desiredValue)) {
+                                                    generateBalloon(componentClass, text, row, col, seconds);
                                                 }
-                                            }
-                                            if (component instanceof JPanel) {
-                                                TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                                        BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                                        0, 5, false);
-                                                balloonTip.setVisible(false);
-                                                balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
-                                                balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
-                                            } else {
-                                                TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
-                                                        BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
-                                                        0, 5, false);
-                                                ToolTipUtils.toolTipToBalloon(balloonTip);
                                             }
                                         }
                                         break;
                                     }
                                 }
+                            }
+
+                            private boolean generateBalloon(Class<? extends JComponent> componentClass, String text, int row, int col, Integer seconds) {
+                                if (componentClass == JPanel.class) {
+                                    JLabel label = new JLabel(text);
+                                    label.setForeground(new Color(230, 230, 230));
+                                    TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, label, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                            BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                            0, 5, false);
+                                } else {
+                                    Object component;
+                                    try {
+                                        component = componentClass.newInstance();
+                                    } catch (InstantiationException | IllegalAccessException ex) {
+                                        return true;
+                                    }
+                                    JComponent finalBalloonPanel;
+                                    JPanel view = (JPanel) component;
+                                    Class viewClass = view.getClass();
+                                    Bind bind = (Bind) viewClass.getAnnotation(Bind.class);
+                                    if (bind != null) {
+                                        MVP mvp = prepare(viewClass);
+                                        finalBalloonPanel = mvp.getView();
+                                    } else {
+                                        try {
+                                            finalBalloonPanel = (JComponent) viewClass.newInstance();
+                                        } catch (InstantiationException | IllegalAccessException ex) {
+                                            return true;
+                                        }
+                                    }
+                                    if (component instanceof JPanel) {
+                                        TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                0, 5, false);
+//                                                balloonTip.setVisible(false);
+                                        balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                                        balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+                                    } else {
+                                        TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
+                                                BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
+                                                0, 5, false);
+                                        ToolTipUtils.toolTipToBalloon(balloonTip);
+                                    }
+                                }
+                                return false;
                             }
                         });
                         initialTimer.setRepeats(false);
