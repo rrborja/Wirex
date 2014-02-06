@@ -177,9 +177,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.59-BETA";
-
-    ;
+    public static final String version = "1.0.14.61-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -1567,11 +1565,11 @@ final class WirexCore implements Wirex {
                                         } else if (balloonContainer != null) {
                                             Balloon[] balloons = balloonContainer.value();
                                             for (Balloon balloon1 : balloons) {
-                                                String text = balloon.text();
-                                                Class<? extends JComponent> componentClass = balloon.value();
-                                                Integer seconds = balloon.seconds();
+                                                String text = balloon1.text();
+                                                Class<? extends JComponent> componentClass = balloon1.value();
+                                                Integer seconds = balloon1.seconds();
                                                 String cellValue = String.valueOf(table.getValueAt(row, col));
-                                                String desiredValue = balloon.contains();
+                                                String desiredValue = balloon1.contains();
                                                 if (cellValue.equals(desiredValue)) {
                                                     generateBalloon(componentClass, text, row, col, seconds);
                                                 }
