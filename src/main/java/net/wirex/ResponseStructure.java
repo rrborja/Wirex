@@ -34,4 +34,9 @@ public class ResponseStructure {
         this.body = body;
     }
 
+    @Override
+    public String toString() {
+        return "ResponseStructure{" + "feature=" + feature + ", type=" + type + ", body=" + body + '}';
+    }
+
 }

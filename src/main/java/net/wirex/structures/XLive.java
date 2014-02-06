@@ -8,6 +8,6 @@ import java.util.Map;
  */
 public interface XLive {
     
-    void onChanges(Map map);
+    void onChanges(Map<String, String> map);
     
 }

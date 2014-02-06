@@ -57,7 +57,7 @@ public final class SocketEngine {
                     Map map = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").registerTypeAdapter(Date.class, new DateJsonDeserializer()).create().fromJson(String.valueOf(response.getBody()), new TypeToken<Map<String, String>>() {
                     }.getType());
                     if (component == null) {
-                        System.out.println(string);
+                        System.out.println("Result: " + string);
                     } else {
                         component.onChanges(map);
                     }
