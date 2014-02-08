@@ -4,6 +4,7 @@ import ca.odell.glazedlists.EventList;
 import ca.odell.glazedlists.SortedList;
 import ca.odell.glazedlists.TreeList;
 import ca.odell.glazedlists.swing.DefaultEventComboBoxModel;
+import ca.odell.glazedlists.swing.DefaultEventListModel;
 import ca.odell.glazedlists.swing.EventTableModel;
 import ca.odell.glazedlists.swing.EventTreeModel;
 import ca.odell.glazedlists.swing.GlazedListsSwing;
@@ -166,6 +167,7 @@ import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
+import javax.swing.JList;
 import javax.swing.Timer;
 import net.wirex.annotations.BalloonContainer;
 
@@ -177,7 +179,7 @@ final class WirexCore implements Wirex {
 
     private static final Logger LOG = LoggerFactory.getLogger(Wirex.class.getSimpleName());
 
-    public static final String version = "1.0.14.61-BETA";
+    public static final String version = "1.1.0-BETA";
 
     static {
         System.setProperty("org.apache.commons.logging.Log",
@@ -264,6 +266,8 @@ final class WirexCore implements Wirex {
 
     private Queue<String> preStackNoResourcePropertyCounts;
 
+    private Queue<CheckoutLogger> checkoutLoggerQueue;
+
     private int totalPreparedViews;
 
     private String hostname;
@@ -285,7 +289,7 @@ final class WirexCore implements Wirex {
     private Image appIcon;
 
     WirexCore() {
-        this("http://10.0.1.69:8080/g7/", "jar:http://10.0.1.69:8080/g7/icon!/", null);
+        this("http://10.0.1.66:8080/g7/", "jar:http://10.0.1.66:8080/g7/icon!/", null);
     }
 
     WirexCore(String hostname, String resourceHostname, Class privilegeModelClass) {
@@ -362,7 +366,7 @@ final class WirexCore implements Wirex {
             return (T) checkout(name);
         } else {
             try {
-                LOG.warn("No such component as {} of {}", component);
+                LOG.warn("No such component as {} of {}", name, component);
                 return component.newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
                 LOG.error("No instance for " + component, ex);
@@ -662,6 +666,7 @@ final class WirexCore implements Wirex {
             return prepare(viewClass, null);
         } finally {
             semaphore.unlockPresenter();
+//            checkUncheckedOut(viewClass, numberOfData + numberOfView);
         }
     }
 
@@ -799,7 +804,8 @@ final class WirexCore implements Wirex {
 
         stackCount--;
 
-        checkUncheckedOut(viewClass, numberOfData + numberOfView);
+//        checkoutLoggerQueue.add(new CheckoutLogger(viewClass, numberOfData));
+//        checkUncheckedOut(viewClass, numberOfData + numberOfView);
         checkNoResources(property);
 
         presenters.put(presenterClass, (Presenter) presenter);
@@ -865,6 +871,38 @@ final class WirexCore implements Wirex {
             components.put(panelId, mvp.getView());
             preStackUncheckedOutComponentCounts.add(panelId);
         }
+    }
+
+    private static class CheckoutLogger {
+
+        private final int numView;
+        private final int numData;
+        private final Class view;
+        private final Queue<String> queue;
+
+        CheckoutLogger(Class view, int numView, int numData, Queue<String> queue) {
+            this.view = view;
+            this.numView = numView;
+            this.numData = numData;
+            this.queue = new LinkedList<>(queue);
+        }
+
+        public int getNumView() {
+            return numView;
+        }
+
+        public int getNumData() {
+            return numData;
+        }
+
+        public Class getView() {
+            return view;
+        }
+
+        public Queue<String> getQueue() {
+            return queue;
+        }
+
     }
 
     private void scanFieldWithRenderAs(final RenderAs renderAs, final JComponent component) {
@@ -1522,7 +1560,7 @@ final class WirexCore implements Wirex {
 //                    System.out.println(listTypeClass);
                 }
 
-                EventList rows = (EventList) adapter.getModel(property).getValue();
+                EventList rows = GlazedListsSwing.swingThreadProxyList((EventList) adapter.getModel(property).getValue());
 //                TableFormat tf = GlazedLists.tableFormat(listTypeClass, propertyNames, propertyTexts);
 
                 if (JTable.class == component) {
@@ -1614,7 +1652,7 @@ final class WirexCore implements Wirex {
                                                 0, 5, false);
 //                                                balloonTip.setVisible(false);
                                         balloonTip.getAttachedComponent().addMouseListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
-                                        balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
+//                                        balloonTip.getAttachedComponent().addMouseMotionListener(new ToolTipController(balloonTip, seconds * 100, 3000000));
                                     } else {
                                         TableCellBalloonTip balloonTip = new TableCellBalloonTip(table, finalBalloonPanel, row, col, new MinimalBalloonStyle(new Color(0, 0, 0, 200), 10),
                                                 BalloonTip.Orientation.LEFT_ABOVE, BalloonTip.AttachLocation.CENTER,
@@ -1673,6 +1711,19 @@ final class WirexCore implements Wirex {
 
         } else if (JPasswordField.class == component || JPasswordField.class.isAssignableFrom(component)) {
             newComponent = BasicComponentFactory.createPasswordField(componentModel);
+        } else if (JList.class == component || JList.class.isAssignableFrom(component)) {
+            Object model = componentModel.getValue();
+            EventList eventList = (EventList) model;
+            DefaultEventListModel listModel = GlazedListsSwing.eventListModelWithThreadProxyList(eventList);
+            newComponent = new JList(listModel);
+            if (property2 != null) {
+                final JList listComponent = (JList) newComponent;
+                listComponent.getSelectionModel().addListSelectionListener((ListSelectionEvent event) -> {
+                    XList list = (XList) adapter.getModel(property).getValue();
+                    Object selectedRow = list.get(listComponent.getSelectedIndex());
+                    adapter.getModel(property2).setValue(selectedRow);
+                });
+            }
         } else if (XComponent.class.isAssignableFrom(component)) {
             XComponent xcomponent = (XComponent) newComponent;
             adapter.getModel(property).addPropertyChangeListener((PropertyChangeEvent evt) -> {
@@ -2017,7 +2068,6 @@ final class WirexCore implements Wirex {
 
                     @Override
                     public void windowClosing(WindowEvent e) {
-
                         ArrayList<Class<? extends Model>> modelListToRemove = getPanelClasses(viewPanel.getClass());
                         for (Class<? extends Model> model : modelListToRemove) {
                             Model modelObject = models.get(model);

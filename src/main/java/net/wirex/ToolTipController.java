@@ -85,7 +85,7 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                //balloonTip.setVisible(true);
+                balloonTip.setVisible(true);
             }
 
             @Override
@@ -97,9 +97,9 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
                 int currentX = e.getX();
                 int currentY = e.getY();
                 if (x < currentX && currentX < x + height) {
-                    //balloonTip.setVisible(true);
+                    balloonTip.setVisible(true);
                 } else if (y < currentY && currentY < y + width) {
-                    //balloonTip.setVisible(true);
+                    balloonTip.setVisible(true);
                 } else {
                     balloonTip.setVisible(false);
                 }
@@ -152,13 +152,13 @@ class ToolTipController extends MouseAdapter implements MouseMotionListener {
     }
 
     public void mouseExited(MouseEvent e) {
-        stopTimers();
-        balloonTip.setVisible(false);
+//        stopTimers();
+//        balloonTip.setVisible(false);
     }
 
     public void mousePressed(MouseEvent e) {
-        stopTimers();
-        balloonTip.setVisible(false);
+//        stopTimers();
+//        balloonTip.setVisible(false);
     }
 
     /*

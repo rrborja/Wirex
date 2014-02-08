@@ -40,6 +40,8 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     public static final int BUG = 4;
 
     public static final int COMMAND = 5;
+    
+    public static final int SUCCESS = 6;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseExtractor.class.getName());
 
@@ -62,7 +64,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
 
         HttpStatus status = response.getStatusCode();
         InputStream in = response.getBody();
-        
+
         semaphore.lockReceiving();
         JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
 
@@ -182,6 +184,9 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 Integer command = gson.fromJson(reader, Integer.class);
                 LOG.info("[{}] Server returned a command response {} from feature {}", status, command, feature);
                 return new ServerResponse<>(HttpStatus.OK, command);
+            case SUCCESS:
+                LOG.info("Server responded your request from feature {}", feature);
+                break;
         }
         return new ServerResponse(HttpStatus.OK, new Model() {
         });
