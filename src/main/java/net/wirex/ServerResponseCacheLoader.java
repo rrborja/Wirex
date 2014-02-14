@@ -28,8 +28,17 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
 
     private final WirexLock semaphore;
 
+    private static ServerResponseCacheLoader INSTANCE;
+
     ApplicationContext applicationContext;
     RestTemplate rt;
+
+    public static ServerResponseCacheLoader getInstance(WirexLock semaphore) {
+        if (INSTANCE == null) {
+            INSTANCE = new ServerResponseCacheLoader(semaphore);
+        }
+        return INSTANCE;
+    }
 
     void init() {
         if (applicationContext == null) {
@@ -38,7 +47,7 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         }
     }
 
-    public ServerResponseCacheLoader(WirexLock semaphore) {
+    private ServerResponseCacheLoader(WirexLock semaphore) {
         this.semaphore = semaphore;
     }
 

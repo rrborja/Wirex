@@ -17,7 +17,11 @@ public class PresenterModel extends Model {
     }
 
     public PresenterModel(Map form) {
-        this.form = form;
+        if (form == null) {
+            this.form = new HashMap();
+        } else {
+            this.form = form;
+        }
     }
 
     public boolean isEmpty() {

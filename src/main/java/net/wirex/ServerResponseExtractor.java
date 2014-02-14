@@ -2,6 +2,7 @@ package net.wirex;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import java.awt.Window;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import net.wirex.exceptions.ViewClassNotBindedException;
@@ -40,7 +42,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     public static final int BUG = 4;
 
     public static final int COMMAND = 5;
-    
+
     public static final int SUCCESS = 6;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseExtractor.class.getName());
@@ -186,7 +188,9 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 return new ServerResponse<>(HttpStatus.OK, command);
             case SUCCESS:
                 LOG.info("Server responded your request from feature {}", feature);
-                break;
+                Map data = gson.fromJson(reader, new TypeToken<Map<String, Object>>() {
+                }.getType());
+                return new ServerResponse<>(HttpStatus.OK, data);
         }
         return new ServerResponse(HttpStatus.OK, new Model() {
         });

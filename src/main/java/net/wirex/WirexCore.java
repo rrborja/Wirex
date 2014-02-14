@@ -209,7 +209,13 @@ final class WirexCore implements Wirex {
             .maximumSize(1)
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.SECONDS)
-            .build(new ServerResponseCacheLoader(semaphore));
+            .build(ServerResponseCacheLoader.getInstance(semaphore));
+    
+    private final LoadingCache<ServerRequest, ServerResponse> componentResource = CacheBuilder.newBuilder()
+            .maximumSize(50)
+            .concurrencyLevel(10)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build(ServerResponseCacheLoader.getInstance(semaphore));
 
     private final ConcurrentMap<Class<? extends Presenter>, PresenterModel> presenterModels = new ConcurrentHashMap(10);
 
@@ -951,7 +957,7 @@ final class WirexCore implements Wirex {
                             url = path.value();
                         }
                         ServerRequest request = new ServerRequest("GET", hostname + url, Media.JSON, null, new ComponentModel(), null);
-                        ServerResponse response = cacheResource.get(request);
+                        ServerResponse response = componentResource.get(request);
                         if (response != null) {
                             ComponentModel componentModel = (ComponentModel) response.getMessage();
                             listField.setAccessible(true);
@@ -1503,7 +1509,8 @@ final class WirexCore implements Wirex {
                 String[] propertyNames;
                 String[] propertyTexts;
                 boolean[] editable;
-                Map<String, ComponentModel> comboBoxList = new HashMap<>();
+                ArrayList<String> checkboxList = new ArrayList<>(5);
+                Map<String, ComponentModel> comboBoxList = new HashMap<>(5);
                 int numOfTransient = 0;
                 for (int i = 0; i < fields.length; i++) {
                     int modifiers = fields[i].getModifiers();
@@ -1543,6 +1550,9 @@ final class WirexCore implements Wirex {
                             columnName = column.value();
                         } else {
                             columnName = columns[i].getName();
+                        }
+                        if (columns[i].getType() == Boolean.class) {
+                            checkboxList.add(columnName);
                         }
                         propertyNames[i] = columns[i].getName();
                         propertyTexts[i] = columnName;
@@ -1702,6 +1712,10 @@ final class WirexCore implements Wirex {
                         Object selectedRow = list.get(tableComponent.getSelectedRow());
                         adapter.getModel(property2).setValue(selectedRow);
                     });
+                }
+                
+                for (String column : checkboxList) {
+                    ((JTable) newComponent).getColumn(column).setCellEditor(new DefaultCellEditor(new JCheckBox()));
                 }
 
             } catch (NoSuchFieldException | SecurityException | ExecutionException ex) {
