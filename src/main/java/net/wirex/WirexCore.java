@@ -167,9 +167,11 @@ import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
+import javax.swing.ButtonGroup;
 import javax.swing.JList;
 import javax.swing.Timer;
 import net.wirex.annotations.BalloonContainer;
+import net.wirex.structures.XButtonGroup;
 
 /**
  *
@@ -210,7 +212,7 @@ final class WirexCore implements Wirex {
             .concurrencyLevel(10)
             .expireAfterAccess(1, TimeUnit.SECONDS)
             .build(ServerResponseCacheLoader.getInstance(semaphore));
-    
+
     private final LoadingCache<ServerRequest, ServerResponse> componentResource = CacheBuilder.newBuilder()
             .maximumSize(50)
             .concurrencyLevel(10)
@@ -1016,6 +1018,10 @@ final class WirexCore implements Wirex {
                     JTextField textField = (JTextField) component;
                     textField.getDocument()
                             .addDocumentListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
+                } else if (component instanceof ButtonGroup || component instanceof XButtonGroup) {
+                    XButtonGroup buttonGroup = (XButtonGroup) component;
+                    buttonGroup.addMediatorListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
+                    // TODO: Mediators radio buttons and check boxes
                 }
                 mediators.put(modelProperty, label);
             }
@@ -1713,7 +1719,7 @@ final class WirexCore implements Wirex {
                         adapter.getModel(property2).setValue(selectedRow);
                     });
                 }
-                
+
                 for (String column : checkboxList) {
                     ((JTable) newComponent).getColumn(column).setCellEditor(new DefaultCellEditor(new JCheckBox()));
                 }
@@ -1933,7 +1939,7 @@ final class WirexCore implements Wirex {
 
     }
 
-    private class MediatorFieldListener implements DocumentListener {
+    private class MediatorFieldListener implements DocumentListener, ActionListener {
 
         private final Field field;
         private final ValueModel valueModel;
@@ -1988,6 +1994,11 @@ final class WirexCore implements Wirex {
 
         @Override
         public void changedUpdate(DocumentEvent e) {
+            validate();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
             validate();
         }
 

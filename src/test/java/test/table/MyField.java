@@ -22,7 +22,7 @@ public class MyField extends Model {
     @Balloon(NewLoginPanel.class)
     @Column("Field 2")
 //    @Path("component/billingcycle/list")
-    private Object field2;
+    private transient Object field2;
 
     public MyField() {
         field1 = "haha";
