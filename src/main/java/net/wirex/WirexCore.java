@@ -171,6 +171,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JList;
 import javax.swing.Timer;
 import net.wirex.annotations.BalloonContainer;
+import net.wirex.annotations.Hide;
 import net.wirex.structures.XButtonGroup;
 
 /**
@@ -1517,20 +1518,20 @@ final class WirexCore implements Wirex {
                 boolean[] editable;
                 ArrayList<String> checkboxList = new ArrayList<>(5);
                 Map<String, ComponentModel> comboBoxList = new HashMap<>(5);
-                int numOfTransient = 0;
+                int numOfExclude = 0;
                 for (int i = 0; i < fields.length; i++) {
-                    int modifiers = fields[i].getModifiers();
-                    if (Modifier.isTransient(modifiers)) {
-                        numOfTransient++;
+                    Hide hide = fields[i].getAnnotation(Hide.class);
+                    if (hide != null) {
+                        numOfExclude++;
                     } else {
-                        columns[i - numOfTransient] = fields[i];
+                        columns[i - numOfExclude] = fields[i];
                     }
                 }
 
                 if (Model.class.isAssignableFrom(listTypeClass)) {
-                    propertyNames = new String[fields.length - numOfTransient];
-                    propertyTexts = new String[fields.length - numOfTransient];
-                    editable = new boolean[fields.length - numOfTransient];
+                    propertyNames = new String[fields.length - numOfExclude];
+                    propertyTexts = new String[fields.length - numOfExclude];
+                    editable = new boolean[fields.length - numOfExclude];
                     for (int i = 0; i < propertyNames.length; i++) {
                         Column column = columns[i].getAnnotation(Column.class);
                         Path path = columns[i].getAnnotation(Path.class);
