@@ -27,9 +27,9 @@ public class WirexLock {
         return SingletonHolder.INSTANCE;
     }
 
-    private final Semaphore receivingLock = new Semaphore(10);
+    private final Semaphore receivingLock = new Semaphore(15);
 
-    private final Semaphore sendingLock = new Semaphore(2);
+    private final Semaphore sendingLock = new Semaphore(15);
 
     private final Lock presenterLock = new ReentrantLock();
     

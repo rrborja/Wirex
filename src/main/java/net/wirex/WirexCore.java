@@ -171,6 +171,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JList;
 import javax.swing.Timer;
 import net.wirex.annotations.BalloonContainer;
+import net.wirex.annotations.Block;
 import net.wirex.annotations.Hide;
 import net.wirex.structures.XButtonGroup;
 
@@ -1221,6 +1222,10 @@ final class WirexCore implements Wirex {
     public synchronized void deserialize(Model model, Model fromJson) {
         Class<? extends Model> modelClass = model.getClass();
         for (Field field : modelClass.getDeclaredFields()) {
+            Block block = field.getAnnotation(Block.class);
+            if (block != null) {
+                continue;
+            }
             try {
                 field.setAccessible(true);
                 Class listClass = field.getType();
@@ -1769,6 +1774,8 @@ final class WirexCore implements Wirex {
                     }
                 });
             });
+        } else if (JPanel.class == component || JPanel.class.isAssignableFrom(component)) {
+            
         } else {
             try {
                 throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
