@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import net.wirex.exceptions.UnsuccessfulServerResponseException;
 import net.wirex.exceptions.ViewClassNotBindedException;
 import net.wirex.exceptions.WrongComponentException;
 import net.wirex.gui.DetailModel;
@@ -33,6 +34,8 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
  */
 public final class ServerResponseExtractor extends HttpMessageConverterExtractor<ServerResponse> {
 
+    public static final int NULL = 0;
+    
     public static final int OBJECT = 1;
 
     public static final int LIST = 2;
@@ -44,6 +47,8 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
     public static final int COMMAND = 5;
 
     public static final int SUCCESS = 6;
+
+    public static final int AUTHENTICATED = 7;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerResponseExtractor.class.getName());
 
@@ -132,6 +137,9 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
         builder.registerTypeAdapter(Date.class, new DateJsonDeserializer());
         Gson gson = builder.create();
         switch (type) {
+            case NULL:
+                LOG.info("Server returned nothing from feature {}.", feature);
+                throw new UnsuccessfulServerResponseException("Expected an error box implemented by developer. Catch this exception.");
             case OBJECT:
                 LOG.info("[{}] Successful server transaction from feature {}", status, feature);
                 return new ServerResponse<>(HttpStatus.OK, gson.fromJson(reader, responseModel));
@@ -191,6 +199,15 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
                 Map data = gson.fromJson(reader, new TypeToken<Map<String, Object>>() {
                 }.getType());
                 return new ServerResponse<>(HttpStatus.OK, data);
+            case AUTHENTICATED:
+                LOG.info("Authentication complete!");
+                Map data2 = gson.fromJson(reader, new TypeToken<Map<String, Object>>() {
+                }.getType());
+                if (data2.containsKey("JSESSIONID")) {
+                    return new ServerResponse<String>(HttpStatus.OK, String.valueOf(data2.get("JSESSIONID")));
+                } else {
+                    return new ServerResponse<>(HttpStatus.OK, null);
+                }
         }
         return new ServerResponse(HttpStatus.OK, new Model() {
         });
