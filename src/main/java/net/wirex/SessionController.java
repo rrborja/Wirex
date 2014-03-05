@@ -7,6 +7,7 @@ import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import net.wirex.annotations.Snip;
 import net.wirex.enums.Media;
 import net.wirex.interfaces.Model;
@@ -25,8 +26,15 @@ public class SessionController {
     public static void at(String location) {
         SessionHolder.location = location;
     }
+    
+    public static void authenticate(Map<String, String> args) {
+        authenticate(
+                args.get("username"), 
+                args.get("password")
+            );
+    }
 
-    public static void authenticate(String username, char[] password) {
+    public static void authenticate(String username, String password) {
         try {
             final URI uriLocation = new URI(SessionHolder.location);
             SessionHolder.userInfo = new UserInfo(username, password);
@@ -66,10 +74,9 @@ public class SessionController {
     private static class UserInfo extends Model {
 
         private String username;
-        private @Snip
-        char[] password;
+        private @Snip String password;
 
-        UserInfo(String username, char[] password) {
+        UserInfo(String username, String password) {
             this.username = username;
             this.password = password;
         }
@@ -82,11 +89,11 @@ public class SessionController {
             this.username = username;
         }
 
-        public char[] getPassword() {
-            return password.clone();
+        public String getPassword() {
+            return password;
         }
 
-        public void setPassword(char[] password) {
+        public void setPassword(String password) {
             this.password = password;
         }
 
