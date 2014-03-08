@@ -1394,7 +1394,31 @@ final class WirexCore implements Wirex {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
         JComponent newComponent = (JComponent) component.newInstance();
-        if (JTextField.class == component || JTextField.class.isAssignableFrom(component)) {
+        if (XComponent.class.isAssignableFrom(component)) {
+            XComponent xcomponent = (XComponent) newComponent;
+            adapter.getModel(property).addPropertyChangeListener((PropertyChangeEvent evt) -> {
+                EventQueue.invokeLater(new Runnable() {
+                    public void run() {
+                        Object value = evt.getNewValue();
+                        xcomponent.setValue(value);
+                    }
+                });
+            });
+            xcomponent.addValueListener((Object value) -> {
+                EventQueue.invokeLater(new Runnable() {
+                    public void run() {
+                        try {
+                            Field field = bean.getClass().getDeclaredField(property);
+                            field.setAccessible(true);
+                            field.set(bean, value);
+                            field.setAccessible(false);
+                        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                            LOG.error("Framework bug when accessing your Custom Component binded property {} in {}", property, bean.getClass());
+                        }
+                    }
+                });
+            });
+        } else if (JTextField.class == component || JTextField.class.isAssignableFrom(component)) {
             Bindings.bind((JTextField) newComponent, componentModel);
         } else if (JFormattedTextField.class == component || JFormattedTextField.class.isAssignableFrom(component)) {
             Bindings.bind((JFormattedTextField) newComponent, componentModel);
@@ -1750,32 +1774,8 @@ final class WirexCore implements Wirex {
                     adapter.getModel(property2).setValue(selectedRow);
                 });
             }
-        } else if (XComponent.class.isAssignableFrom(component)) {
-            XComponent xcomponent = (XComponent) newComponent;
-            adapter.getModel(property).addPropertyChangeListener((PropertyChangeEvent evt) -> {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                        Object value = evt.getNewValue();
-                        xcomponent.setValue(value);
-                    }
-                });
-            });
-            xcomponent.addValueListener((Object value) -> {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                        try {
-                            Field field = bean.getClass().getDeclaredField(property);
-                            field.setAccessible(true);
-                            field.set(bean, value);
-                            field.setAccessible(false);
-                        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-                            LOG.error("Framework bug when accessing your Custom Component binded property {} in {}", property, bean.getClass());
-                        }
-                    }
-                });
-            });
         } else if (JPanel.class == component || JPanel.class.isAssignableFrom(component)) {
-            
+
         } else {
             try {
                 throw new UnknownComponentException(component.getName() + " is neither a JComponent nor supported in Wirex.");
@@ -1904,7 +1904,7 @@ final class WirexCore implements Wirex {
         this.encrypt = toggle;
     }
 
-    private class MyActionListener implements ActionListener {
+    private class MyActionListener implements ActionTrigger {
 
         private final String methodName;
         private final Class presenterClass;
@@ -1916,15 +1916,23 @@ final class WirexCore implements Wirex {
             this.presenter = presenter;
         }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
+        public void run(Object... args) {
             try {
                 Method methodInPresenter = presenterClass.getMethod(methodName);
                 AppEngine.injectRestSpec(presenter, methodInPresenter);
-                methodInPresenter.invoke(presenter);
+                if (args == null) {
+                    methodInPresenter.invoke(presenter);
+                } else {
+                    methodInPresenter.invoke(presenter, args);
+                }
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
+        }
+
+        @Override
+        public void run() {
+            run(null);
         }
     }
 

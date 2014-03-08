@@ -7,16 +7,20 @@ import java.util.Objects;
  *
  * @author Ritchie Borja
  */
-public final class Invoker {
+public final class Invoker<T> {
 
-    private final ActionListener invokeCode;
+    private final ActionTrigger invokeCode;
 
-    public Invoker(ActionListener invokeCode) {
+    public Invoker(ActionTrigger invokeCode) {
         this.invokeCode = invokeCode;
     }
 
     public void run() {
-        invokeCode.actionPerformed(null);
+        invokeCode.run();
+    }
+    
+    public void run(T... args) {
+        invokeCode.run(args);
     }
 
     @Override

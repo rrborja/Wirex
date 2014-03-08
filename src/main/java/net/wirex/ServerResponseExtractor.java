@@ -71,7 +71,7 @@ public final class ServerResponseExtractor extends HttpMessageConverterExtractor
 
         HttpStatus status = response.getStatusCode();
         InputStream in = response.getBody();
-
+        
         semaphore.lockReceiving();
         JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
 

@@ -7,9 +7,11 @@ import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 import net.wirex.annotations.Snip;
 import net.wirex.enums.Media;
+import net.wirex.exceptions.UnsuccessfulServerResponseException;
 import net.wirex.interfaces.Model;
 import org.slf4j.LoggerFactory;
 
@@ -27,39 +29,45 @@ public class SessionController {
         SessionHolder.location = location;
     }
     
-    public static void authenticate(Map<String, String> args) {
+    public static void authenticate(Map<String, String> args) throws UnsuccessfulServerResponseException {
         authenticate(
                 args.get("username"), 
                 args.get("password")
             );
     }
+    
+    public static Map<String, String> credentials() {
+        Map<String, String> map = new HashMap<>();
+        map.put("username", SessionHolder.userInfo.username);
+        map.put("password", SessionHolder.userInfo.password);
+        return map;
+    }
 
-    public static void authenticate(String username, String password) {
-        try {
-            final URI uriLocation = new URI(SessionHolder.location);
+    public static void authenticate(String username, String password) throws UnsuccessfulServerResponseException {
+//        try {
+//            final URI uriLocation = new URI(SessionHolder.location);
             SessionHolder.userInfo = new UserInfo(username, password);
             ServerRequest request = new ServerRequest("POST", SessionHolder.location, Media.JSON, null, SessionHolder.userInfo, null);
             ServerResponse<String> response = AppEngine.push(request);
             String sessionId = response.getMessage();
             SessionHolder.sessionId = sessionId;
-            SessionHolder.userInfo = null;
-            CookieManager cookieManager = new CookieManager();
-            CookieStore cookieStore = cookieManager.getCookieStore();
-            HttpCookie cookie = new HttpCookie("JSESSIONID", SessionHolder.sessionId);
-            cookieStore.add(uriLocation, cookie);
-            CookieHandler.setDefault(cookieManager);
-            cookieManager.setCookiePolicy(new CookiePolicy() {
-                @Override
-                public boolean shouldAccept(URI uri, HttpCookie cookie) {
-                    String location = uriLocation.getHost();
-                    String accessLocation = uri.getHost();
-                    return accessLocation.equalsIgnoreCase(location);
-                }
-            });
-        } catch (URISyntaxException ex) {
-            LOG.error("Authentication URL {} is not a valid URL.", SessionHolder.location);
-            return;
-        }
+//            CookieManager cookieManager = new CookieManager();
+//            CookieStore cookieStore = cookieManager.getCookieStore();
+//            HttpCookie cookie = new HttpCookie("JSESSIONID", SessionHolder.sessionId);
+//            cookieStore.add(uriLocation, cookie);
+//            CookieHandler.setDefault(cookieManager);
+//            cookieManager.setCookiePolicy(new CookiePolicy() {
+//                @Override
+//                public boolean shouldAccept(URI uri, HttpCookie cookie) {
+//                    String location = uriLocation.getHost();
+//                    String accessLocation = uri.getHost();
+//                    return accessLocation.equalsIgnoreCase(location);
+//                }
+//            });
+//        } catch (URISyntaxException ex) {
+//            LOG.error("Authentication URL {} is not a valid URL.", SessionHolder.location);
+//            return;
+//        }
     }
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(SessionController.class.getName());
@@ -67,7 +75,7 @@ public class SessionController {
     private static class SessionHolder {
 
         public static String location;
-        public static UserInfo userInfo;
+        public static UserInfo userInfo = new UserInfo("username", "password");
         public static String sessionId;
     }
 

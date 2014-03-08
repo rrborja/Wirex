@@ -17,6 +17,7 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -63,9 +64,20 @@ final class ServerResponseCacheLoader extends CacheLoader<ServerRequest, ServerR
         Class model = request.getModel();
         String requestBody = request.getRequestBody();
         Window parent = request.getParent();
-
+        
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(type);
+        
+        Map<String, String> userInfo = SessionController.credentials();
+        String username = userInfo.get("username");
+        String password = userInfo.get("password");
+        String token = username + ":" + password;
+        BASE64Encoder enc = new sun.misc.BASE64Encoder();
+        String encodedAuthorization = enc.encode(token.getBytes());
+        
+        headers.add("User-Agent", "Ultimate-Back-Office/7.0");
+        headers.add("Authorization", "Basic " + encodedAuthorization);
+        headers.add("Cookie", "JSESSIONID=" + SessionController.getCookie());
 
         HttpEntity entity = new HttpEntity(body, headers);
 
