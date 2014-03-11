@@ -167,6 +167,8 @@ import com.jgoodies.binding.adapter.Bindings;
 import com.jgoodies.binding.beans.BeanAdapter;
 import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import javax.swing.ButtonGroup;
 import javax.swing.JList;
 import javax.swing.Timer;
@@ -174,6 +176,7 @@ import net.wirex.annotations.BalloonContainer;
 import net.wirex.annotations.Block;
 import net.wirex.annotations.Hide;
 import net.wirex.structures.XButtonGroup;
+import net.wirex.structures.XExcludeListener;
 
 /**
  *
@@ -1020,6 +1023,19 @@ final class WirexCore implements Wirex {
                     JTextField textField = (JTextField) component;
                     textField.getDocument()
                             .addDocumentListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
+                    if (validator instanceof XExcludeListener) {
+                        XExcludeListener listener = (XExcludeListener) validator;
+                        String ignoreCharacters = listener.exclude();
+                        textField.addKeyListener(new KeyAdapter() {
+                            public void keyTyped(KeyEvent e) {
+                                Character c = e.getKeyChar();
+                                String textFieldInputCharacter = c.toString();
+                                if (ignoreCharacters.contains(textFieldInputCharacter)) {
+                                    e.consume();
+                                }
+                            }
+                        });
+                    }
                 } else if (component instanceof ButtonGroup || component instanceof XButtonGroup) {
                     XButtonGroup buttonGroup = (XButtonGroup) component;
                     buttonGroup.addMediatorListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
