@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -35,6 +37,8 @@ import org.slf4j.LoggerFactory;
 public abstract class Presenter {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Presenter.class.getSimpleName());
+
+    private static final Lock lock = new ReentrantLock();
 
     private Model model;
     private JPanel view;

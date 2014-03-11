@@ -13,6 +13,9 @@ import javax.validation.ConstraintValidator;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Rule {
-
+    
     Class<? extends ConstraintValidator> value();
+    
+    String length() default "100";
+    
 }

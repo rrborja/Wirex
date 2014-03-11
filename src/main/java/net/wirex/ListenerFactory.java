@@ -33,6 +33,8 @@ import java.beans.VetoableChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.swing.event.CaretEvent;
@@ -85,6 +87,8 @@ import net.wirex.interfaces.Presenter;
 public final class ListenerFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(ListenerFactory.class.getName());
+    
+    private static final Lock lock = new ReentrantLock();
 
     protected static void invoke(Method listener, Object presenter, Object e) {
         if (listener == null) {
@@ -93,6 +97,7 @@ public final class ListenerFactory {
         }
         AppEngine.injectRestSpec(presenter, listener);
         new Thread(() -> {
+            lock.lock();
             try {
                 if (listener.getParameterTypes().length > 0) {
                     listener.invoke(presenter, e);
@@ -107,6 +112,8 @@ public final class ListenerFactory {
                     LOG.error("Unable to invoke {}", listener);
                     AppEngine.setError((Presenter) presenter, ex);
                 }
+            } finally {
+                lock.unlock();
             }
         }, listener.getName()).start();
     }
