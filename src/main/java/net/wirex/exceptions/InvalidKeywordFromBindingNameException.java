@@ -4,7 +4,7 @@ package net.wirex.exceptions;
  *
  * @author Ritchie Borja
  */
-public class InvalidKeywordFromBindingNameException extends Exception {
+public class InvalidKeywordFromBindingNameException extends RuntimeException {
     
     private final String token;
     

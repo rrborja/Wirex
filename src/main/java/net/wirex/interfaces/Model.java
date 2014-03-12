@@ -25,7 +25,7 @@ public abstract class Model {
 
     protected transient PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
-    private transient String hashValue = AppEngine.hash(this);
+    private transient int hashValue = this.hashCode();
 
     private final transient ArrayList<JComponent> components = new ArrayList<>(5);
     
@@ -54,6 +54,7 @@ public abstract class Model {
                 map.put(fieldName, field.get(this));
             } catch (IllegalArgumentException | IllegalAccessException ex) {
                 map.put(fieldName, null);
+                LOG.warn("Can't process field {}.{}", getClass().toString(), fieldName);
             }
             field.setAccessible(false);
         }
@@ -102,12 +103,12 @@ public abstract class Model {
     }
 
     public boolean isChanged() {
-        return hashValue.equals(AppEngine.hash(this));
+        return hashValue == this.hashCode();
     }
 
     public void store() {
-        hashValue = AppEngine.hash(this);
         undoObject = synchronize();
+        hashValue = this.hashCode();
     }
 
     public void addModelListener(XModelListener listener) {

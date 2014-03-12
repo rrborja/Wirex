@@ -53,6 +53,8 @@ public abstract class Presenter {
     private final List<FieldValidationListener> listeners;
 
     public Presenter(JMenuBar menu) {
+        this.model = new Model() {};
+        this.view = new JPanel();
         this.menu = menu;
         this.listeners = new ArrayList<>(0);
     }
@@ -84,22 +86,7 @@ public abstract class Presenter {
     }
 
     public void store() {
-        Map<String, Object> map = new HashMap<>(5);
-        Class modelClass = model.getClass();
-        Field[] fields = modelClass.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            String property = field.getName();
-            try {
-                map.put(property, field.get(model));
-            } catch (IllegalArgumentException | IllegalAccessException ex) {
-                LOG.warn("Can't process field {}.{}", model.getClass().toString(), property);
-                map.put(property, null);
-            }
-            field.setAccessible(false);
-        }
-        this.model.undoObject.clear();
-        this.model.undoObject.putAll(map);
+        this.model.store();
         validateAllFields();
     }
 

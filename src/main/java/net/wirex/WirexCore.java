@@ -138,7 +138,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
@@ -177,6 +176,7 @@ import net.wirex.annotations.Block;
 import net.wirex.annotations.Hide;
 import net.wirex.structures.XButtonGroup;
 import net.wirex.structures.XExcludeListener;
+import net.wirex.structures.XUpdate;
 
 /**
  *
@@ -231,6 +231,8 @@ final class WirexCore implements Wirex {
     private final ConcurrentMap<Class<? extends Validator>, List> validators = new ConcurrentHashMap(10);
 
     private final ConcurrentMap<String, JLabel> mediators = new ConcurrentHashMap(10);
+
+    private final ConcurrentMap<String, JComponent> mediatorFields = new ConcurrentHashMap(10);
 
     private final LoadingCache<Class<? extends Model>, Model> modelCache = CacheBuilder.newBuilder()
             .maximumSize(10)
@@ -420,7 +422,8 @@ final class WirexCore implements Wirex {
             return mediators.remove(name);
         } else {
             LOG.info("This mediator {} doesn't exist in the Wirex container.", name);
-            return new JLabel();
+            mediators.put(name, new JLabel());
+            return mediators.get(name);
         }
     }
 
@@ -658,6 +661,8 @@ final class WirexCore implements Wirex {
                     field.setAccessible(false);
                 }
             }
+            autoRunPresenter(presenterClass, presenter);
+            presenters.put(presenterClass, presenter);
             return (T) menuBar;
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException ex) {
             LOG.error("Framework bug or your menubar presenter methods has one or more args! Fix the bug asap.", ex);
@@ -760,12 +765,10 @@ final class WirexCore implements Wirex {
             liveContainer.put(model.getClass().getName(), (XLive) model);
         }
 
-        List<FieldValidationListener> mediatorListeners = new ArrayList<>();
-
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
-            scanFieldWithData(mediatorListeners, data, field, model);
+            scanFieldWithData(data, field, model);
             scanFieldWithView(view, field);
             numberOfData = data != null ? numberOfData + 1 : numberOfData;
             numberOfView = view != null ? numberOfView + 1 : numberOfView;
@@ -799,18 +802,28 @@ final class WirexCore implements Wirex {
             return null;
         }
 
-        presenter.store(mediatorListeners);
+        List<FieldValidationListener> mediatorListeners = new ArrayList<>();
+        final XUpdate update;
+
+        if (presenter instanceof XUpdate) {
+            update = (XUpdate) presenter;
+        } else {
+            update = null;
+        }
 
         for (Field field : fields) {
             field.setAccessible(true);
 
+            final Data data = field.getAnnotation(Data.class);
             final Event[] events = field.getAnnotationsByType(Event.class);
             final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
             final Draw draw = field.getAnnotation(Draw.class);
             final Text[] texts = field.getAnnotationsByType(Text.class);
             final Balloon balloon = field.getAnnotation(Balloon.class);
             final Permit permit = field.getAnnotation(Permit.class);
+            final Rule rule = field.getAnnotation(Rule.class);
 
+            scanFieldWithRule(rule, data, field, model, update, mediatorListeners);
             scanFieldWithEvent(events, field, viewPanel, presenterClass, presenter, eventContainers);
             scanFieldWithDraw(draw, field, viewPanel);
             scanFieldWithText(texts, field, viewPanel, resource);
@@ -820,40 +833,11 @@ final class WirexCore implements Wirex {
             field.setAccessible(false);
         }
 
+        presenter.store(mediatorListeners);
+
         scanFieldsWithAccess(presenterClass, presenter);
 
-        final Method run;
-        try {
-            run = presenterClass.getMethod("run", ConcurrentHashMap.class);
-        } catch (NoSuchMethodException | SecurityException ex) {
-            LOG.error("Framework bug! Can't access run method.", ex);
-            return null;
-        }
-
-        final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
-        Retrieve retrieve;
-        final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>(0);
-        if (retrieveAnnotations[0].length > 0) {
-            retrieve = (Retrieve) retrieveAnnotations[0][0];
-            for (String methodName : retrieve.value()) {
-                MyActionListener myActionListener = new MyActionListener(presenterClass, presenter, methodName);
-                Invoker invokeCode = new Invoker(myActionListener);
-                runMethodParameters.put(methodName, invokeCode);
-            }
-        }
-
-        if (retrieveAnnotations[0].length > 0) {
-            new Thread(() -> {
-                semaphore.lockPresenter();
-                try {
-                    run.invoke(presenter, runMethodParameters);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-                } finally {
-                    semaphore.unlockPresenter();
-                }
-            }, "init-" + presenter.getClass().getSimpleName()).start();
-        }
+        autoRunPresenter(presenterClass, presenter);
 
         ++totalPreparedViews;
         LOG.info("{}{} loaded. Total prepared MVPs: {}", stackTab(), viewClass.getName(), totalPreparedViews);
@@ -866,6 +850,39 @@ final class WirexCore implements Wirex {
 
         presenters.put(presenterClass, (Presenter) presenter);
         return new MVPObject(viewPanel, parent);
+    }
+
+    private void autoRunPresenter(final Class<? extends Presenter> presenterClass, final Presenter presenter) {
+        final Method run;
+        try {
+            run = presenterClass.getMethod("run", ConcurrentHashMap.class);
+        } catch (NoSuchMethodException | SecurityException ex) {
+            LOG.error("Framework bug! Can't access run method.", ex);
+            return;
+        }
+        final Annotation[][] retrieveAnnotations = run.getParameterAnnotations();
+        Retrieve retrieve;
+        final ConcurrentHashMap<String, Invoker> runMethodParameters = new ConcurrentHashMap<>(0);
+        if (retrieveAnnotations[0].length > 0) {
+            retrieve = (Retrieve) retrieveAnnotations[0][0];
+            for (String methodName : retrieve.value()) {
+                MyActionListener myActionListener = new MyActionListener(presenterClass, presenter, methodName);
+                Invoker invokeCode = new Invoker(myActionListener);
+                runMethodParameters.put(methodName, invokeCode);
+            }
+        }
+        if (retrieveAnnotations[0].length > 0) {
+            new Thread(() -> {
+                semaphore.lockPresenter();
+                try {
+                    run.invoke(presenter, runMethodParameters);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                    java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    semaphore.unlockPresenter();
+                }
+            }, "init-" + presenter.getClass().getSimpleName()).start();
+        }
     }
 
     private void checkUncheckedOut(Class viewClass, int numberOfPush) {
@@ -991,7 +1008,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithData(final List<FieldValidationListener> mediatorListeners, final Data data, final Field field, final Model model) throws WrongComponentException {
+    private void scanFieldWithData(final Data data, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
             Class clazz = field.getType();
             final String modelProperty;
@@ -1023,6 +1040,10 @@ final class WirexCore implements Wirex {
                         String selectedItemProperty = LegalIdentifierChecker.check(data.data());
                         component = bindComponent(clazz, model, modelProperty, selectedItemProperty);
                     }
+                    Rule rule = field.getAnnotation(Rule.class);
+                    if (rule != null) {
+                        mediatorFields.put(modelProperty, component);
+                    }
                     Field componentsField = model.getClass().getSuperclass().getDeclaredField("components");
                     componentsField.setAccessible(true);
                     ArrayList<JComponent> list = (ArrayList) componentsField.get(model);
@@ -1051,43 +1072,46 @@ final class WirexCore implements Wirex {
             } else {
                 throw new WrongComponentException("Component " + field.getType() + " cannot be used for binding the model");
             }
-            Rule rule = field.getAnnotation(Rule.class);
-            if (rule != null) {
-                Class<? extends ConstraintValidator> validatorClass = rule.value();
-                ConstraintValidator validator;
-                try {
-                    validator = validatorClass.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    return;
-                }
-                JLabel label = new JLabel();
-                Object component = components.get(modelProperty);
-                if (component instanceof JTextField) {
-                    JTextField textField = (JTextField) component;
-                    FieldValidationListener mediatorListener = new MediatorFieldListener(field, modelProperty, validator, label, model);
-                    textField.getDocument()
-                            .addDocumentListener(mediatorListener);
-                    mediatorListeners.add(mediatorListener);
-                    if (validator instanceof XExcludeListener) {
-                        XExcludeListener listener = (XExcludeListener) validator;
-                        String ignoreCharacters = listener.exclude();
-                        textField.addKeyListener(new KeyAdapter() {
-                            public void keyTyped(KeyEvent e) {
-                                Character c = e.getKeyChar();
-                                String textFieldInputCharacter = c.toString();
-                                if (ignoreCharacters.contains(textFieldInputCharacter)) {
-                                    e.consume();
-                                }
-                            }
-                        });
-                    }
-                } else if (component instanceof ButtonGroup || component instanceof XButtonGroup) {
-                    XButtonGroup buttonGroup = (XButtonGroup) component;
-                    buttonGroup.addMediatorListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
-                    // TODO: Mediators radio buttons and check boxes
-                }
-                mediators.put(modelProperty, label);
+        }
+    }
+
+    private void scanFieldWithRule(Rule rule, final Data data, final Field field, final Model model, final XUpdate presenter, final List<FieldValidationListener> mediatorListeners) {
+        if (rule != null) {
+            Class<? extends ConstraintValidator> validatorClass = rule.value();
+            ConstraintValidator validator;
+            try {
+                validator = validatorClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                return;
             }
+            String modelProperty = LegalIdentifierChecker.check(data.value());
+            JLabel label = mediators.getOrDefault(modelProperty, new JLabel());
+            Object component = mediatorFields.remove(modelProperty);
+            if (component instanceof JTextField) {
+                JTextField textField = (JTextField) component;
+                FieldValidationListener mediatorListener = new MediatorFieldListener(field, modelProperty, validator, label, model, presenter);
+                textField.getDocument()
+                        .addDocumentListener(mediatorListener);
+                mediatorListeners.add(mediatorListener);
+                if (validator instanceof XExcludeListener) {
+                    XExcludeListener listener = (XExcludeListener) validator;
+                    String ignoreCharacters = listener.exclude();
+                    textField.addKeyListener(new KeyAdapter() {
+                        public void keyTyped(KeyEvent e) {
+                            Character c = e.getKeyChar();
+                            String textFieldInputCharacter = c.toString();
+                            if (ignoreCharacters.contains(textFieldInputCharacter)) {
+                                e.consume();
+                            }
+                        }
+                    });
+                }
+            } else if (component instanceof ButtonGroup || component instanceof XButtonGroup) {
+                XButtonGroup buttonGroup = (XButtonGroup) component;
+                buttonGroup.addMediatorListener(new MediatorFieldListener(field, modelProperty, validator, label, model, presenter));
+                // TODO: Mediators radio buttons and check boxes
+            }
+            mediators.put(modelProperty, label);
         }
     }
 
@@ -2020,8 +2044,9 @@ final class WirexCore implements Wirex {
         private final JLabel label;
         private final Model model;
         private final String modelProperty;
+        private final XUpdate update;
 
-        MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model) {
+        MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model, XUpdate update) {
             this.field = field;
             this.validator = validator;
             this.label = label;
@@ -2029,6 +2054,7 @@ final class WirexCore implements Wirex {
             this.modelProperty = modelProperty;
             PresentationModel adapter = new PresentationModel(model);
             this.valueModel = adapter.getModel(modelProperty);
+            this.update = update;
         }
 
         public void validate() {
@@ -2050,6 +2076,14 @@ final class WirexCore implements Wirex {
             } else {
                 label.setForeground(Color.RED);
             }
+
+            if (update != null) {
+                if (model.isChanged()) {
+                    update.hasChanged();
+                } else {
+                    update.hasReverted();
+                }
+            }
         }
 
         public void checkChanges() {
@@ -2059,13 +2093,11 @@ final class WirexCore implements Wirex {
         @Override
         public void insertUpdate(DocumentEvent e) {
             validate();
-            System.out.println(e.getDocument());
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
             validate();
-            System.out.println(e.getDocument());
         }
 
         @Override
