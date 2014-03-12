@@ -588,6 +588,7 @@ final class WirexCore implements Wirex {
         }
         Bind bind = menuClass.getAnnotation(Bind.class);
         Class<? extends Presenter> presenterClass = bind.presenter();
+        String presenterMethodName = "";
         try {
             JMenuBar menuBar = (JMenuBar) menuClass.newInstance();
             final Presenter presenter = presenterClass.getConstructor(JMenuBar.class).newInstance(menuBar);
@@ -595,39 +596,77 @@ final class WirexCore implements Wirex {
             for (Field field : fields) {
                 final Draw draw = field.getAnnotation(Draw.class);
                 final Event event = field.getAnnotation(Event.class);
+                final EventContainer[] eventContainers = field.getAnnotationsByType(EventContainer.class);
                 if (draw != null) {
                     scanFieldWithDraw(draw, field, menuBar);
                 }
                 if (event != null) {
-                    try {
-                        Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
-                        String presenterMethodName = LegalIdentifierChecker.check(event.value());
-                        if (!presenterMethods.containsKey(presenterMethodName)) {
-                            LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
-                            continue;
-                        }
-                        Map<String, Method> listeners = new HashMap<>(0);
-                        Method injectListenerMethod = ListenerFactory.class.getMethod("ActionListener", Object.class, Map.class);
-                        listeners.put("actionPerformed", presenterMethods.get(presenterMethodName));
-                        ActionListener listener = (ActionListener) injectListenerMethod.invoke(null, presenter, listeners);
-                        field.setAccessible(true);
-                        Object component = field.get(menuBar);
-                        Class clazz = field.getType();
-                        Method injectListener = clazz.getMethod("addActionListener", ActionListener.class);
-                        injectListener.invoke(component, listener);
-                        field.set(menuBar, component);
-                    } catch (InvalidKeywordFromBindingNameException ex) {
-                        LOG.warn("Your binding identifier {} is not a valid Java identifer", ex.getInvalidToken());
-                    } catch (ReservedKeywordFromBindingNameException ex) {
-                        LOG.warn("Your binding identifier {} is a reserved Java keyword", ex.getInvalidToken());
-                    } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | SecurityException ex) {
-                        LOG.error("Framework bug or your menubar presenter methods has one or more args! Fix the bug asap");
+                    Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
+                    presenterMethodName = LegalIdentifierChecker.check(event.value());
+                    if (!presenterMethods.containsKey(presenterMethodName)) {
+                        LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+                        continue;
                     }
+                    Map<String, Method> listeners = new HashMap<>(0);
+                    Method injectListenerMethod = ListenerFactory.class.getMethod("ActionListener", Object.class, Map.class);
+                    listeners.put("actionPerformed", presenterMethods.get(presenterMethodName));
+                    ActionListener listener = (ActionListener) injectListenerMethod.invoke(null, presenter, listeners);
+                    field.setAccessible(true);
+                    Object component = field.get(menuBar);
+                    Class clazz = field.getType();
+                    Method injectListener = clazz.getMethod("addActionListener", ActionListener.class);
+                    injectListener.invoke(component, listener);
+                    field.set(menuBar, component);
+                }
+                if (eventContainers.length > 0) {
+                    field.setAccessible(true);
+                    Class component = field.getType();
+                    Object componentObject = field.get(menuBar);
+                    for (EventContainer eventContainer : eventContainers) {
+                        Class listenerType = eventContainer.listens();
+                        Map<String, Method> listeners = new HashMap<>(0);
+                        String listenerTypeName = listenerType.getSimpleName();
+                        if (listenerTypeName.contains("Adapter")) {
+                            listenerType = Class.forName("java.awt.event." + listenerTypeName.replace("Adapter", "Listener"));
+                        }
+                        if (componentObject instanceof JTable && listenerTypeName.equals("ListSelectionListener")) {
+                            component = ListSelectionModel.class;
+                            componentObject = ((JTable) componentObject).getSelectionModel();
+                        }
+                        String listenerDerivativeName = listenerTypeName.replace("Adapter", "Listener");
+                        Method addListenerToComponentMethod = component.getMethod("add" + listenerDerivativeName, listenerType);
+                        Method injectListenerMethod;
+                        if (listenerTypeName.contains("istener")) {
+                            injectListenerMethod = ListenerFactory.class.getMethod(listenerTypeName, Object.class, Map.class);
+                        } else {
+                            injectListenerMethod = AdapterFactory.class.getMethod(listenerTypeName, Object.class, Map.class);
+                        }
+                        for (Event event2 : eventContainer.events()) {
+                            EventMethod method = event2.at();
+                            String listenerMethod = method.getMethod();
+                            Map<String, Method> presenterMethods = getMethods(presenterClass.getMethods());
+                            presenterMethodName = LegalIdentifierChecker.check(event2.value());
+                            if (!presenterMethods.containsKey(presenterMethodName)) {
+                                LOG.warn("Is the method {} existed in {}?", presenterMethodName, presenterClass);
+                                continue;
+                            }
+                            Method presenterMethod = presenterMethods.get(presenterMethodName);
+                            listeners.put(listenerMethod, presenterMethod);
+                        }
+                        addListenerToComponentMethod.invoke(componentObject, injectListenerMethod.invoke(null, presenter, listeners));
+                    }
+                    field.setAccessible(false);
                 }
             }
             return (T) menuBar;
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
-            LOG.error("Framework bug!", ex);
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException ex) {
+            LOG.error("Framework bug or your menubar presenter methods has one or more args! Fix the bug asap.", ex);
+            return null;
+        } catch (InvalidKeywordFromBindingNameException ex) {
+            LOG.warn("Is the method {} in {} a valid Java keyword?", presenterMethodName, presenterClass);
+            return null;
+        } catch (ReservedKeywordFromBindingNameException ex) {
+            LOG.warn("Is the method {} in {} a reserved Java keyword?", presenterMethodName, presenterClass);
             return null;
         }
     }
@@ -701,7 +740,7 @@ final class WirexCore implements Wirex {
         Property property = (Property) viewClass.getAnnotation(Property.class);
 
         Class modelClass = bind.model();
-        final Class presenterClass = bind.presenter();
+        final Class<? extends Presenter> presenterClass = bind.presenter();
         Field[] fields = viewClass.getDeclaredFields();
 
         Model model = null;
@@ -721,10 +760,12 @@ final class WirexCore implements Wirex {
             liveContainer.put(model.getClass().getName(), (XLive) model);
         }
 
+        List<FieldValidationListener> mediatorListeners = new ArrayList<>();
+
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
-            scanFieldWithData(data, field, model);
+            scanFieldWithData(mediatorListeners, data, field, model);
             scanFieldWithView(view, field);
             numberOfData = data != null ? numberOfData + 1 : numberOfData;
             numberOfView = view != null ? numberOfView + 1 : numberOfView;
@@ -750,13 +791,15 @@ final class WirexCore implements Wirex {
             return null;
         }
 
-        final Object presenter;
+        final Presenter presenter;
         try {
             presenter = presenterClass.getDeclaredConstructor(Model.class, JPanel.class).newInstance(model, viewPanel);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             LOG.error("Unable to create " + presenterClass, ex);
             return null;
         }
+
+        presenter.store(mediatorListeners);
 
         for (Field field : fields) {
             field.setAccessible(true);
@@ -948,7 +991,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithData(final Data data, final Field field, final Model model) throws WrongComponentException {
+    private void scanFieldWithData(final List<FieldValidationListener> mediatorListeners, final Data data, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
             Class clazz = field.getType();
             final String modelProperty;
@@ -1021,8 +1064,10 @@ final class WirexCore implements Wirex {
                 Object component = components.get(modelProperty);
                 if (component instanceof JTextField) {
                     JTextField textField = (JTextField) component;
+                    FieldValidationListener mediatorListener = new MediatorFieldListener(field, modelProperty, validator, label, model);
                     textField.getDocument()
-                            .addDocumentListener(new MediatorFieldListener(field, modelProperty, validator, label, model));
+                            .addDocumentListener(mediatorListener);
+                    mediatorListeners.add(mediatorListener);
                     if (validator instanceof XExcludeListener) {
                         XExcludeListener listener = (XExcludeListener) validator;
                         String ignoreCharacters = listener.exclude();
@@ -1413,24 +1458,20 @@ final class WirexCore implements Wirex {
         if (XComponent.class.isAssignableFrom(component)) {
             XComponent xcomponent = (XComponent) newComponent;
             adapter.getModel(property).addPropertyChangeListener((PropertyChangeEvent evt) -> {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                        Object value = evt.getNewValue();
-                        xcomponent.setValue(value);
-                    }
+                EventQueue.invokeLater(() -> {
+                    Object value = evt.getNewValue();
+                    xcomponent.setValue(value);
                 });
             });
             xcomponent.addValueListener((Object value) -> {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                        try {
-                            Field field = bean.getClass().getDeclaredField(property);
-                            field.setAccessible(true);
-                            field.set(bean, value);
-                            field.setAccessible(false);
-                        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-                            LOG.error("Framework bug when accessing your Custom Component binded property {} in {}", property, bean.getClass());
-                        }
+                EventQueue.invokeLater(() -> {
+                    try {
+                        Field field = bean.getClass().getDeclaredField(property);
+                        field.setAccessible(true);
+                        field.set(bean, value);
+                        field.setAccessible(false);
+                    } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                        LOG.error("Framework bug when accessing your Custom Component binded property {} in {}", property, bean.getClass());
                     }
                 });
             });
@@ -1971,7 +2012,7 @@ final class WirexCore implements Wirex {
 
     }
 
-    private class MediatorFieldListener implements DocumentListener, ActionListener {
+    private class MediatorFieldListener implements FieldValidationListener {
 
         private final Field field;
         private final ValueModel valueModel;
@@ -1998,6 +2039,7 @@ final class WirexCore implements Wirex {
             if (optional != null) {
                 return;
             }
+
             if (validator.isValid(inputText, null)) {
                 label.setForeground(Color.BLUE);
                 Object state = model.getUndoObject().get(modelProperty);
@@ -2017,11 +2059,13 @@ final class WirexCore implements Wirex {
         @Override
         public void insertUpdate(DocumentEvent e) {
             validate();
+            System.out.println(e.getDocument());
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
             validate();
+            System.out.println(e.getDocument());
         }
 
         @Override

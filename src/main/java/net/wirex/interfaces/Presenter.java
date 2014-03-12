@@ -21,6 +21,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import net.wirex.AppEngine;
+import net.wirex.FieldValidationListener;
 import net.wirex.Invoker;
 import net.wirex.PresenterModel;
 import net.wirex.ServerRequest;
@@ -49,14 +50,17 @@ public abstract class Presenter {
     private Model domain;
     private String rest;
 //    private final Map<String, Object> undoManager = new HashMap<>(5);
+    private final List<FieldValidationListener> listeners;
 
     public Presenter(JMenuBar menu) {
         this.menu = menu;
+        this.listeners = new ArrayList<>(0);
     }
 
     public Presenter(Model model, JPanel panel) {
         this.model = model;
         this.view = panel;
+        this.listeners = new ArrayList<>(0);
     }
 
     protected Model getModel() {
@@ -96,6 +100,18 @@ public abstract class Presenter {
         }
         this.model.undoObject.clear();
         this.model.undoObject.putAll(map);
+        validateAllFields();
+    }
+
+    private void validateAllFields() {
+        for (FieldValidationListener listener : listeners) {
+            listener.validate();
+        }
+    }
+
+    public void store(List<FieldValidationListener> listeners) {
+        this.listeners.clear();
+        this.listeners.addAll(listeners);
     }
 
     private String retrieveSetterProperty(String methodName) {
@@ -252,6 +268,7 @@ public abstract class Presenter {
             return response;
         } finally {
             idle(editable);
+            store();
         }
     }
 
