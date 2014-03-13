@@ -103,12 +103,13 @@ public abstract class Model {
     }
 
     public boolean isChanged() {
-        return hashValue == this.hashCode();
+        return hashValue != this.hashCode();
     }
 
     public void store() {
         undoObject = synchronize();
         hashValue = this.hashCode();
+        System.out.println("HASH: " + this);
     }
 
     public void addModelListener(XModelListener listener) {

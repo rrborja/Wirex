@@ -53,7 +53,8 @@ public abstract class Presenter {
     private final List<FieldValidationListener> listeners;
 
     public Presenter(JMenuBar menu) {
-        this.model = new Model() {};
+        this.model = new Model() {
+        };
         this.view = new JPanel();
         this.menu = menu;
         this.listeners = new ArrayList<>(0);
@@ -165,10 +166,13 @@ public abstract class Presenter {
     @Deprecated
     protected <T> T touch(Class<T> componentClass, String componentName) {
         Class viewClass = view.getClass();
+        if (menu != null) {
+            viewClass = menu.getClass();
+        }
         try {
             Field componentField = viewClass.getDeclaredField(componentName);
             componentField.setAccessible(true);
-            return (T) componentField.get(view);
+            return (T) componentField.get(menu == null ? view : menu);
         } catch (NoSuchFieldException ex) {
             LOG.error("Field {} not found in {}", componentName, viewClass.getName());
         } catch (SecurityException ex) {

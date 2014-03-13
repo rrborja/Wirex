@@ -595,6 +595,7 @@ final class WirexCore implements Wirex {
         try {
             JMenuBar menuBar = (JMenuBar) menuClass.newInstance();
             final Presenter presenter = presenterClass.getConstructor(JMenuBar.class).newInstance(menuBar);
+            scanFieldsWithAccess(presenterClass, presenter);
             Field[] fields = menuClass.getDeclaredFields();
             for (Field field : fields) {
                 final Draw draw = field.getAnnotation(Draw.class);
@@ -1999,13 +2000,10 @@ final class WirexCore implements Wirex {
 
         public void run(Object... args) {
             try {
-                Method methodInPresenter = presenterClass.getMethod(methodName);
+                Class[] params = getParams(args);
+                Method methodInPresenter = presenterClass.getMethod(methodName, params);
                 AppEngine.injectRestSpec(presenter, methodInPresenter);
-                if (args == null) {
-                    methodInPresenter.invoke(presenter);
-                } else {
-                    methodInPresenter.invoke(presenter, args);
-                }
+                methodInPresenter.invoke(presenter, args);
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.error("Unable to invoke method " + methodName + " in " + presenter.getClass(), ex);
             }
@@ -2013,7 +2011,19 @@ final class WirexCore implements Wirex {
 
         @Override
         public void run() {
-            run(null);
+            run(new Object[0]);
+        }
+
+        private Class[] getParams(Object[] args) {
+            if (args == null) {
+                return new Class[0];
+            }
+            Class[] types = new Class[args.length];
+            for (int i = 0; i < types.length; i++) {
+                Object arg = args[i];
+                types[i] = arg.getClass();
+            }
+            return types;
         }
     }
 
