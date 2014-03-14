@@ -168,6 +168,12 @@ import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.ButtonGroup;
 import javax.swing.JList;
 import javax.swing.Timer;
@@ -176,6 +182,7 @@ import net.wirex.annotations.Block;
 import net.wirex.annotations.Hide;
 import net.wirex.structures.XButtonGroup;
 import net.wirex.structures.XExcludeListener;
+import net.wirex.structures.XMap;
 import net.wirex.structures.XUpdate;
 
 /**
@@ -244,7 +251,7 @@ final class WirexCore implements Wirex {
                 }
             });
 
-    private final ConcurrentMap<Class<? extends Presenter>, Presenter> presenters = new ConcurrentHashMap(10);
+    private final Map<Class<? extends Presenter>, Presenter> presenters = new XMap(10);
 
     private final ConcurrentMap<Class<? extends Model>, Model> models = new ConcurrentHashMap(10);
 
@@ -729,7 +736,6 @@ final class WirexCore implements Wirex {
     }
 
     MVP prepare(Class viewClass, Window parent) {
-
         if (!JPanel.class.isAssignableFrom(viewClass)) {
             LOG.error("Attempted to prepare a non-JPanel {}", viewClass);
             return null;
@@ -766,14 +772,29 @@ final class WirexCore implements Wirex {
             liveContainer.put(model.getClass().getName(), (XLive) model);
         }
 
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        List<Future> locks = new ArrayList<>(1);
+
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
             scanFieldWithData(data, field, model);
-            scanFieldWithView(view, field);
+            scanFieldWithView(executorService, locks, view, field);
             numberOfData = data != null ? numberOfData + 1 : numberOfData;
             numberOfView = view != null ? numberOfView + 1 : numberOfView;
         }
+
+        for (Future future : locks) {
+            try {
+                future.get();
+            } catch (InterruptedException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        executorService.shutdown();
 
         Resource resource;
         try {
@@ -930,20 +951,26 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithView(final View view, Field field) throws SecurityException {
+    private void scanFieldWithView(final ExecutorService executorService, final List<Future> locks, final View view, Field field) throws SecurityException {
         if (view != null) {
-            field.setAccessible(true);
-            Class subViewClass = field.getType();
-            String panelId = view.value();
-            MVP mvp;
-            try {
-                stackCount++;
-                mvp = prepare(subViewClass);
-            } catch (ViewClassNotBindedException | WrongComponentException ex) {
-                mvp = new MVPObject(new JPanel());
-            }
-            components.put(panelId, mvp.getView());
-            preStackUncheckedOutComponentCounts.add(panelId);
+            Future future = executorService.submit(new Callable() {
+                public Object call() {
+                    field.setAccessible(true);
+                    Class subViewClass = field.getType();
+                    String panelId = view.value();
+                    MVP mvp;
+                    try {
+                        stackCount++;
+                        mvp = prepare(subViewClass, null);
+                    } catch (ViewClassNotBindedException | WrongComponentException ex) {
+                        mvp = new MVPObject(new JPanel());
+                    }
+                    components.put(panelId, mvp.getView());
+                    preStackUncheckedOutComponentCounts.add(panelId);
+                    return true;
+                }
+            });
+            locks.add(future);
         }
     }
 
@@ -1461,6 +1488,8 @@ final class WirexCore implements Wirex {
         if (fire != null) {
             Class<? extends JPanel> panelClass = fire.view();
             Window parent = SwingUtilities.getWindowAncestor(((Presenter) presenter).getPanel());
+            Lock lock = new ReentrantLock();
+            lock.lock();
             MVP mvp = prepare(panelClass, parent);
             mvp.setTitle(fire.title());
             mvp.setIconImage(appIcon);

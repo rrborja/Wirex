@@ -1,12 +1,5 @@
 package net.wirex;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.CookieStore;
-import java.net.HttpCookie;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import net.wirex.annotations.Snip;
@@ -28,14 +21,14 @@ public class SessionController {
     public static void at(String location) {
         SessionHolder.location = location;
     }
-    
+
     public static void authenticate(Map<String, String> args) throws UnsuccessfulServerResponseException {
         authenticate(
-                args.get("username"), 
+                args.get("username"),
                 args.get("password")
-            );
+        );
     }
-    
+
     public static Map<String, String> credentials() {
         Map<String, String> map = new HashMap<>();
         map.put("username", SessionHolder.userInfo.username);
@@ -44,30 +37,11 @@ public class SessionController {
     }
 
     public static void authenticate(String username, String password) throws UnsuccessfulServerResponseException {
-//        try {
-//            final URI uriLocation = new URI(SessionHolder.location);
-            SessionHolder.userInfo = new UserInfo(username, password);
-            ServerRequest request = new ServerRequest("POST", SessionHolder.location, Media.JSON, null, SessionHolder.userInfo, null);
-            ServerResponse<String> response = AppEngine.push(request);
-            String sessionId = response.getMessage();
-            SessionHolder.sessionId = sessionId;
-//            CookieManager cookieManager = new CookieManager();
-//            CookieStore cookieStore = cookieManager.getCookieStore();
-//            HttpCookie cookie = new HttpCookie("JSESSIONID", SessionHolder.sessionId);
-//            cookieStore.add(uriLocation, cookie);
-//            CookieHandler.setDefault(cookieManager);
-//            cookieManager.setCookiePolicy(new CookiePolicy() {
-//                @Override
-//                public boolean shouldAccept(URI uri, HttpCookie cookie) {
-//                    String location = uriLocation.getHost();
-//                    String accessLocation = uri.getHost();
-//                    return accessLocation.equalsIgnoreCase(location);
-//                }
-//            });
-//        } catch (URISyntaxException ex) {
-//            LOG.error("Authentication URL {} is not a valid URL.", SessionHolder.location);
-//            return;
-//        }
+        SessionHolder.userInfo = new UserInfo(username, password);
+        ServerRequest request = new ServerRequest("POST", SessionHolder.location, Media.JSON, null, SessionHolder.userInfo, null);
+        ServerResponse<String> response = AppEngine.push(request);
+        String sessionId = response.getMessage();
+        SessionHolder.sessionId = sessionId;
     }
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(SessionController.class.getName());
@@ -82,7 +56,8 @@ public class SessionController {
     private static class UserInfo extends Model {
 
         private String username;
-        private @Snip String password;
+        private @Snip
+        String password;
 
         UserInfo(String username, String password) {
             this.username = username;
