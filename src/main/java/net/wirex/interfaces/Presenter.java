@@ -13,6 +13,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -21,6 +25,7 @@ import javax.swing.JComponent;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import net.wirex.AppEngine;
 import net.wirex.FieldValidationListener;
 import net.wirex.Invoker;
@@ -29,6 +34,7 @@ import net.wirex.ServerRequest;
 import net.wirex.ServerResponse;
 import net.wirex.enums.Media;
 import net.wirex.exceptions.EventInterruptionException;
+import net.wirex.exceptions.ValidationFailedException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.LoggerFactory;
 
@@ -302,6 +308,14 @@ public abstract class Presenter {
 
     public void onBackground() {
         throw new UnsupportedOperationException("onBackground is not implemented in your presenter " + this.getClass().getName());
+    }
+
+    public void validate() throws ValidationFailedException {
+        for (FieldValidationListener listener : listeners) {
+            if (!listener.validate()) {
+                throw new ValidationFailedException("Validation failed in " + getModel().getClass());
+            }
+        }
     }
 
     public abstract void run(ConcurrentHashMap<String, Invoker> methods);

@@ -9,5 +9,5 @@ import javax.swing.event.DocumentListener;
  */
 public interface FieldValidationListener extends DocumentListener, ActionListener{
     
-   void validate(); 
+   boolean validate(); 
 }

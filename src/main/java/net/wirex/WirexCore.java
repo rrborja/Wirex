@@ -696,7 +696,7 @@ final class WirexCore implements Wirex {
                 } else if (clazz == Double.class || clazz == Float.class || clazz.getName().equals("double") || clazz.getName().equals("float")) {
                     field.set(model, 0.0);
                 } else if (clazz == String.class) {
-                    field.set(model, "");
+                    field.set(model, " ");
                 } else if (clazz == Boolean.class || clazz.getName().equals("boolean")) {
                     field.set(model, false);
                 } else {
@@ -951,22 +951,20 @@ final class WirexCore implements Wirex {
 
     private void scanFieldWithView(final ExecutorService executorService, final List<Future> locks, final View view, Field field) throws SecurityException {
         if (view != null) {
-            Future future = executorService.submit(new Callable() {
-                public Object call() {
-                    field.setAccessible(true);
-                    Class subViewClass = field.getType();
-                    String panelId = view.value();
-                    MVP mvp;
-                    try {
-                        stackCount++;
-                        mvp = prepare(subViewClass, null);
-                    } catch (ViewClassNotBindedException | WrongComponentException ex) {
-                        mvp = new MVPObject(new JPanel());
-                    }
-                    components.put(panelId, mvp.getView());
-                    preStackUncheckedOutComponentCounts.add(panelId);
-                    return true;
+            Future future = executorService.submit(() -> {
+                field.setAccessible(true);
+                Class subViewClass = field.getType();
+                String panelId = view.value();
+                MVP mvp;
+                try {
+                    stackCount++;
+                    mvp = prepare(subViewClass, null);
+                } catch (ViewClassNotBindedException | WrongComponentException ex) {
+                    mvp = new MVPObject(new JPanel());
                 }
+                components.put(panelId, mvp.getView());
+                preStackUncheckedOutComponentCounts.add(panelId);
+                return true;
             });
             locks.add(future);
         }
@@ -2094,16 +2092,17 @@ final class WirexCore implements Wirex {
             this.update = update;
         }
 
-        public void validate() {
+        public boolean validate() {
             Optional optional = field.getAnnotation(Optional.class);
             Object value = valueModel.getValue();
             String inputText = value != null ? value.toString() : "";
+            boolean isValid = validator.isValid(inputText, null);
 
             if (optional != null) {
-                return;
+                return true;
             }
 
-            if (validator.isValid(inputText, null)) {
+            if (isValid) {
                 label.setForeground(Color.BLUE);
                 Object state = model.getUndoObject().get(modelProperty);
                 state = state != null ? state : "";
@@ -2121,10 +2120,8 @@ final class WirexCore implements Wirex {
                     update.hasReverted();
                 }
             }
-        }
 
-        public void checkChanges() {
-
+            return isValid;
         }
 
         @Override
