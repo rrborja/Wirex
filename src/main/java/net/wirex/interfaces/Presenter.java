@@ -1,5 +1,6 @@
 package net.wirex.interfaces;
 
+import com.google.common.collect.ImmutableList;
 import java.awt.Cursor;
 import java.awt.Window;
 import java.lang.reflect.Field;
@@ -92,9 +93,9 @@ public abstract class Presenter {
     }
 
     private void validateAllFields() {
-        for (FieldValidationListener listener : listeners) {
+        listeners.forEach(listener -> {
             listener.validate();
-        }
+        });
     }
 
     public void store(List<FieldValidationListener> listeners) {
@@ -129,7 +130,8 @@ public abstract class Presenter {
     public void clear() {
         Class modelClass = model.getClass();
         Field[] fields = modelClass.getDeclaredFields();
-        for (Field field : fields) {
+        List<Field> fieldList = ImmutableList.copyOf(fields);
+        fieldList.forEach(field -> {
             int modifiers = field.getModifiers();
             String property = field.getName();
             if (!Modifier.isTransient(modifiers)) {
@@ -152,7 +154,7 @@ public abstract class Presenter {
                     Logger.getLogger(Presenter.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-        }
+        });
     }
 
     /**

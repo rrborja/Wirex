@@ -784,16 +784,14 @@ final class WirexCore implements Wirex {
             numberOfView = view != null ? numberOfView + 1 : numberOfView;
         }
 
-        for (Future future : locks) {
+        locks.forEach(lock -> {
             try {
-                future.get();
-            } catch (InterruptedException ex) {
-                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                java.util.logging.Logger.getLogger(WirexCore.class.getName()).log(Level.SEVERE, null, ex);
+                lock.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                LOG.error("Releasing lock failed", ex);
             }
-        }
-        
+        });
+
         executorService.shutdown();
 
         Resource resource;
