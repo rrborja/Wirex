@@ -168,19 +168,17 @@ import com.jgoodies.binding.beans.PropertyNotFoundException;
 import com.jgoodies.binding.value.ValueModel;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.swing.ButtonGroup;
 import javax.swing.JList;
+import javax.swing.JToggleButton;
 import javax.swing.Timer;
 import net.wirex.annotations.BalloonContainer;
 import net.wirex.annotations.Block;
 import net.wirex.annotations.Hide;
-import net.wirex.structures.XButtonGroup;
 import net.wirex.structures.XExcludeListener;
 import net.wirex.structures.XMap;
 import net.wirex.structures.XUpdate;
@@ -735,6 +733,20 @@ final class WirexCore implements Wirex {
         }
     }
 
+    private class ObjectHolder<T> {
+
+        private T object;
+
+        public T getObject() {
+            return object;
+        }
+
+        public void setObject(T object) {
+            this.object = object;
+        }
+
+    }
+
     MVP prepare(Class viewClass, Window parent) {
         if (!JPanel.class.isAssignableFrom(viewClass)) {
             LOG.error("Attempted to prepare a non-JPanel {}", viewClass);
@@ -772,13 +784,14 @@ final class WirexCore implements Wirex {
             liveContainer.put(model.getClass().getName(), (XLive) model);
         }
 
+        ObjectHolder<XUpdate> update = new ObjectHolder<>();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         List<Future> locks = new ArrayList<>(1);
 
         for (Field field : fields) {
             final Data data = field.getAnnotation(Data.class);
             final View view = field.getAnnotation(View.class);
-            scanFieldWithData(data, field, model);
+            scanFieldWithData(update, data, field, model);
             scanFieldWithView(executorService, locks, view, field);
             numberOfData = data != null ? numberOfData + 1 : numberOfData;
             numberOfView = view != null ? numberOfView + 1 : numberOfView;
@@ -823,12 +836,9 @@ final class WirexCore implements Wirex {
         }
 
         List<FieldValidationListener> mediatorListeners = new ArrayList<>();
-        final XUpdate update;
 
         if (presenter instanceof XUpdate) {
-            update = (XUpdate) presenter;
-        } else {
-            update = null;
+            update.setObject((XUpdate) presenter);
         }
 
         for (Field field : fields) {
@@ -1032,7 +1042,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithData(final Data data, final Field field, final Model model) throws WrongComponentException {
+    private void scanFieldWithData(final ObjectHolder<XUpdate> xupdate, final Data data, final Field field, final Model model) throws WrongComponentException {
         if (data != null) {
             Class clazz = field.getType();
             final String modelProperty;
@@ -1059,10 +1069,10 @@ final class WirexCore implements Wirex {
                     modelProperty = LegalIdentifierChecker.check(data.value());
                     JComponent component;
                     if (data.data().isEmpty()) {
-                        component = bindComponent(clazz, model, modelProperty);
+                        component = bindComponent(xupdate, clazz, model, modelProperty);
                     } else {
                         String selectedItemProperty = LegalIdentifierChecker.check(data.data());
-                        component = bindComponent(clazz, model, modelProperty, selectedItemProperty);
+                        component = bindComponent(xupdate, clazz, model, modelProperty, selectedItemProperty);
                     }
                     Rule rule = field.getAnnotation(Rule.class);
                     if (rule != null) {
@@ -1099,7 +1109,7 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private void scanFieldWithRule(Rule rule, final Data data, final Field field, final Model model, final XUpdate presenter, final List<FieldValidationListener> mediatorListeners) {
+    private void scanFieldWithRule(Rule rule, final Data data, final Field field, final Model model, final ObjectHolder<XUpdate> xupdate, final List<FieldValidationListener> mediatorListeners) {
         if (rule != null) {
             Class<? extends ConstraintValidator> validatorClass = rule.value();
             ConstraintValidator validator;
@@ -1113,7 +1123,7 @@ final class WirexCore implements Wirex {
             Object component = mediatorFields.remove(modelProperty);
             if (component instanceof JTextField) {
                 JTextField textField = (JTextField) component;
-                FieldValidationListener mediatorListener = new MediatorFieldListener(field, modelProperty, validator, label, model, presenter);
+                FieldValidationListener mediatorListener = new MediatorFieldListener(field, modelProperty, validator, label, model, xupdate);
                 textField.getDocument()
                         .addDocumentListener(mediatorListener);
                 mediatorListeners.add(mediatorListener);
@@ -1130,10 +1140,6 @@ final class WirexCore implements Wirex {
                         }
                     });
                 }
-            } else if (component instanceof ButtonGroup || component instanceof XButtonGroup) {
-                XButtonGroup buttonGroup = (XButtonGroup) component;
-                buttonGroup.addMediatorListener(new MediatorFieldListener(field, modelProperty, validator, label, model, presenter));
-                // TODO: Mediators radio buttons and check boxes
             }
             mediators.put(modelProperty, label);
         }
@@ -1497,11 +1503,11 @@ final class WirexCore implements Wirex {
         }
     }
 
-    private JComponent bindComponent(Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
-        return bindComponent(component, bean, property, null);
+    private JComponent bindComponent(final ObjectHolder<XUpdate> xupdate, Class component, Object bean, String property) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+        return bindComponent(xupdate, component, bean, property, null);
     }
 
-    private JComponent bindComponent(Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
+    private JComponent bindComponent(final ObjectHolder<XUpdate> xupdate, Class component, Object bean, String property, String property2) throws InstantiationException, IllegalAccessException, PropertyNotFoundException {
         PresentationModel adapter = new PresentationModel(bean);
         ValueModel componentModel = adapter.getModel(property);
         JComponent newComponent = (JComponent) component.newInstance();
@@ -1532,7 +1538,23 @@ final class WirexCore implements Wirex {
         } else if (JLabel.class == component || JLabel.class.isAssignableFrom(component)) {
             Bindings.bind((JLabel) newComponent, componentModel);
         } else if (JCheckBox.class == component || JCheckBox.class.isAssignableFrom(component)) {
-            Bindings.bind((AbstractButton) newComponent, componentModel);
+            AbstractButton button = (AbstractButton) newComponent;
+            Bindings.bind(button, componentModel);
+            button.addActionListener(e -> {
+                Model model = (Model) bean;
+                ValueModel buttonStateModel = adapter.getModel(property);
+                Object buttonState = buttonStateModel.getValue();
+                Object originalValue = model.getUndoObject().getOrDefault(property, "");
+                if (!originalValue.equals(buttonState) || model.isChanged()) {
+                    button.setForeground(Color.BLUE);
+                    XUpdate update = xupdate.getObject();
+                    update.hasChanged();
+                } else {
+                    button.setForeground(Color.BLACK);
+                    XUpdate update = xupdate.getObject();
+                    update.hasReverted();
+                }
+            });
         } else if (JComboBox.class == component || JComboBox.class.isAssignableFrom(component)) {
             Object propertyObject = componentModel.getValue();
             if (!(propertyObject instanceof XList)) {
@@ -1563,7 +1585,23 @@ final class WirexCore implements Wirex {
                 }
             }
         } else if (JRadioButton.class == component || JRadioButton.class.isAssignableFrom(component)) {
-            Bindings.bind((AbstractButton) newComponent, componentModel);
+            AbstractButton button = (AbstractButton) newComponent;
+            Bindings.bind(button, componentModel);
+            button.addActionListener(e -> {
+                Model model = (Model) bean;
+                ValueModel buttonStateModel = adapter.getModel(property);
+                Object buttonState = buttonStateModel.getValue();
+                Object originalValue = model.getUndoObject().getOrDefault(property, "");
+                if (!originalValue.equals(buttonState) || model.isChanged()) {
+                    button.setForeground(Color.BLUE);
+                    XUpdate update = xupdate.getObject();
+                    update.hasChanged();
+                } else {
+                    button.setForeground(Color.BLACK);
+                    XUpdate update = xupdate.getObject();
+                    update.hasReverted();
+                }
+            });
         } else if (JProgressBar.class == component || JProgressBar.class.isAssignableFrom(component)) {
             BeanAdapter beanAdapter = new BeanAdapter(bean, true);
             Bindings.bind(newComponent, "value", beanAdapter.getValueModel(property));
@@ -2079,9 +2117,9 @@ final class WirexCore implements Wirex {
         private final JLabel label;
         private final Model model;
         private final String modelProperty;
-        private final XUpdate update;
+        private final ObjectHolder<XUpdate> xupdate;
 
-        MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model, XUpdate update) {
+        MediatorFieldListener(Field field, String modelProperty, ConstraintValidator validator, JLabel label, Model model, ObjectHolder<XUpdate> xupdate) {
             this.field = field;
             this.validator = validator;
             this.label = label;
@@ -2089,7 +2127,7 @@ final class WirexCore implements Wirex {
             this.modelProperty = modelProperty;
             PresentationModel adapter = new PresentationModel(model);
             this.valueModel = adapter.getModel(modelProperty);
-            this.update = update;
+            this.xupdate = xupdate;
         }
 
         public boolean validate() {
@@ -2112,6 +2150,8 @@ final class WirexCore implements Wirex {
             } else {
                 label.setForeground(Color.RED);
             }
+
+            XUpdate update = xupdate.getObject();
 
             if (update != null) {
                 if (model.isChanged()) {
