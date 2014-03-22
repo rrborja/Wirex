@@ -1140,6 +1140,24 @@ final class WirexCore implements Wirex {
                         }
                     });
                 }
+            } else if (component instanceof JComboBox) {
+                JCheckBox checkBox = (JCheckBox) component;
+                FieldValidationListener mediatorListener = new MediatorFieldListener(field, modelProperty, validator, label, model, xupdate);
+                checkBox.addItemListener(mediatorListener);
+                mediatorListeners.add(mediatorListener);
+                if (validator instanceof XExcludeListener) {
+                    XExcludeListener listener = (XExcludeListener) validator;
+                    String ignoreCharacters = listener.exclude();
+                    checkBox.addKeyListener(new KeyAdapter() {
+                        public void keyTyped(KeyEvent e) {
+                            Character c = e.getKeyChar();
+                            String textFieldInputCharacter = c.toString();
+                            if (ignoreCharacters.contains(textFieldInputCharacter)) {
+                                e.consume();
+                            }
+                        }
+                    });
+                }
             }
             mediators.put(modelProperty, label);
         }
@@ -2181,6 +2199,11 @@ final class WirexCore implements Wirex {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            validate();
+        }
+
+        @Override
+        public void itemStateChanged(ItemEvent e) {
             validate();
         }
 
