@@ -47,21 +47,15 @@ public class ErrorReportPresenter extends Presenter {
 
     public void send() {
         Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.auth", "false");
+        props.put("mail.smtp.starttls.enable", "false");
         props.put("mail.smtp.host", "smtp.visp.net");
         props.put("mail.smtp.port", "587");
-        Session session = Session.getDefaultInstance(props,
-                new javax.mail.Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication("rborja@visp.net", "YQetyZ4zFy");
-                    }
-                });
+        Session session = Session.getDefaultInstance(props, null);
         try {
 
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress("test@bug.com"));
+            message.setFrom(new InternetAddress("DO-NOT-REPLY@visp.net"));
             message.setRecipients(Message.RecipientType.TO,
                     InternetAddress.parse("rborja@visp.net"));
             message.setSubject("Error Reporting");
