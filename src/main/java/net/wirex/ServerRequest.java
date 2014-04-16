@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import net.wirex.enums.Media;
 import net.wirex.enums.REST;
 import net.wirex.interfaces.Model;
+import net.wirex.structures.XAttachment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 
@@ -86,6 +87,23 @@ public final class ServerRequest<T extends Model> {
             LoggerFactory.getLogger(ServerRequest.class.getName()).error("Can't snip field(s) in " + model, ex);
             return "";
         }
+    }
+    
+    public Map getAttachments() {
+        if (!(body instanceof XAttachment)) {
+            return new HashMap(0);
+        }
+        XAttachment attachmentModel = (XAttachment) body;
+        String[] urls = attachmentModel.attachURLs();
+        String[] contentTypes = attachmentModel.getContentTypes();
+        int filesLength = urls.length;
+        Map<String, String> map = new HashMap<>(filesLength);
+        for (int i = 0; i < filesLength; i++) {
+            String url = urls[i];
+            String contentType = contentTypes[i];
+            map.put(url, contentType);
+        }
+        return map;
     }
 
     @Override

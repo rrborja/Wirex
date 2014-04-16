@@ -89,9 +89,9 @@
 
     <distributionManagement>
         <repository>
-            <id>rborjamaven</id>
+            <id>maven</id>
             <name>rborja</name>
-            <url>scp://10.10.0.40/home/rborja/public_html/maven2</url>
+            <url>scp://10.0.1.200/home/maven/public_html/</url>
         </repository>
     </distributionManagement>
 
